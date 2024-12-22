@@ -13167,7 +13167,7 @@
             }, e.prototype.getWeaponStoreName = function() {
                 return t("Weapon Store")
             }, e.prototype.setOptions = function(t) {
-                if (this.options = t, null == this.options.friction_ratio && (this.options.friction_ratio = 1), null == this.options.speed_mod && (this.options.speed_mod = 1), this.options.map_size > 120 && (this.radar_zoom = 100), null != this.options.ships && this.parseShips(this.options), "team" === this.id && this.options.max_players >= 200 && (this.aow = !0), null != this.options.vocabulary) return this.vocabulary = this.options.vocabulary
+                if (this.options = t, null == this.options.friction_ratio && (this.options.friction_ratio = 1), null == this.options.speed_mod && (this.options.speed_mod = 1), this.options.map_size > 120 && (this.radar_zoom = 1), null != this.options.ships && this.parseShips(this.options), "team" === this.id && this.options.max_players >= 200 && (this.aow = !0), null != this.options.vocabulary) return this.vocabulary = this.options.vocabulary
             }, e.prototype.acceptChat = function(t, e) {
                 return !0
             }, e.prototype.fixPositions = function() {}, e.prototype.asteroidsDensityModifier = function(t, e) {
@@ -13227,7 +13227,7 @@
             return i.prototype = e.prototype, t.prototype = new i, t.IO0OI = e.prototype, t
         }, hasProp = {}.hasOwnProperty, this.SurvivalMode = function(e) {
             function i(e) {
-                this.l1110 = e, i.IO0OI.constructor.call(this, "survival", "Survival Mode"), this.max_enter_time = 1800, this.radar_zoom = 100, this.max_enter_players = 50, this.vocabulary = [{
+                this.l1110 = e, i.IO0OI.constructor.call(this, "survival", "Survival Mode"), this.max_enter_time = 1800, this.radar_zoom = 1, this.max_enter_players = 50, this.vocabulary = [{
                     text: "Hello",
                     icon: "E",
                     key: "O"
@@ -13903,7 +13903,7 @@
             return i.prototype = e.prototype, t.prototype = new i, t.IO0OI = e.prototype, t
         }, hasProp = {}.hasOwnProperty, this.DeathMatchMode = function(e) {
             function i(e, s, l) {
-                this.l1110 = e, null == s && (s = "deathmatch"), null == l && (l = "Deathmatch"), i.IO0OI.constructor.call(this, s, l), this.vocabulary = [], this.radar_zoom = 100, this.max_enter_time = 3600, this.max_enter_players = 10, this.soundtrack = "argon.mp3", this.respawn_delay = 1e3, this.IlllO = !1, this.pro = !1, this.anonymous_ships = !0, this.radar_shows_leader = !1, this.show_weaponsbar = !1, this.tips_test = "Kill any ship for %d point", this.tips = [t("Kill any ship for %d point").replace("%d", 1), t("Kill your target for %d points").replace("%d", 2), t("Score %d points to win the round").replace("%d", 12)]
+                this.l1110 = e, null == s && (s = "deathmatch"), null == l && (l = "Deathmatch"), i.IO0OI.constructor.call(this, s, l), this.vocabulary = [], this.radar_zoom = 1, this.max_enter_time = 3600, this.max_enter_players = 10, this.soundtrack = "argon.mp3", this.respawn_delay = 1e3, this.IlllO = !1, this.pro = !1, this.anonymous_ships = !0, this.radar_shows_leader = !1, this.show_weaponsbar = !1, this.tips_test = "Kill any ship for %d point", this.tips = [t("Kill any ship for %d point").replace("%d", 1), t("Kill your target for %d points").replace("%d", 2), t("Score %d points to win the round").replace("%d", 12)]
             }
             return extend(i, e), i.prototype.lOl1l = function(t) {
                 return this.game_info = t, this.l1110.startGame(t), this.l1110.display.screen.lO100.hide(), this.l1110.lIlO0.IO11l.I1000.x = 0, this.l1110.lIlO0.IO11l.I1000.y = -40, this.next_round_page = new NextRoundPage(this.l1110, this), this.next_round_page.visible = !1, this.l1110.display.screen.lO100.add(this.next_round_page, [0, 0, 1, 1]), this.l1110.I0O01.enter()
@@ -14399,7 +14399,7 @@
             return i.prototype = e.prototype, t.prototype = new i, t.IO0OI = e.prototype, t
         }, hasProp = {}.hasOwnProperty, this.BattleRoyaleMode = function(e) {
             function i(e, s, l) {
-                this.l1110 = e, null == s && (s = "battleroyale"), null == l && (l = "Battle Royale"), i.IO0OI.constructor.call(this, s, l), this.vocabulary = [], this.radar_zoom = 2, this.high_def_radar = !0, this.max_enter_time = 120, this.max_enter_players = 30, this.soundtrack = "crystals.mp3", this.respawn_delay = 1e3, this.IlllO = !1, this.anonymous_ships = !1, this.radar_shows_leader = !1, this.show_weaponsbar = !0, this.restricted_weapons_store = !0, this.OlII0 = BATTLE_SHIPS, this.OI1I1 = BATTLE_SHIP_TYPES, this.OlII0.add(OlII0.ships_by_code[101]), this.OI1I1.add(OI1I1.types_by_code[101]), this.l1000 = 36e3, this.OOlIl = 1.3, this.O0lI0 = .003, this.RADIATION_START = 7200, this.custom_game_allowed = !0, this.llIlI = !1, this.tips_test = "Collect weapons and refills", this.tips = [t("Collect weapons and refills"), t("Kill other players"), t("Be the last player standing")], this.spawned = !1
+                this.l1110 = e, null == s && (s = "battleroyale"), null == l && (l = "Battle Royale"), i.IO0OI.constructor.call(this, s, l), this.vocabulary = [], this.radar_zoom = 1, this.high_def_radar = !0, this.max_enter_time = 120, this.max_enter_players = 30, this.soundtrack = "crystals.mp3", this.respawn_delay = 1e3, this.IlllO = !1, this.anonymous_ships = !1, this.radar_shows_leader = !1, this.show_weaponsbar = !0, this.restricted_weapons_store = !0, this.OlII0 = BATTLE_SHIPS, this.OI1I1 = BATTLE_SHIP_TYPES, this.OlII0.add(OlII0.ships_by_code[101]), this.OI1I1.add(OI1I1.types_by_code[101]), this.l1000 = 36e3, this.OOlIl = 1.3, this.O0lI0 = .003, this.RADIATION_START = 7200, this.custom_game_allowed = !0, this.llIlI = !1, this.tips_test = "Collect weapons and refills", this.tips = [t("Collect weapons and refills"), t("Kill other players"), t("Be the last player standing")], this.spawned = !1
             }
             return extend(i, e), i.prototype.lOl1l = function(t) {
                 return this.game_info = t, this.l1110.startGame(t), this.l1110.display.screen.lO100.hide(), this.l1110.lIlO0.IO11l.I1000.x = 0, this.l1110.lIlO0.IO11l.I1000.y = -40, this.next_round_page = new BattleRoyalePage(this.l1110, this), this.next_round_page.visible = !1, this.l1110.display.screen.lO100.add(this.next_round_page, [0, 0, 1, 1]), this.l1110.I0O01.enter()
@@ -14793,7 +14793,7 @@
                     text: "Hmm",
                     icon: "K",
                     key: "Q"
-                }], this.radar_zoom = 100, this.soundtrack = "argon.mp3", this.gameover = !1, this.ship_can_upgrade = !1, this.ship_can_buy_life = !1, this.show_upgrades = !1, this.disable_ship_upgrade_collapsing = !0, this.respawn_delay = 1e3, this.sharing_enabled = !1, this.IlllO = !1, this.tips_test = "You will learn everything about controlling your ship, upgrading, using secondary weapons, comms.", this.tips = [t("You will learn everything about controlling your ship, upgrading, using secondary weapons, comms."), t("If you skip this training, you can still start it later from the profile page.")]
+                }], this.radar_zoom = 1, this.soundtrack = "argon.mp3", this.gameover = !1, this.ship_can_upgrade = !1, this.ship_can_buy_life = !1, this.show_upgrades = !1, this.disable_ship_upgrade_collapsing = !0, this.respawn_delay = 1e3, this.sharing_enabled = !1, this.IlllO = !1, this.tips_test = "You will learn everything about controlling your ship, upgrading, using secondary weapons, comms.", this.tips = [t("You will learn everything about controlling your ship, upgrading, using secondary weapons, comms."), t("If you skip this training, you can still start it later from the profile page.")]
             }
             return extend(i, e), i.prototype.lOl1l = function(t) {
                 return this.l1110.I0O01.enter(), this.l1110.I0O01.respawn(function(e) {
