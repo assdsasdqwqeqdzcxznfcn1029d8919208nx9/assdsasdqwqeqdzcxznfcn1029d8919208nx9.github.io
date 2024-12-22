@@ -6438,97 +6438,49 @@
                     return t - e * Math.floor(t / e)
                 }, t.prototype.lI0OO = function() {}, t.prototype.say = function(t) {
                     return this.chat_bubble.l0I00(t)
-t.prototype.lOO11 = function (t) {
-    var e, i, s, l, n, a, o, r, h, u;
-    if (this.lOO01(), null != this.I1000) {
-        document.getElementById("content").style["margin-top"] = "50px";
-        r = 240;
-
-        if (null != this.demo) this.demo.l1O0l();
-        if (this.IO11l.II1O0 < r) a = this.IO11l.I1l0O();
-        this.IO11l.I1000.zoom = 0.4;
-
-        n = this.IO11l.ships;
-        for (s = 0, l = n.length; s < l; s++) {
-            o = n[s];
-            o.shipmodel.propstep(!0);
-        }
-
-        if (Math.random() < 0.06 && this.IO11l.II1O0 < r) {
-            this.O101l.explode(
-                10 * Math.random() - 5,
-                10 * Math.random() - 5 - 60,
-                360 * Math.random(),
-                1 + 1 * Math.random()
-            );
-        }
-
-        this.IO11l.O1lIl(a);
-        if (null != this.control) this.control.I1l0O(a);
-
-        this.I1000.position.x = this.IO11l.I1000.x;
-        this.I1000.position.y = this.IO11l.I1000.y;
-        this.I1000.fov = 45 * this.IO11l.I1000.zoom;
-        this.I1000.updateProjectionMatrix();
-
-        if (this.IO11l.II1O0 < r) this.O101l.l1O0l();
-
-        if (this.Ill00.type.code !== this.Ill00.status.type) {
-            this.Ill00.setType(OI1I1.types_by_code[this.Ill00.status.type]);
-            this.lIlO0.remove(this.ship.Il1I1);
-            this.ship.dispose();
-            this.ship = new lIl1O(OlII0.ships_by_code[this.Ill00.type.code], this.Ill00.status.hue / 360);
-            this.lIlO0.add(this.ship.Il1I1);
-            this.ship.bump(this.IO11l.II1O0);
-            this.l1110.l0I11.beep(0.5);
-        }
-
-        h = this.Ill00.status.x;
-        u = this.Ill00.status.y;
-        e = Math.sqrt(h * h + u * u);
-
-        if (h > this.l1110.l0I1I / 2) h = this.l1110.l0I1I - h;
-        else if (h < -this.l1110.l0I1I / 2) h = -this.l1110.l0I1I - h;
-
-        if (u > this.l1110.l0I1I / 2) u = this.l1110.l0I1I - u;
-        else if (u < -this.l1110.l0I1I / 2) u = -this.l1110.l0I1I - u;
-
-        i = Math.sqrt(h * h + u * u);
-
-        if (e > this.l1110.l0I1I / 2) this.OOOI1.position.set(-h, -u, i);
-        else this.OOOI1.position.set(-h, -u, e - 10);
-
-        this.ship.Il1I1.rotation.x = this.Ill00.ll010;
-        this.ship.Il1I1.rotation.y = 0.4 * this.Ill00.OOIlI;
-        this.ship.Il1I1.rotation.z = this.Ill00.I00O0.r + 180 * THREE.Math.DEG2RAD;
-
-        this.ship.Il1I1.position.x = this.Ill00.status.x;
-        this.ship.Il1I1.position.y = this.Ill00.status.y;
-
-        this.ship.I00I1.visible = this.Ill00.I00O0.up;
-        this.ship.Il1I1.visible = this.Ill00.status.alive;
-
-        this.ship.propstep(this.Ill00.I00O0.up);
-        this.ship.l1O0l(this.IO11l.II1O0);
-
-        if (null != this.chat_bubble) {
-            this.chat_bubble.l0OlI.position.x = this.Ill00.status.x;
-            this.chat_bubble.l0OlI.position.y = this.Ill00.status.y + 6;
-            this.chat_bubble.OO0Il();
-        }
-
-        this.OlIO1.l1O0l(this.IO11l.II1O0, this.I1000.position.x, this.I1000.position.y);
-        this.I0O1l.l1O0l(this.IO11l);
-
-        this.Ill00.l0Oll();
-
-        t.sortObjects = !1;
-
-        this.background.lOO11(t, this.IO11l.II1O0);
-        t.render(this.lIlO0, this.I1000);
-    }
-};
-(), this.RIPPlate = function() {
+                }, t.prototype.lOO11 = function(t) {
+                    var e, i, s, l, n, a, o, r, h, u;
+                    if (this.lOO01(), null != this.I1000) {
+                        for (document.getElementById("content").style["margin-top"] = "50px", r = 240, null != this.demo && this.demo.l1O0l(), this.IO11l.II1O0 < r && (a = this.IO11l.I1l0O()), this.IO11l.I1000.zoom = .4, n = this.IO11l.ships, s = 0, l = n.length; s < l; s++) o = n[s], o.shipmodel.propstep(!0);
+                        return Math.random() < .06 && this.IO11l.II1O0 < r && this.O101l.explode(10 * Math.random() - 5, 10 * Math.random() - 5 - 60, 360 * Math.random(), 1 + 1 * Math.random()), this.IO11l.O1lIl(a), null != this.control && this.control.I1l0O(a), this.I1000.position.x = this.IO11l.I1000.x, this.I1000.position.y = this.IO11l.I1000.y, this.I1000.fov = 45 * this.IO11l.I1000.zoom, this.I1000.updateProjectionMatrix(), this.IO11l.II1O0 < r && this.O101l.l1O0l(), this.Ill00.type.code !== this.Ill00.status.type && (this.Ill00.setType(OI1I1.types_by_code[this.Ill00.status.type]), this.lIlO0.remove(this.ship.Il1I1), this.ship.dispose(), this.ship = new lIl1O(OlII0.ships_by_code[this.Ill00.type.code], this.Ill00.status.hue / 360), this.lIlO0.add(this.ship.Il1I1), this.ship.bump(this.IO11l.II1O0), this.l1110.l0I11.beep(.5)), h = this.Ill00.status.x, u = this.Ill00.status.y, e = Math.sqrt(h * h + u * u), h > this.l1110.l0I1I / 2 ? h = this.l1110.l0I1I - h : h < -this.l1110.l0I1I / 2 && (h = -this.l1110.l0I1I - h), u > this.l1110.l0I1I / 2 ? u = this.l1110.l0I1I - u : u < -this.l1110.l0I1I / 2 && (u = -this.l1110.l0I1I - u), i = Math.sqrt(h * h + u * u), e > this.l1110.l0I1I / 2 ? this.OOOI1.position.set(-h, -u, i) : this.OOOI1.position.set(-h, -u, e - 10), this.ship.Il1I1.rotation.x = this.Ill00.ll010, this.ship.Il1I1.rotation.y = .4 * this.Ill00.OOIlI, this.ship.Il1I1.rotation.z = this.Ill00.I00O0.r + 180 * THREE.Math.DEG2RAD, this.ship.Il1I1.position.x = this.Ill00.status.x, this.ship.Il1I1.position.y = this.Ill00.status.y, this.ship.I00I1.visible = this.Ill00.I00O0.up, this.ship.Il1I1.visible = this.Ill00.status.alive, this.ship.propstep(this.Ill00.I00O0.up), this.ship.l1O0l(this.IO11l.II1O0), null != this.chat_bubble && (this.chat_bubble.l0OlI.position.x = this.Ill00.status.x, this.chat_bubble.l0OlI.position.y = this.Ill00.status.y + 6, this.chat_bubble.OO0Il()), this.OlIO1.l1O0l(this.IO11l.II1O0, this.I1000.position.x, this.I1000.position.y), this.I0O1l.l1O0l(this.IO11l), this.Ill00.l0Oll(), t.sortObjects = !1, this.background.lOO11(t, this.IO11l.II1O0), t.render(this.lIlO0, this.I1000)
+                    }
+                }, t
+            }(), this.SplashDemo = function() {
+                function t(t, e) {
+                    this.l1110 = t, this.lIlO0 = e, this.IO11l = this.lIlO0.IO11l, this.lOOlI(4, -66, 101, 180 * THREE.Math.DEG2RAD * .9, 0), this.lOOlI(7, -60, 201, 180 * THREE.Math.DEG2RAD * 1.05, 120), this.lOOlI(-115, -60, 602, 180 * THREE.Math.DEG2RAD * -.15, 180), this.lOOlI(-5, -63, 401, 180 * THREE.Math.DEG2RAD * -.1, 200)
+                }
+                return t.prototype.createFormation = function() {
+                    var t, e, i, s, l, n, a, o, r, h, u, d, c, p, I;
+                    for (n = 1 + Math.floor(5 * Math.pow(Math.random(), 1.5)), a = 2 * Math.random() * (180 * THREE.Math.DEG2RAD), t = 2 * Math.random() * (180 * THREE.Math.DEG2RAD), l = Math.floor(6 * Math.pow(Math.random(), 1.5)) + 1, u = Math.floor(Math.random() * l) + 1, u += 100 * l, d = 0 - 80 * Math.cos(t), p = -60 - 80 * Math.sin(t), e = Math.floor(360 * Math.random()), o = 2.5 * OI1I1.types_by_code[u].radius, h = [], i = s = 1, r = n; 1 <= r ? s <= r : s >= r; i = 1 <= r ? ++s : --s) c = d + Math.cos(a + i / n * (180 * THREE.Math.DEG2RAD) * 2) * o, I = p + Math.sin(a + i / n * (180 * THREE.Math.DEG2RAD) * 2) * o, h.push(this.lOOlI(c, I, u, t, e));
+                    return h
+                }, t.prototype.lOOlI = function(t, e, i, s, l) {
+                    var n;
+                    return n = new O00IO, n.x = t, n.y = e, n.lllOl = 0, n.II110 = 0, n.r = s, n.lIl10 = 0, n.alive = !0, n.up = !1, n.OI00O = !0, n.hue = l, n.angle = Math.round(360 * s / 2 / (180 * THREE.Math.DEG2RAD)), n.type = i, n.O01O1 = this.lIlO0.IO11l.II1O0, this.IO11l.addDemoShip(n)
+                }, t.prototype.l1O0l = function() {
+                    var t, e, i, s, l, n, a, o, r;
+                    for (this.IO11l.ships[3].O1II0.ll010 = .5, this.IO11l.ships[0].O1II0.ll010 = .2, this.IO11l.ships[1].O1II0.ll010 = -.4, a = this.IO11l.ships, i = 0, s = a.length; i < s; i++) r = a[i], r.O1II0.status.O01O1 = this.lIlO0.IO11l.II1O0, Math.random() < .01 && (r.O1II0.status.OI00O = !r.O1II0.status.OI00O), r.O1II0.status.OI00O && this.shipShootingEval(r);
+                    for (o = this.IO11l.ships, n = 0, l = o.length; n < l && (r = o[n], t = r.O1II0.status.x, e = r.O1II0.status.y + 60, !(Math.sqrt(t * t + e * e) > 100)); n++);
+                    if (this.IO11l.ships.length < 1) return this.createFormation()
+                }, t.prototype.shipShootingEval = function(t) {
+                    var e, i, s, l, n, a, o, r, h, u, d, c, p, I, O, m;
+                    for (i = s = 0, r = t.O1II0.instance.lasers.length - 1; s <= r; i = s += 1)
+                        if (n = t.O1II0.instance.lasers[i], null == n.next_shot && (n.next_shot = 0), this.IO11l.II1O0 >= n.next_shot)
+                            for (void 0 !== a && null !== a || (a = []), n.next_shot = this.IO11l.II1O0 + 60 / n.type.rate, c = Math.cos(t.O1II0.status.r), p = Math.sin(t.O1II0.status.r), u = p, d = -c, I = t.O1II0.status.x - n.type.y * c + n.type.x * u, O = t.O1II0.status.y - n.type.y * p + n.type.x * d, m = n.type.z, l = o = 0, h = n.type.number - 1; 0 <= h ? o <= h : o >= h; l = 0 <= h ? ++o : --o) e = t.O1II0.status.r + n.type.angle / 180 * (180 * THREE.Math.DEG2RAD), n.type.number > 1 && (e += n.type.spread * (l / (n.type.number - 1) - .5) / 180 * (180 * THREE.Math.DEG2RAD)), this.lIlO0.laserticles.OI00O({
+                                x: I,
+                                y: O,
+                                z: m,
+                                lllOl: t.O1II0.status.lllOl,
+                                II110: t.O1II0.status.II110,
+                                IOllI: O0l1l.hsvToRgbHex(t.shipmodel.hue, .5, 1),
+                                type: 0,
+                                angle: e + (Math.random() - .5) * n.type.error / 180 * (180 * THREE.Math.DEG2RAD),
+                                speed: n.speed,
+                                damage: n.damage,
+                                OI11O: 120,
+                                OOI0l: this.IO11l.II1O0
+                            })
+                }, t
+            }(), this.RIPPlate = function() {
                 function t(t, e) {
                     this.name = t, this.l1OI0 = e, this.OII1l = Date.now(), this.canvas = document.createElement("canvas"), this.canvas.width = 256, this.canvas.height = 256, this.texture = new THREE.Texture(this.canvas), this.texture.minFilter = THREE.LinearFilter, this.lOll0(), this.O1III = new THREE.PlaneGeometry(1, 1), this.material = new THREE.MeshBasicMaterial({
                         color: 16777215,
