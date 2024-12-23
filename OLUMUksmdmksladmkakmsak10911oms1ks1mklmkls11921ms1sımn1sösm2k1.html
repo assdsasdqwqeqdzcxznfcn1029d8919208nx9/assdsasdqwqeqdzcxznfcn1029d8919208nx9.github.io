@@ -6338,33 +6338,6 @@
                         blending: THREE.AdditiveBlending
                     }), this.l0OlI = new THREE.Mesh(this.O1III, this.material), this.base_size = this.l1110.is_mobile_app ? 5 : 3, this.l0OlI.scale.set(this.base_size, this.base_size, 1), this.l0OlI.visible = !1, this.updateTexture(), this.fadeout = 0
                 }
-				
-
-{
-// Ensure that this.I1000.fov exists and is accessible
-if (typeof this.I1000 !== 'undefined' && typeof this.I1000.fov !== 'undefined') {
-  // Add an event listener for the scroll event
-  window.addEventListener('wheel', (event) => {
-    // Determine the scroll direction
-    if (event.deltaY < 0) {
-      // Scroll up: Increase fov by 5
-      this.I1000.fov += 5;
-    } else if (event.deltaY > 0) {
-      // Scroll down: Decrease fov by 5
-      this.I1000.fov -= 5;
-    }
-
-    // Log the updated fov for debugging
-    console.log(`Updated this.I1000.fov: ${this.I1000.fov}`);
-  });
-} else {
-  console.error('this.I1000 or this.I1000.fov is not defined. Make sure the object exists.');
-}
-}
-
-
-
-
                 return t.prototype.setHue = function(t) {
                     this.hue = t
                 }, t.prototype.l0I00 = function(t) {
