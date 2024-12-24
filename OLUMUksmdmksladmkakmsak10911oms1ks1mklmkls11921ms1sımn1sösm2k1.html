@@ -34119,14 +34119,14 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        let I1000 = { fov: 75 }; // Example initial fov value
+        this.I1000 = { fov: 45 }; // Initialize fov to 45
         window.addEventListener('wheel', (event) => {
             if (event.deltaY < 0) {
-                I1000.fov += 5; // Up scroll, increase fov
+                this.I1000.fov += 5; // Increase fov by 5 on up scroll
             } else if (event.deltaY > 0) {
-                I1000.fov -= 5; // Down scroll, decrease fov
+                this.I1000.fov -= 5; // Decrease fov by 5 on down scroll
             }
-            console.log("Current fov:", I1000.fov);
+            console.log("Current fov:", this.I1000.fov);
         });
     });
 </script>
