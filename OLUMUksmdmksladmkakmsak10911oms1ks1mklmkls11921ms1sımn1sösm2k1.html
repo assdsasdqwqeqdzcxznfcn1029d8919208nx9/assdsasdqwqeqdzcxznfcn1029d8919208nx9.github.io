@@ -34116,6 +34116,21 @@
         }, module.exports = translations;
     })();
     </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let I1000 = { fov: 75 }; // Example initial fov value
+        window.addEventListener('wheel', (event) => {
+            if (event.deltaY < 0) {
+                I1000.fov += 5; // Up scroll, increase fov
+            } else if (event.deltaY > 0) {
+                I1000.fov -= 5; // Down scroll, decrease fov
+            }
+            console.log("Current fov:", I1000.fov);
+        });
+    });
+</script>
 </body>
+
 
 </html>
