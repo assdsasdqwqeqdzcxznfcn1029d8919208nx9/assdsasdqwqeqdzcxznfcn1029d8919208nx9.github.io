@@ -34118,19 +34118,30 @@
     </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        this.I1000 = { fov: 45 }; // Initialize fov to 45
-        window.addEventListener('wheel', (event) => {
-            if (event.deltaY < 0) {
-                this.I1000.fov += 5; // Increase fov by 5 on up scroll
-            } else if (event.deltaY > 0) {
-                this.I1000.fov -= 5; // Decrease fov by 5 on down scroll
-            }
-            console.log("Current fov:", this.I1000.fov);
-        });
+    // Initialize the FOV value
+    let fov = 90; // Default FOV value
+
+    // Listen for the mouse wheel event
+    window.addEventListener('wheel', function(event) {
+        if (event.deltaY < 0) {
+            // Scroll up: Increase FOV
+            fov += 1;
+        } else if (event.deltaY > 0) {
+            // Scroll down: Decrease FOV
+            fov -= 1;
+        }
+        
+        // Ensure FOV stays within a reasonable range
+        fov = Math.max(30, Math.min(150, fov)); // Clamping between 30 and 150
+
+        // Update the FOV (assuming 'this.I1000.fov' is part of a game object accessible globally)
+        if (this.I1000) {
+            this.I1000.fov = fov;
+        }
+        console.log('Current FOV:', fov); // Log the FOV for debugging
     });
 </script>
-</body>
 
+</body>
 
 </html>
