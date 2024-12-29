@@ -34118,7 +34118,7 @@
     </script>
 <script>
     document.addEventListener('wheel', (event) => {
-        // Check if fov exists and initialize it if undefined
+        // Ensure fov exists and initialize it to 45 if undefined
         if (typeof fov === 'undefined') {
             console.log("Initializing fov to 45.");
             fov = 45; // Default value
@@ -34131,15 +34131,17 @@
         // Log the new fov value
         console.log(`New fov: ${fov}`);
 
-        // Trigger a render update (specific to the game engine or context)
-        if (typeof render === 'function') {
-            render(); // Ensure the game renders with the new fov value
-            console.log("Render function called to apply fov changes.");
+        // Check if `fov` is being used somewhere else and force an update
+        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
+            I1000.fov = fov; // Assign the updated fov to the I1000 object
+            I1000.updateProjectionMatrix(); // Force update
+            console.log("I1000 projection matrix updated with new fov.");
         } else {
-            console.warn("Render function is not available.");
+            console.warn("I1000 object or updateProjectionMatrix is not available.");
         }
     });
 </script>
+
 
 
 
