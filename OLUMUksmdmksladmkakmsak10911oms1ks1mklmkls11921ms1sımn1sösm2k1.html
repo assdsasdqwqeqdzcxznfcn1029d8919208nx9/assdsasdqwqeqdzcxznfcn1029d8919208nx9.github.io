@@ -34118,24 +34118,25 @@
     </script>
 <script>
     document.addEventListener('wheel', (event) => {
-        // Ensure this.I1000 and fov exist, and initialize fov if undefined
-        if (!this.I1000) {
-            console.error("this.I1000 is not defined.");
+        // Ensure I1000 and fov exist, and initialize fov if undefined
+        if (!I1000) {
+            console.error("I1000 is not defined.");
             return;
         }
-        if (typeof this.I1000.fov === 'undefined') {
-            console.log("Initializing this.I1000.fov to 45.");
-            this.I1000.fov = 45;
+        if (typeof I1000.fov === 'undefined') {
+            console.log("Initializing I1000.fov to 45.");
+            I1000.fov = 45;
         }
 
         // Adjust fov based on scroll direction
         const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        this.I1000.fov = this.I1000.fov + scrollDirection;
+        I1000.fov = I1000.fov + scrollDirection;
 
         // Log the new fov value
-        console.log(`New fov: ${this.I1000.fov}`);
+        console.log(`New fov: ${I1000.fov}`);
     });
 </script>
+
 
 
 
