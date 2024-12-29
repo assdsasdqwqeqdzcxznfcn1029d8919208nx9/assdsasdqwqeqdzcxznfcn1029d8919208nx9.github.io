@@ -34118,28 +34118,29 @@
     </script>
 <script>
     document.addEventListener('wheel', (event) => {
-        // Ensure this.I1000 and its fov property exist
-        if (!this.I1000 || typeof this.I1000.fov === 'undefined') {
-            console.error("this.I1000 or this.I1000.fov is not defined.");
-            return;
+        // Check if fov exists and initialize it if undefined
+        if (typeof fov === 'undefined') {
+            console.log("Initializing fov to 45.");
+            fov = 45; // Default value
         }
 
         // Adjust fov based on scroll direction
         const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        this.I1000.fov = this.I1000.fov + scrollDirection;
+        fov = Math.max(10, Math.min(120, fov + scrollDirection)); // Clamp fov between 10 and 120
 
         // Log the new fov value
-        console.log(`New fov: ${this.I1000.fov}`);
+        console.log(`New fov: ${fov}`);
 
-        // Update the projection matrix to apply the new fov
-        if (typeof this.I1000.updateProjectionMatrix === 'function') {
-            this.I1000.updateProjectionMatrix();
-            console.log("Projection matrix updated.");
+        // Trigger a render update (specific to the game engine or context)
+        if (typeof render === 'function') {
+            render(); // Ensure the game renders with the new fov value
+            console.log("Render function called to apply fov changes.");
         } else {
-            console.warn("this.I1000.updateProjectionMatrix is not a function.");
+            console.warn("Render function is not available.");
         }
     });
 </script>
+
 
 
 
