@@ -34118,29 +34118,29 @@
     </script>
 <script>
     document.addEventListener('wheel', (event) => {
-        // Ensure fov exists and initialize it to 45 if undefined
-        if (typeof fov === 'undefined') {
-            console.log("Initializing fov to 45.");
-            fov = 45; // Default value
+        // Ensure this.I1000 and its fov property exist
+        if (!this.I1000 || typeof this.I1000.fov === 'undefined') {
+            console.error("this.I1000 or this.I1000.fov is not defined.");
+            return;
         }
 
         // Adjust fov based on scroll direction
         const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        fov = fov + scrollDirection;
+        this.I1000.fov = this.I1000.fov + scrollDirection;
 
         // Log the new fov value
-        console.log(`New fov: ${fov}`);
+        console.log(`New fov: ${this.I1000.fov}`);
 
-        // Check if there's a camera object that needs its projection matrix updated
-        if (typeof camera !== 'undefined' && camera.isPerspectiveCamera) {
-            camera.fov = fov; // Apply the new fov to the camera
-            camera.updateProjectionMatrix(); // Ensure the camera's projection matrix is updated
-            console.log("Camera projection matrix updated.");
+        // Update the projection matrix to apply the new fov
+        if (typeof this.I1000.updateProjectionMatrix === 'function') {
+            this.I1000.updateProjectionMatrix();
+            console.log("Projection matrix updated.");
         } else {
-            console.warn("Camera object is not available or is not a perspective camera.");
+            console.warn("this.I1000.updateProjectionMatrix is not a function.");
         }
     });
 </script>
+
 
 
 
