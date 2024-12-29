@@ -34118,7 +34118,7 @@
     </script>
 <script>
     document.addEventListener('wheel', (event) => {
-        // Ensure fov exists, and initialize it to 45 if undefined
+        // Ensure fov exists and initialize it to 45 if undefined
         if (typeof fov === 'undefined') {
             console.log("Initializing fov to 45.");
             fov = 45; // Default value
@@ -34130,8 +34130,18 @@
 
         // Log the new fov value
         console.log(`New fov: ${fov}`);
+
+        // Check if there's a camera object that needs its projection matrix updated
+        if (typeof camera !== 'undefined' && camera.isPerspectiveCamera) {
+            camera.fov = fov; // Apply the new fov to the camera
+            camera.updateProjectionMatrix(); // Ensure the camera's projection matrix is updated
+            console.log("Camera projection matrix updated.");
+        } else {
+            console.warn("Camera object is not available or is not a perspective camera.");
+        }
     });
 </script>
+
 
 
 
