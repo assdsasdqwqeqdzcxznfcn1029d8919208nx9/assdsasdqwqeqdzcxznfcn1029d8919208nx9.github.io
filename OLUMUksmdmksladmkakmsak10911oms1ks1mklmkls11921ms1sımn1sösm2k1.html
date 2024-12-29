@@ -34116,6 +34116,23 @@
         }, module.exports = translations;
     })();
     </script>
+	<script>
+    // JavaScript to adjust this.I1000.fov explicitly
+    document.addEventListener('wheel', (event) => {
+        if (!this.I1000 || typeof this.I1000.fov === 'undefined') {
+            console.error("this.I1000 or this.I1000.fov is not defined");
+            return;
+        }
+
+        // Update fov based on scroll direction
+        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
+        this.I1000.fov = this.I1000.fov + scrollDirection;
+
+        // Log the new fov value
+        console.log(`New fov: ${this.I1000.fov}`);
+    });
+</script>
+
 </body>
 
 </html>
