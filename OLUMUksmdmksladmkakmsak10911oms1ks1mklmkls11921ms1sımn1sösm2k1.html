@@ -6322,21 +6322,8 @@
                     var e, i, s, l, n, a, o, r, h;
                     if (this.lOO01(), null != this.I1000) {
                         for (null != this.station && this.station.l1O0l(), null != this.demo && this.demo.l1O0l(), o = this.IO11l.I1l0O(), this.IO11l.O1lIl(o), null != this.control && this.control.I1l0O(o), l = 1, a = o; l <= a; l += 1) this.shake.x += this.shake.lllOl, this.shake.y += this.shake.II110, this.shake.r += this.shake.lIl10, n = .2, this.shake.lllOl -= this.shake.x * n, this.shake.II110 -= this.shake.y * n, this.shake.lIl10 -= this.shake.r * n, this.shake.lllOl *= .7, this.shake.II110 *= .7, this.shake.lIl10 *= .7;
-
-            window.addEventListener('wheel', function(event) {
-                if (event.deltaY < 0) {
-                    // Scroll up: Increase FOV
-                    this.I1000.fov += 1;
-                } else if (event.deltaY > 0) {
-                    // Scroll down: Decrease FOV
-                    this.I1000.fov -= 1;
-                }
-                // Ensure FOV stays within a reasonable range
-                fov = Math.max(200, Math.min(10, fov));
-                this.I1000.fov = fov; // Update the FOV dynamically
-                console.log('Current FOV:', fov); // Log the FOV for debugging
-            });
-                            }
+                        return this.I1000.position.x = this.IO11l.I1000.x + this.shake.x, this.I1000.position.y = this.IO11l.I1000.y + this.shake.y, this.I1000.rotation.z = 180 * THREE.Math.DEG2RAD * 2, this.I1000.fov = 45 * this.IO11l.I1000.zoom, this.I1000.updateProjectionMatrix(), this.O101l.l1O0l(), null != this.snow && (this.snow.IIl10.position.x = this.I1000.position.x, this.snow.IIl10.position.y = this.I1000.position.y, this.snow.lOlI1(this.background.width, this.background.height)), (this.Ill00.type.code !== this.Ill00.status.type || Math.abs(this.Ill00.status.hue / 360 - this.ship.hue) > .01 || this.Ill00.status.l1OI0 && !this.ship.ecp_verified) && (e = this.Ill00.type.code !== this.Ill00.status.type, this.Ill00.setType(this.l1110.mode.OI1I1.types_by_code[this.Ill00.status.type]), this.lIlO0.remove(this.ship.Il1I1), this.ship.dispose(), this.ship = new lIl1O(this.l1110.mode.OlII0.ships_by_code[this.Ill00.type.code], this.Ill00.status.hue / 360), this.Ill00.status.l1OI0 && (this.ship.ecp_verified = !0, this.ship.finish = this.l1110.l1OI0.custom.finish), this.lIlO0.add(this.ship.Il1I1), this.ship.bump(this.IO11l.II1O0), e && this.l1110.l0I11.beep(.5)), r = this.IO11l.I1000.x, h = this.IO11l.I1000.y, i = Math.sqrt(r * r + h * h), r > this.l1110.l0I1I / 2 ? r = this.l1110.l0I1I - r : r < -this.l1110.l0I1I / 2 && (r = -this.l1110.l0I1I - r), h > this.l1110.l0I1I / 2 ? h = this.l1110.l0I1I - h : h < -this.l1110.l0I1I / 2 && (h = -this.l1110.l0I1I - h), s = Math.sqrt(r * r + h * h), i > this.l1110.l0I1I / 2 ? this.OOOI1.position.set(-r, -h, s) : this.OOOI1.position.set(-r, -h, i - 10), this.ship.Il1I1.rotation.x = this.Ill00.ll010 + 180 * THREE.Math.DEG2RAD * 2, this.ship.Il1I1.rotation.y = .4 * this.Ill00.OOIlI + 180 * THREE.Math.DEG2RAD * 2, this.ship.Il1I1.rotation.z = this.Ill00.I00O0.r + 180 * THREE.Math.DEG2RAD, this.ship.Il1I1.position.x = this.Ill00.status.x, this.ship.Il1I1.position.y = this.Ill00.status.y, this.ship.I00I1.visible = this.Ill00.I00O0.up, this.ship.Il1I1.visible = this.Ill00.status.alive, null != this.Ill00.pods && this.Ill00.pods.updateModels(this.Ill00.status.alive), this.ship.l1OI0 = this.Ill00.status.l1OI0, this.ship.propstep(this.Ill00.I00O0.up || this.Ill00.status.dash), this.ship.invulnerable = this.Ill00.status.invulnerable, this.ship.l1O0l(this.IO11l.II1O0), null != this.chat_bubble && (this.chat_bubble.l0OlI.position.x = this.Ill00.status.x, this.chat_bubble.l0OlI.position.y = this.Ill00.status.y + 6, this.chat_bubble.OO0Il()), this.OlIO1.l1O0l(this.IO11l.II1O0, this.I1000.position.x, this.I1000.position.y), this.I0O1l.l1O0l(this.IO11l), this.collectibles.l1O0l(this.IO11l), this.Ill00.l0Oll(), t.sortObjects = !1, this.background.lOO11(t, this.IO11l.II1O0), null != this.snow && this.snow.l1O0l(.12 * this.background.O0llO, .12 * this.background.OIOOO, this.l1110.lIlO0.IO11l.II1O0 / 60), t.render(this.lIlO0, this.I1000)
+                    }
                 }, t.prototype.dispose = function() {
                     return this.background.dispose()
                 }, t
@@ -6455,22 +6442,8 @@
                     var e, i, s, l, n, a, o, r, h, u;
                     if (this.lOO01(), null != this.I1000) {
                         for (document.getElementById("content").style["margin-top"] = "50px", r = 240, null != this.demo && this.demo.l1O0l(), this.IO11l.II1O0 < r && (a = this.IO11l.I1l0O()), this.IO11l.I1000.zoom = .4, n = this.IO11l.ships, s = 0, l = n.length; s < l; s++) o = n[s], o.shipmodel.propstep(!0);
-
-            this.I1000.fov = fov; // Updated to dynamically use the fov variable
-            window.addEventListener('wheel', function(event) {
-                if (event.deltaY < 0) {
-                    // Scroll up: Increase FOV
-                    fov += 1;
-                } else if (event.deltaY > 0) {
-                    // Scroll down: Decrease FOV
-                    fov -= 1;
-                }
-                // Ensure FOV stays within a reasonable range
-                fov = Math.max(30, Math.min(150, fov));
-                this.I1000.fov = fov; // Update the FOV dynamically
-                console.log('Current FOV:', fov); // Log the FOV for debugging
-            });
-                            }
+                        return Math.random() < .06 && this.IO11l.II1O0 < r && this.O101l.explode(10 * Math.random() - 5, 10 * Math.random() - 5 - 60, 360 * Math.random(), 1 + 1 * Math.random()), this.IO11l.O1lIl(a), null != this.control && this.control.I1l0O(a), this.I1000.position.x = this.IO11l.I1000.x, this.I1000.position.y = this.IO11l.I1000.y, this.I1000.fov = 45 * this.IO11l.I1000.zoom, this.I1000.updateProjectionMatrix(), this.IO11l.II1O0 < r && this.O101l.l1O0l(), this.Ill00.type.code !== this.Ill00.status.type && (this.Ill00.setType(OI1I1.types_by_code[this.Ill00.status.type]), this.lIlO0.remove(this.ship.Il1I1), this.ship.dispose(), this.ship = new lIl1O(OlII0.ships_by_code[this.Ill00.type.code], this.Ill00.status.hue / 360), this.lIlO0.add(this.ship.Il1I1), this.ship.bump(this.IO11l.II1O0), this.l1110.l0I11.beep(.5)), h = this.Ill00.status.x, u = this.Ill00.status.y, e = Math.sqrt(h * h + u * u), h > this.l1110.l0I1I / 2 ? h = this.l1110.l0I1I - h : h < -this.l1110.l0I1I / 2 && (h = -this.l1110.l0I1I - h), u > this.l1110.l0I1I / 2 ? u = this.l1110.l0I1I - u : u < -this.l1110.l0I1I / 2 && (u = -this.l1110.l0I1I - u), i = Math.sqrt(h * h + u * u), e > this.l1110.l0I1I / 2 ? this.OOOI1.position.set(-h, -u, i) : this.OOOI1.position.set(-h, -u, e - 10), this.ship.Il1I1.rotation.x = this.Ill00.ll010, this.ship.Il1I1.rotation.y = .4 * this.Ill00.OOIlI, this.ship.Il1I1.rotation.z = this.Ill00.I00O0.r + 180 * THREE.Math.DEG2RAD, this.ship.Il1I1.position.x = this.Ill00.status.x, this.ship.Il1I1.position.y = this.Ill00.status.y, this.ship.I00I1.visible = this.Ill00.I00O0.up, this.ship.Il1I1.visible = this.Ill00.status.alive, this.ship.propstep(this.Ill00.I00O0.up), this.ship.l1O0l(this.IO11l.II1O0), null != this.chat_bubble && (this.chat_bubble.l0OlI.position.x = this.Ill00.status.x, this.chat_bubble.l0OlI.position.y = this.Ill00.status.y + 6, this.chat_bubble.OO0Il()), this.OlIO1.l1O0l(this.IO11l.II1O0, this.I1000.position.x, this.I1000.position.y), this.I0O1l.l1O0l(this.IO11l), this.Ill00.l0Oll(), t.sortObjects = !1, this.background.lOO11(t, this.IO11l.II1O0), t.render(this.lIlO0, this.I1000)
+                    }
                 }, t
             }(), this.SplashDemo = function() {
                 function t(t, e) {
@@ -34143,17 +34116,58 @@
         }, module.exports = translations;
     })();
     </script>
-
-<script>
-window.addEventListener('wheel', (event) => {
-    console.log(window.I1000); // Let's see what's available globally
-    // Add delay to let game initialize
-    setTimeout(() => {
-        console.log("After delay:", window.I1000);
-    }, 2000);
-});
-</script>
-
 </body>
 
 </html>
+<style>
+    .eot-controls {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(90deg, #800080, #ff66cc);
+        color: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        border: 1px solid #fff;
+    }
+    .eot-settings {
+        display: none;
+        position: fixed;
+        top: 50px;
+        right: 10px;
+        width: 400px;
+        height: 300px;
+        background: linear-gradient(180deg, #202020, #505050);
+        border: 2px solid #ff66cc;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        overflow: auto;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const controls = document.querySelector('.eot-controls');
+        const settings = document.querySelector('.eot-settings');
+
+        controls.addEventListener('click', () => {
+            if (settings.style.display === 'none' || settings.style.display === '') {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+            }
+        });
+    });
+</script>
+<div class="eot-controls">EOT Client Controls</div>
+<div class="eot-settings">
+    <h3 style="margin-top: 0; text-align: center; font-size: 1.5em;">EOT Settings</h3>
+    <p style="text-align: center;">Customize your experience here.</p>
+</div>
