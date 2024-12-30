@@ -34126,35 +34126,30 @@
         right: 10px;
         background: linear-gradient(90deg, #800080, #ff66cc);
         color: white;
-        border-radius: 5px;
         padding: 5px 10px;
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 1000;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        border: 1px solid #fff;
     }
     .eot-settings {
         display: none;
         position: fixed;
         top: 50px;
         right: 10px;
-        width: 300px;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        height: 300px;
+        background: linear-gradient(180deg, #202020, #505050);
+        border: 2px solid #ff66cc;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         z-index: 1000;
-        padding: 15px;
-    }
-    .eot-settings h3 {
-        margin-top: 0;
-        font-size: 1.2em;
-    }
-    .eot-settings label {
-        display: block;
-        margin: 10px 0 5px;
-    }
-    .eot-settings input[type="checkbox"] {
-        margin-right: 5px;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        overflow: auto;
     }
 </style>
 <script>
@@ -34173,8 +34168,6 @@
 </script>
 <div class="eot-controls">EOT Client Controls</div>
 <div class="eot-settings">
-    <h3>Settings</h3>
-    <label><input type="checkbox" id="setting1"> Enable feature 1</label>
-    <label><input type="checkbox" id="setting2"> Enable feature 2</label>
-    <label><input type="checkbox" id="setting3"> Enable feature 3</label>
+    <h3 style="margin-top: 0; text-align: center; font-size: 1.5em;">EOT Settings</h3>
+    <p style="text-align: center;">Customize your experience here.</p>
 </div>
