@@ -34116,41 +34116,65 @@
         }, module.exports = translations;
     })();
     </script>
-<script>
-    document.addEventListener('wheel', (event) => {
-        // Ensure fov exists and initialize it to 45 if undefined
-        if (typeof fov === 'undefined') {
-            console.log("Initializing fov to 45.");
-            fov = 45; // Default value
-        }
-
-        // Adjust fov based on scroll direction
-        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        fov = Math.max(10, Math.min(120, fov + scrollDirection)); // Clamp fov between 10 and 120
-
-        // Log the new fov value
-        console.log(`New fov: ${fov}`);
-
-        // Check if `fov` is being used somewhere else and force an update
-        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
-            I1000.fov = fov; // Assign the updated fov to the I1000 object
-            I1000.updateProjectionMatrix(); // Force update
-            console.log("I1000 projection matrix updated with new fov.");
-        } else {
-            console.warn("I1000 object or updateProjectionMatrix is not available.");
-        }
-    });
-</script>
-
-
-
-
-
-
-
-
-
-
 </body>
 
 </html>
+<style>
+    .eot-controls {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(90deg, #800080, #ff66cc);
+        color: white;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    .eot-settings {
+        display: none;
+        position: fixed;
+        top: 50px;
+        right: 10px;
+        width: 300px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 15px;
+    }
+    .eot-settings h3 {
+        margin-top: 0;
+        font-size: 1.2em;
+    }
+    .eot-settings label {
+        display: block;
+        margin: 10px 0 5px;
+    }
+    .eot-settings input[type="checkbox"] {
+        margin-right: 5px;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const controls = document.querySelector('.eot-controls');
+        const settings = document.querySelector('.eot-settings');
+
+        controls.addEventListener('click', () => {
+            if (settings.style.display === 'none' || settings.style.display === '') {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+            }
+        });
+    });
+</script>
+<div class="eot-controls">EOT Client Controls</div>
+<div class="eot-settings">
+    <h3>Settings</h3>
+    <label><input type="checkbox" id="setting1"> Enable feature 1</label>
+    <label><input type="checkbox" id="setting2"> Enable feature 2</label>
+    <label><input type="checkbox" id="setting3"> Enable feature 3</label>
+</div>
