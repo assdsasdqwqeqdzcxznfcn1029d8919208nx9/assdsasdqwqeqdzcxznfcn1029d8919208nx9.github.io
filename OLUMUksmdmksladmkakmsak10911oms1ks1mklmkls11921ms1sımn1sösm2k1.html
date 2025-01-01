@@ -34117,25 +34117,41 @@
     })();
     </script>
 <script>
-let fov = 45; // Initialize fov outside the event listener
+let fov = 45; // Keep fov outside the event listener
 
 document.addEventListener('wheel', (event) => {
     event.preventDefault();//Prevent default scroll
-    const scrollDirection = Math.sign(event.deltaY) * -5; // More concise direction calculation
-    fov = Math.max(30, Math.min(100, fov + scrollDirection)); // Correct clamping (30-100)
-
+    const scrollDirection = Math.sign(event.deltaY) * -5;
+    fov = Math.max(30, Math.min(100, fov + scrollDirection));
     console.log(`New fov: ${fov}`);
 
-    // Access I1000 correctly. This depends on how it's defined in your game.
-    // Assuming I1000 is a global variable (less ideal but possible):
-    if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
+    // Find the I1000 object using a more reliable method:
+    // This assumes I1000 is eventually accessible through 'this' context of some object in the game
+    // You will need to find the correct object that has I1000 as a property
+    // You can use the browser's debugger or console.log to find this object.
+    function findI1000(obj) {
+        if (!obj) return null;
+        if (obj.I1000 && typeof obj.I1000.updateProjectionMatrix === 'function') {
+            return obj.I1000;
+        }
+        for (const key in obj) {
+            if (typeof obj[key] === 'object') {
+                const found = findI1000(obj[key]);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+    const I1000 = findI1000(window); // Start the search from the global scope (window)
+
+    if (I1000) {
         I1000.fov = fov;
         I1000.updateProjectionMatrix();
         console.log("I1000 projection matrix updated.");
     } else {
-        console.warn("I1000 object or updateProjectionMatrix is not available.");
+        console.warn("I1000 object or updateProjectionMatrix is still not found. Check the game's object structure.");
+        console.log("You can try to use console.log(window) in the browser console to find the object that contains I1000");
     }
-
 }, {passive:false});
 </script>
 
