@@ -34117,56 +34117,29 @@
     })();
     </script>
 <script>
-let originalUpdateFunction = null; // Store the original update function
-
-// Find the game's update function (you'll need to identify this)
-// This is a placeholder. You MUST replace it with the actual function name.
-function findAndUpdateFunction(obj) {
-    if (!obj) return null;
-    if (typeof obj === 'function' && obj.toString().includes('this.I1000.fov =')) { // Check if the function contains the target code
-        return obj;
-    }
-    for (const key in obj) {
-        if (typeof obj[key] === 'object' || typeof obj[key] === 'function') {
-            const found = findAndUpdateFunction(obj[key]);
-            if (found) return found;
-        }
-    }
-    return null;
-}
-
-originalUpdateFunction = findAndUpdateFunction(window);
-
-if (originalUpdateFunction) {
-    let fovBase = 45; // Base FOV value
-    let fovOffset = 0; // Offset for scroll wheel
-
-    // Override the game's update function
-    const newUpdateFunction = function(...args) {
-        // Call the original function first
-        originalUpdateFunction.apply(this, args);
-
-        // Modify this.I1000.fov (only if I1000 and fov exist)
-        if (this.I1000 && typeof this.I1000.fov === 'number') {
-            this.I1000.fov = (fovBase + fovOffset) * (this.IO11l?.I1000?.zoom ?? 1); // Apply offset and zoom
-        }
-    };
-
-    // Replace the original update function with the modified one
-    // This is the CRITICAL part. You'll need to find the correct way to replace the function.
-    // Example (if the function is a property of an object):
-    // window.game.update = newUpdateFunction; // Replace 'window.game.update' with the correct path
-    //Or try this
-    for (const key in window) {
-        if(window[key] === originalUpdateFunction){
-            window[key] = newUpdateFunction;
-            break;
-        }
-    }
-
     document.addEventListener('wheel', (event) => {
-        event.preventDefault();
-        const scrollDirection = Math.sign(event.
+        // Ensure fov exists and initialize it to 45 if undefined
+        if (typeof fov === 'undefined') {
+            console.log("Initializing fov to 45.");
+            fov = 45; // Default value
+        }
+
+        // Adjust fov based on scroll direction
+        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
+        fov = Math.max(10, Math.min(120, fov + scrollDirection)); // Clamp fov between 10 and 120
+
+        // Log the new fov value
+        console.log(`New fov: ${fov}`);
+
+        // Check if `fov` is being used somewhere else and force an update
+        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
+            I1000.fov = fov; // Assign the updated fov to the I1000 object
+            I1000.updateProjectionMatrix(); // Force update
+            console.log("I1000 projection matrix updated with new fov.");
+        } else {
+            console.warn("I1000 object or updateProjectionMatrix is not available.");
+        }
+    });
 </script>
 
 
@@ -34178,6 +34151,32 @@ if (originalUpdateFunction) {
 
 
 
+<script>
+/*
+  Show correct names and custom in every cases
+*/
+let oldNameSet = Names.prototype.set.toString();
+
+let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)[1];
+
+let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/), globalVal = a[1], condition = a[0];
+
+Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, "return " + condition + " ? (this." + globalVal + ".player_name = " + customVal + ".player_name, Object.values(this." + globalVal + ").find(function(a) { return a && a.additional_badges }).custom = " + customVal + ".custom || {})"))();
+
+/*
+  Allow users to set lowercase names
+*/
+let g = setInterval(function () {
+  try {
+    document.querySelector(".player-app, #player input").style.textTransform = "none";
+    clearInterval(g)
+  }
+  catch (e) {}
+}, 1);
+
+let x = Object.values(Object.values(module.exports.settings).find(v => v && v.mode)).find(v => v && "function" == typeof v.startModdingMode);
+if (x) x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
+</script>
 </body>
 
 </html>
