@@ -448,7 +448,7 @@
     body {
         margin: 0;
         padding: 0;
-        background-color: #3e005a;
+        background-color: #000;
         overflow: hidden;
         font-family: Play, Verdana;
         transform: rotate("90deg")
@@ -701,7 +701,7 @@
     }
 
     .followtools span {
-        text-transform: lowercase;
+        text-transform: uppercase;
         letter-spacing: -0.5px
     }
 
@@ -837,7 +837,7 @@
         padding: 0 8px;
         font-size: .8em;
         text-align: center;
-        text-transform: lowercase;
+        text-transform: uppercase;
         border: 0 solid hsl(200, 90%, 10%);
         width: 415px;
         max-width: 80%;
@@ -1393,7 +1393,7 @@
     }
 
     a.full-changelog:hover {
-        color: #d5a6ff;
+        color: #fff;
         text-decoration: none;
         background: rgba(200, 240, 255, .1)
     }
@@ -2030,7 +2030,7 @@
         border: 2px solid hsla(200, 80%, 80%, .2);
         background: rgba(0, 0, 0, .2);
         margin-left: 10px;
-        color: #d5a6ff;
+        color: #fff;
         padding: 5px 20px
     }
 
@@ -2235,9 +2235,9 @@
         -webkit-border-radius: 3px;
         -moz-border-radius: 3px;
         border-radius: 3px;
-        background-color: #3e005a;
+        background-color: #000;
         background-color: hsla(200, 50%, 30%, 0.9);
-        color: #d5a6ff;
+        color: #fff;
         content: attr(data-tooltip);
         text-align: center;
         font-size: 14px;
@@ -34116,81 +34116,41 @@
         }, module.exports = translations;
     })();
     </script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        let fov = 75; // Default FOV value; replace this with the actual variable if defined elsewhere
+    document.addEventListener('wheel', (event) => {
+        // Ensure fov exists and initialize it to 45 if undefined
+        if (typeof fov === 'undefined') {
+            console.log("Initializing fov to 45.");
+            fov = 45; // Default value
+        }
 
-        // Function to update FOV in the game (replace `updateFOVFunction` with the actual function if applicable)
-        const updateFOV = (newFOV) => {
-            fov = Math.min(120, Math.max(30, newFOV)); // Clamp FOV between 30 and 120
-            console.log("Updated FOV:", fov); // Replace with actual FOV update logic
-            // Example: window.I1000.fov = fov;
-        };
+        // Adjust fov based on scroll direction
+        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
+        fov = Math.max(10, Math.min(120, fov + scrollDirection)); // Clamp fov between 10 and 120
 
-        // Listen for mouse scroll to adjust FOV
-        window.addEventListener('wheel', (event) => {
-            if (event.deltaY < 0) {
-                updateFOV(fov + 5); // Scroll up: Increase FOV by 5
-            } else if (event.deltaY > 0) {
-                updateFOV(fov - 5); // Scroll down: Decrease FOV by 5
-            }
-        });
+        // Log the new fov value
+        console.log(`New fov: ${fov}`);
+
+        // Check if `fov` is being used somewhere else and force an update
+        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
+            I1000.fov = fov; // Assign the updated fov to the I1000 object
+            I1000.updateProjectionMatrix(); // Force update
+            console.log("I1000 projection matrix updated with new fov.");
+        } else {
+            console.warn("I1000 object or updateProjectionMatrix is not available.");
+        }
     });
 </script>
+
+
+
+
+
+
+
+
+
 
 </body>
 
 </html>
-<style>
-    .eot-controls {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: linear-gradient(90deg, #800080, #ff66cc);
-        color: white;
-        padding: 5px 10px;
-        cursor: pointer;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        border: 1px solid #fff;
-    }
-    .eot-settings {
-        display: none;
-        position: fixed;
-        top: 50px;
-        right: 10px;
-        width: 400px;
-        height: 300px;
-        background: linear-gradient(180deg, #202020, #505050);
-        border: 2px solid #ff66cc;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        padding: 20px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        overflow: auto;
-    }
-</style>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const controls = document.querySelector('.eot-controls');
-        const settings = document.querySelector('.eot-settings');
-
-        controls.addEventListener('click', () => {
-            if (settings.style.display === 'none' || settings.style.display === '') {
-                settings.style.display = 'block';
-            } else {
-                settings.style.display = 'none';
-            }
-        });
-    });
-</script>
-<div class="eot-controls">EOT Client Controls</div>
-<div class="eot-settings">
-    <h3 style="margin-top: 0; text-align: center; font-size: 1.5em;">EOT Settings</h3>
-    <p style="text-align: center;">Customize your experience here.</p>
-</div>
