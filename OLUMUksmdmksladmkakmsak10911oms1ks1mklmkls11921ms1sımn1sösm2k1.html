@@ -34117,53 +34117,35 @@
     })();
     </script>
 <script>
-t.prototype.lOO11 = function(t) {
-    if (this.lOO01()) {
-        // Handle camera setup
-        var camera = this.getCamera();
-        var position = this.getPosition();
-        
-        // Update camera position
-        camera.position.x = position.x;
-        camera.position.y = position.y;
-        camera.position.z = position.z;
+t.prototype.lOO11 = function(renderer) {
+    if (!this.lOO01()) return;
 
-        // Calculate dynamic FOV
-        var baseZoom = this.IO11l?.I1000?.zoom || 1;
-        var aspectRatio = window.innerWidth / window.innerHeight;
-        var dynamicFOV = Math.min(Math.max(45 / baseZoom, 30), 90);
+    // Camera setup
+    const camera = this.getCamera();
+    const position = this.getPosition();
+    
+    // Update camera position
+    camera.position.x = position.x;
+    camera.position.y = position.y;
+    camera.position.z = position.z;
 
-        // Apply FOV settings
-        if (camera.fov !== undefined) {
-            camera.fov = dynamicFOV;
-            if (typeof camera.updateProjectionMatrix === 'function') {
-                camera.updateProjectionMatrix();
-            }
-        }
+    // Calculate dynamic FOV with proper bounds
+    const baseZoom = this.IO11l?.I1000?.zoom || 1;
+    const dynamicFOV = Math.min(Math.max(45 / baseZoom, 30), 90);
 
-        // Render scene
-        t.sortObjects = false;
-        if (this.background && typeof this.background.lOO11 === 'function') {
-            this.background.lOO11(t, this.IO11l.II1O0);
-        }
-        return t.render(this.lIlO0, camera);
+    // Apply FOV and update projection
+    if (camera.fov !== undefined) {
+        camera.fov = dynamicFOV;
+        camera.updateProjectionMatrix();
     }
-};
 
-// Helper methods
-t.prototype.getCamera = function() {
-    return this.I1000 || {
-        position: { x: 0, y: 0, z: 0 },
-        fov: 45
-    };
-};
-
-t.prototype.getPosition = function() {
-    return {
-        x: this.IO11l?.I1000?.x || 0,
-        y: this.IO11l?.I1000?.y || 0,
-        z: this.IO11l?.I1000?.z || 0
-    };
+    // Scene rendering
+    renderer.sortObjects = false;
+    if (this.background?.lOO11) {
+        this.background.lOO11(renderer, this.IO11l.II1O0);
+    }
+    
+    return renderer.render(this.lIlO0, camera);
 };
 </script>
 
