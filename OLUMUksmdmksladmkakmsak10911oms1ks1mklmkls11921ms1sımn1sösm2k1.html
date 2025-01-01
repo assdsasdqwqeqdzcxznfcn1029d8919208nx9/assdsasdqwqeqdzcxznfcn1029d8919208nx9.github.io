@@ -34117,41 +34117,40 @@
     })();
     </script>
 <script>
-let fov = 45; // Keep fov outside the event listener
+let originalPerspectiveCamera = THREE.PerspectiveCamera; // Store original class
+
+THREE.PerspectiveCamera = function(...args) {
+    let camera = new originalPerspectiveCamera(...args); // Create original camera instance
+    let originalUpdateProjectionMatrix = camera.updateProjectionMatrix.bind(camera); // Store original function
+    let fovModifier = 1;
+
+    camera.updateProjectionMatrix = function() {
+        camera.fov = camera.fov * fovModifier;
+        originalUpdateProjectionMatrix();
+    };
+
+    Object.defineProperty(camera, 'fovModifier', {
+        get: function() { return fovModifier; },
+        set: function(value) {
+            fovModifier = value;
+            camera.updateProjectionMatrix(); // Update when modifier changes
+        }
+    });
+
+    return camera;
+};
+
+let currentFovModifier = 1;
 
 document.addEventListener('wheel', (event) => {
     event.preventDefault();//Prevent default scroll
-    const scrollDirection = Math.sign(event.deltaY) * -5;
-    fov = Math.max(30, Math.min(100, fov + scrollDirection));
-    console.log(`New fov: ${fov}`);
+    const scrollDirection = Math.sign(event.deltaY) * 0.1; // Smaller increments for the modifier
+    currentFovModifier = Math.max(0.5, Math.min(1.5, currentFovModifier - scrollDirection)); // Limit modifier
+    console.log("fovModifier:", currentFovModifier);
+    // Find a way to apply the modifier to all cameras. This is the tricky part.
+    // One approach is to set it on the prototype, but this affects all cameras created AFTER the patch.
+    THREE.PerspectiveCamera.prototype.fovModifier = currentFovModifier;
 
-    // Find the I1000 object using a more reliable method:
-    // This assumes I1000 is eventually accessible through 'this' context of some object in the game
-    // You will need to find the correct object that has I1000 as a property
-    // You can use the browser's debugger or console.log to find this object.
-    function findI1000(obj) {
-        if (!obj) return null;
-        if (obj.I1000 && typeof obj.I1000.updateProjectionMatrix === 'function') {
-            return obj.I1000;
-        }
-        for (const key in obj) {
-            if (typeof obj[key] === 'object') {
-                const found = findI1000(obj[key]);
-                if (found) return found;
-            }
-        }
-        return null;
-    }
-    const I1000 = findI1000(window); // Start the search from the global scope (window)
-
-    if (I1000) {
-        I1000.fov = fov;
-        I1000.updateProjectionMatrix();
-        console.log("I1000 projection matrix updated.");
-    } else {
-        console.warn("I1000 object or updateProjectionMatrix is still not found. Check the game's object structure.");
-        console.log("You can try to use console.log(window) in the browser console to find the object that contains I1000");
-    }
 }, {passive:false});
 </script>
 
