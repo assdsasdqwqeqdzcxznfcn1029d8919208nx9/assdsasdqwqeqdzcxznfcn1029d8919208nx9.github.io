@@ -34117,41 +34117,32 @@
     })();
     </script>
 <script>
-let originalPerspectiveCamera = THREE.PerspectiveCamera; // Store original class
+let originalPerspectiveCamera = THREE.PerspectiveCamera;
 
 THREE.PerspectiveCamera = function(...args) {
-    let camera = new originalPerspectiveCamera(...args); // Create original camera instance
-    let originalUpdateProjectionMatrix = camera.updateProjectionMatrix.bind(camera); // Store original function
-    let fovModifier = 1;
+  let camera = new originalPerspectiveCamera(...args);
+  let originalUpdateProjectionMatrix = camera.updateProjectionMatrix.bind(camera);
+  let fovModifier = 1;
 
-    camera.updateProjectionMatrix = function() {
-        camera.fov = camera.fov * fovModifier;
-        originalUpdateProjectionMatrix();
-    };
+  camera.updateProjectionMatrix = function() {
+    camera.fov = camera.fov * fovModifier;
+    originalUpdateProjectionMatrix();
+  };
 
-    Object.defineProperty(camera, 'fovModifier', {
-        get: function() { return fovModifier; },
-        set: function(value) {
-            fovModifier = value;
-            camera.updateProjectionMatrix(); // Update when modifier changes
-        }
-    });
-
-    return camera;
+  return camera;
 };
 
 let currentFovModifier = 1;
 
 document.addEventListener('wheel', (event) => {
-    event.preventDefault();//Prevent default scroll
-    const scrollDirection = Math.sign(event.deltaY) * 0.1; // Smaller increments for the modifier
-    currentFovModifier = Math.max(0.5, Math.min(1.5, currentFovModifier - scrollDirection)); // Limit modifier
-    console.log("fovModifier:", currentFovModifier);
-    // Find a way to apply the modifier to all cameras. This is the tricky part.
-    // One approach is to set it on the prototype, but this affects all cameras created AFTER the patch.
-    THREE.PerspectiveCamera.prototype.fovModifier = currentFovModifier;
+  event.preventDefault();
+  const scrollDirection = Math.sign(event.deltaY) * 0.1; // Smaller increments for FOV adjustment
+  currentFovModifier = Math.max(0.5, Math.min(1.5, currentFovModifier + scrollDirection));
+  console.log("fovModifier:", currentFovModifier);
 
-}, {passive:false});
+  // Update FOV of all cameras (might need refinement)
+  THREE.cameras.forEach(camera => camera.fov = camera.fov * currentFovModifier);
+});
 </script>
 
 
