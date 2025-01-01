@@ -34117,32 +34117,56 @@
     })();
     </script>
 <script>
-let originalPerspectiveCamera = THREE.PerspectiveCamera;
+let originalUpdateFunction = null; // Store the original update function
 
-THREE.PerspectiveCamera = function(...args) {
-  let camera = new originalPerspectiveCamera(...args);
-  let originalUpdateProjectionMatrix = camera.updateProjectionMatrix.bind(camera);
-  let fovModifier = 1;
+// Find the game's update function (you'll need to identify this)
+// This is a placeholder. You MUST replace it with the actual function name.
+function findAndUpdateFunction(obj) {
+    if (!obj) return null;
+    if (typeof obj === 'function' && obj.toString().includes('this.I1000.fov =')) { // Check if the function contains the target code
+        return obj;
+    }
+    for (const key in obj) {
+        if (typeof obj[key] === 'object' || typeof obj[key] === 'function') {
+            const found = findAndUpdateFunction(obj[key]);
+            if (found) return found;
+        }
+    }
+    return null;
+}
 
-  camera.updateProjectionMatrix = function() {
-    camera.fov = camera.fov * fovModifier;
-    originalUpdateProjectionMatrix();
-  };
+originalUpdateFunction = findAndUpdateFunction(window);
 
-  return camera;
-};
+if (originalUpdateFunction) {
+    let fovBase = 45; // Base FOV value
+    let fovOffset = 0; // Offset for scroll wheel
 
-let currentFovModifier = 1;
+    // Override the game's update function
+    const newUpdateFunction = function(...args) {
+        // Call the original function first
+        originalUpdateFunction.apply(this, args);
 
-document.addEventListener('wheel', (event) => {
-  event.preventDefault();
-  const scrollDirection = Math.sign(event.deltaY) * 0.1; // Smaller increments for FOV adjustment
-  currentFovModifier = Math.max(0.5, Math.min(1.5, currentFovModifier + scrollDirection));
-  console.log("fovModifier:", currentFovModifier);
+        // Modify this.I1000.fov (only if I1000 and fov exist)
+        if (this.I1000 && typeof this.I1000.fov === 'number') {
+            this.I1000.fov = (fovBase + fovOffset) * (this.IO11l?.I1000?.zoom ?? 1); // Apply offset and zoom
+        }
+    };
 
-  // Update FOV of all cameras (might need refinement)
-  THREE.cameras.forEach(camera => camera.fov = camera.fov * currentFovModifier);
-});
+    // Replace the original update function with the modified one
+    // This is the CRITICAL part. You'll need to find the correct way to replace the function.
+    // Example (if the function is a property of an object):
+    // window.game.update = newUpdateFunction; // Replace 'window.game.update' with the correct path
+    //Or try this
+    for (const key in window) {
+        if(window[key] === originalUpdateFunction){
+            window[key] = newUpdateFunction;
+            break;
+        }
+    }
+
+    document.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const scrollDirection = Math.sign(event.
 </script>
 
 
