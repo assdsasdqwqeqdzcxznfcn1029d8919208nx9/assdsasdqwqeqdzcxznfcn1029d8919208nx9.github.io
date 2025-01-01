@@ -34117,29 +34117,26 @@
     })();
     </script>
 <script>
-    document.addEventListener('wheel', (event) => {
-        // Ensure fov exists and initialize it to 45 if undefined
-        if (typeof this.I1000.fov === 'undefined') {
-            console.log("Initializing fov to 45.");
-            this.I1000.fov = 45; // Default value
-        }
+let fov = 45; // Initialize fov outside the event listener
 
-        // Adjust fov based on scroll direction
-        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        fov = Math.max(100, Math.min(30, fov + scrollDirection)); // Clamp fov between 10 and 120
+document.addEventListener('wheel', (event) => {
+    event.preventDefault();//Prevent default scroll
+    const scrollDirection = Math.sign(event.deltaY) * -5; // More concise direction calculation
+    fov = Math.max(30, Math.min(100, fov + scrollDirection)); // Correct clamping (30-100)
 
-        // Log the new fov value
-        console.log(`New fov: ${fov}`);
+    console.log(`New fov: ${fov}`);
 
-        // Check if `fov` is being used somewhere else and force an update
-        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
-            I1000.fov = fov; // Assign the updated fov to the I1000 object
-            I1000.updateProjectionMatrix(); // Force update
-            console.log("I1000 projection matrix updated with new fov.");
-        } else {
-            console.warn("I1000 object or updateProjectionMatrix is not available.");
-        }
-    });
+    // Access I1000 correctly. This depends on how it's defined in your game.
+    // Assuming I1000 is a global variable (less ideal but possible):
+    if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
+        I1000.fov = fov;
+        I1000.updateProjectionMatrix();
+        console.log("I1000 projection matrix updated.");
+    } else {
+        console.warn("I1000 object or updateProjectionMatrix is not available.");
+    }
+
+}, {passive:false});
 </script>
 
 
