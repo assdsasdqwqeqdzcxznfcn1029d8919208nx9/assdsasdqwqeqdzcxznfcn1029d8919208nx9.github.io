@@ -34117,29 +34117,54 @@
     })();
     </script>
 <script>
-    document.addEventListener('wheel', (event) => {
-        // Ensure fov exists and initialize it to 45 if undefined
-        if (typeof fov === 'undefined') {
-            console.log("Initializing fov to 45.");
-            fov = 45; // Default value
+t.prototype.lOO11 = function(t) {
+    if (this.lOO01()) {
+        // Handle camera setup
+        var camera = this.getCamera();
+        var position = this.getPosition();
+        
+        // Update camera position
+        camera.position.x = position.x;
+        camera.position.y = position.y;
+        camera.position.z = position.z;
+
+        // Calculate dynamic FOV
+        var baseZoom = this.IO11l?.I1000?.zoom || 1;
+        var aspectRatio = window.innerWidth / window.innerHeight;
+        var dynamicFOV = Math.min(Math.max(45 / baseZoom, 30), 90);
+
+        // Apply FOV settings
+        if (camera.fov !== undefined) {
+            camera.fov = dynamicFOV;
+            if (typeof camera.updateProjectionMatrix === 'function') {
+                camera.updateProjectionMatrix();
+            }
         }
 
-        // Adjust fov based on scroll direction
-        const scrollDirection = event.deltaY > 0 ? -5 : 5; // Decrease or increase
-        fov = Math.max(10, Math.min(120, fov + scrollDirection)); // Clamp fov between 10 and 120
-
-        // Log the new fov value
-        console.log(`New fov: ${fov}`);
-
-        // Check if `fov` is being used somewhere else and force an update
-        if (typeof I1000 !== 'undefined' && typeof I1000.updateProjectionMatrix === 'function') {
-            I1000.fov = fov; // Assign the updated fov to the I1000 object
-            I1000.updateProjectionMatrix(); // Force update
-            console.log("I1000 projection matrix updated with new fov.");
-        } else {
-            console.warn("I1000 object or updateProjectionMatrix is not available.");
+        // Render scene
+        t.sortObjects = false;
+        if (this.background && typeof this.background.lOO11 === 'function') {
+            this.background.lOO11(t, this.IO11l.II1O0);
         }
-    });
+        return t.render(this.lIlO0, camera);
+    }
+};
+
+// Helper methods
+t.prototype.getCamera = function() {
+    return this.I1000 || {
+        position: { x: 0, y: 0, z: 0 },
+        fov: 45
+    };
+};
+
+t.prototype.getPosition = function() {
+    return {
+        x: this.IO11l?.I1000?.x || 0,
+        y: this.IO11l?.I1000?.y || 0,
+        z: this.IO11l?.I1000?.z || 0
+    };
+};
 </script>
 
 
@@ -34152,87 +34177,58 @@
 
 
 <script>
-t.prototype.lOO11 = function(t) {
-    var e, i, s, l, n, a, o, r, h;
-    if (this.lOO01(), null != this.I1000) {
-        // Standard setup
-        for (null != this.station && this.station.l1O0l(), 
-            null != this.demo && this.demo.l1O0l(), 
-            o = this.IO11l.I1l0O(), 
-            this.IO11l.O1lIl(o), 
-            null != this.control && this.control.I1l0O(o),
-            l = 1, a = o; l <= a; l += 1) {
-            // Camera shake handling
-            this.shake.x += this.shake.lllOl;
-            this.shake.y += this.shake.II110;
-            this.shake.r += this.shake.lIl10;
-            n = .2;
-            this.shake.lllOl -= this.shake.x * n;
-            this.shake.II110 -= this.shake.y * n;
-            this.shake.lIl10 -= this.shake.r * n;
-            this.shake.lllOl *= .7;
-            this.shake.II110 *= .7;
-            this.shake.lIl10 *= .7;
-        }
-
-        // Camera position and FOV updates
-        this.I1000.position.x = this.IO11l.I1000.x + this.shake.x;
-        this.I1000.position.y = this.IO11l.I1000.y + this.shake.y;
-        
-        // Fixed camera rotation
-        this.I1000.rotation.z = Math.PI;
-        
-        // Dynamic FOV calculation based on zoom and screen size
-        var baseZoom = this.IO11l.I1000.zoom || 1;
-        var aspectRatio = window.innerWidth / window.innerHeight;
-        var dynamicFOV = 45 * (1 / baseZoom);
-        
-        // Clamp FOV between reasonable values
-        dynamicFOV = Math.max(30, Math.min(dynamicFOV, 90));
-        
-        // Apply FOV and update camera
-        this.I1000.fov = dynamicFOV;
-        this.I1000.aspect = aspectRatio;
-        this.I1000.updateProjectionMatrix();
-
-        // Handle boundary conditions
-        r = this.IO11l.I1000.x;
-        h = this.IO11l.I1000.y;
-        i = Math.sqrt(r * r + h * h);
-
-        // World boundary wrapping
-        if (r > this.l1110.l0I1I / 2) {
-            r = this.l1110.l0I1I - r;
-        } else if (r < -this.l1110.l0I1I / 2) {
-            r = -this.l1110.l0I1I - r;
-        }
-        
-        if (h > this.l1110.l0I1I / 2) {
-            h = this.l1110.l0I1I - h;
-        } else if (h < -this.l1110.l0I1I / 2) {
-            h = -this.l1110.l0I1I - h;
-        }
-
-        // Update camera target position
-        s = Math.sqrt(r * r + h * h);
-        if (i > this.l1110.l0I1I / 2) {
-            this.OOOI1.position.set(-r, -h, s);
-        } else {
-            this.OOOI1.position.set(-r, -h, i - 10);
-        }
-
-        // Continue with remaining render logic
-        return this.renderScene(t);
+/*
+  Debugging: Show correct names and custom in every cases
+*/
+try {
+  let oldNameSet = Names.prototype.set?.toString();
+  if (!oldNameSet) {
+    console.error("Names.prototype.set is not defined or cannot be converted to a string.");
+  } else {
+    let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)?.[1];
+    if (!customVal) {
+      console.error("Custom value regex did not match.");
+    } else {
+      let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/);
+      if (!a) {
+        console.error("Condition regex did not match.");
+      } else {
+        let globalVal = a[1], condition = a[0];
+        Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, 
+          "return " + condition + " ? (this." + globalVal + 
+          ".player_name = " + customVal + 
+          ".player_name, Object.values(this." + globalVal + 
+          ").find(function(a) { return a && a.additional_badges }).custom = " + 
+          customVal + ".custom || {})"))();
+      }
     }
-};
+  }
+} catch (e) {
+  console.error("Error in setting Names.prototype.set:", e);
+}
 
-// Helper method to handle scene rendering
-t.prototype.renderScene = function(t) {
-    // Your existing render logic here
-    t.sortObjects = false;
-    this.background.lOO11(t, this.IO11l.II1O0);
-    return t.render(this.lIlO0, this.I1000);
-};
+/*
+  Debugging: Allow users to set lowercase names
+*/
+try {
+  let g = setInterval(function () {
+    try {
+      document.querySelector(".player-app, #player input").style.textTransform = "none";
+      clearInterval(g);
+    } catch (e) {
+      console.error("Error in textTransform modification:", e);
+    }
+  }, 1);
+
+  let x = Object.values(Object.values(module.exports.settings || {}).find(v => v && v.mode) || {}).find(v => v && "function" === typeof v.startModdingMode);
+  if (x) {
+    x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
+  } else {
+    console.warn("startModdingMode function not found in module.exports.settings.");
+  }
+} catch (e) {
+  console.error("Error in modifying lowercase name handling or startModdingMode:", e);
+}
 </script>
 </body>
 
