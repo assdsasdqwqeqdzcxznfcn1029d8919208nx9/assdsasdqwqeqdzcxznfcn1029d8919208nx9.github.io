@@ -34117,30 +34117,36 @@
     })();
     </script>
 <script>
-// Store the correct context reference
-const self = window;  // Using window since this is now a standalone script
-
-document.body.addEventListener("wheel", function(zoomwheel) {
-    let zoom;
-    if (zoomwheel.deltaY < 0) {
-        zoom = 1;
-    } else if (zoomwheel.deltaY > 0) {
-        zoom = -1;
-    } else {
-        return;
+// Wait for game to initialize
+const checkInterval = setInterval(() => {
+    if (window.game && game.I1000) {  // Check for game object
+        console.log("Found game camera, initializing zoom control");
+        
+        document.body.addEventListener("wheel", function(zoomwheel) {
+            let zoom;
+            if (zoomwheel.deltaY < 0) {
+                zoom = 1;
+            } else if (zoomwheel.deltaY > 0) {
+                zoom = -1;
+            } else {
+                return;
+            }
+            
+            // Access I1000 through the game object
+            if (game.I1000 && typeof game.I1000.fov === 'number') {
+                game.I1000.fov += zoom;
+                game.I1000.fov = Math.max(1, Math.min(179, game.I1000.fov));
+                game.I1000.updateProjectionMatrix();  // Important: update the camera after FOV change
+                console.log("FOV changed to:", game.I1000.fov);
+            }
+            
+            zoomwheel.stopPropagation();
+            zoomwheel.preventDefault();
+        }, { capture: true });
+        
+        clearInterval(checkInterval);
     }
-    
-    if (self.I1000 && typeof self.I1000.fov === 'number') {
-        self.I1000.fov += zoom;
-        self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));
-        console.log("FOV changed to:", self.I1000.fov); // Debug log
-    } else {
-        console.error("I1000 or I1000.fov is not defined correctly");
-    }
-    
-    zoomwheel.stopPropagation();
-    zoomwheel.preventDefault();
-}, { capture: true });  // Added capture to ensure we get the event first
+}, 1000);
 </script>
 
 
