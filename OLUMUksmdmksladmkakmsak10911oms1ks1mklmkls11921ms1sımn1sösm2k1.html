@@ -34117,101 +34117,42 @@
     })();
     </script>
 <script>
-t.prototype.lOO11 = function(renderer) {
-    if (!this.lOO01()) return;
-
-    // Camera setup
-    const camera = this.getCamera();
-    const position = this.getPosition();
-    
-    // Update camera position
-    camera.position.x = position.x;
-    camera.position.y = position.y;
-    camera.position.z = position.z;
-
-    // Calculate dynamic FOV with proper bounds
-    const baseZoom = this.IO11l?.I1000?.zoom || 1;
-    const dynamicFOV = Math.min(Math.max(45 / baseZoom, 30), 90);
-
-    // Apply FOV and update projection
-    if (camera.fov !== undefined) {
-        camera.fov = dynamicFOV;
-        camera.updateProjectionMatrix();
-    }
-
-    // Scene rendering
-    renderer.sortObjects = false;
-    if (this.background?.lOO11) {
-        this.background.lOO11(renderer, this.IO11l.II1O0);
-    }
-    
-    return renderer.render(this.lIlO0, camera);
-};
-</script>
-
-
-
-
-
-
-
-
-
-
-<script>
-/*
-  Debugging: Show correct names and custom in every cases
-*/
-try {
-  let oldNameSet = Names.prototype.set?.toString();
-  if (!oldNameSet) {
-    console.error("Names.prototype.set is not defined or cannot be converted to a string.");
-  } else {
-    let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)?.[1];
-    if (!customVal) {
-      console.error("Custom value regex did not match.");
+fovzoom() {
+  document.body.addEventListener("wheel", zoomwheel => {
+    let zoom;
+    if (zoomwheel.deltaY < 0) { // Scrolling up (away from user)
+      zoom = 1; // Zoom in (increase FOV)
+    } else if (zoomwheel.deltaY > 0) { // Scrolling down (towards user)
+      zoom = -1; // Zoom out (decrease FOV)
     } else {
-      let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/);
-      if (!a) {
-        console.error("Condition regex did not match.");
-      } else {
-        let globalVal = a[1], condition = a[0];
-        Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, 
-          "return " + condition + " ? (this." + globalVal + 
-          ".player_name = " + customVal + 
-          ".player_name, Object.values(this." + globalVal + 
-          ").find(function(a) { return a && a.additional_badges }).custom = " + 
-          customVal + ".custom || {})"))();
-      }
+        return; // No scroll detected, exit early
     }
-  }
-} catch (e) {
-  console.error("Error in setting Names.prototype.set:", e);
-}
 
-/*
-  Debugging: Allow users to set lowercase names
-*/
-try {
-  let g = setInterval(function () {
-    try {
-      document.querySelector(".player-app, #player input").style.textTransform = "none";
-      clearInterval(g);
-    } catch (e) {
-      console.error("Error in textTransform modification:", e);
+    // Check if this.I1000 exists and has a field of view (fov) property.
+    if (this.I1000 && typeof this.I1000.fov === 'number') {
+      this.I1000.fov += zoom;
+
+      // Optional: Add limits to the FOV
+      this.I1000.fov = Math.max(1, Math.min(179, this.I1000.fov)); // Example limits: 1 to 179 degrees
+    } else {
+        console.error("this.I1000 or this.I1000.fov is not defined correctly. Ensure this.I1000 is a camera object with an fov property.");
     }
-  }, 1);
 
-  let x = Object.values(Object.values(module.exports.settings || {}).find(v => v && v.mode) || {}).find(v => v && "function" === typeof v.startModdingMode);
-  if (x) {
-    x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
-  } else {
-    console.warn("startModdingMode function not found in module.exports.settings.");
-  }
-} catch (e) {
-  console.error("Error in modifying lowercase name handling or startModdingMode:", e);
+    zoomwheel.stopPropagation(); // Prevent default browser zoom
+    zoomwheel.preventDefault(); // Prevent default browser scroll
+  });
 }
 </script>
+
+
+
+
+
+
+
+
+
+
 </body>
 
 </html>
