@@ -34118,28 +34118,30 @@
     </script>
 <script>
 fovzoom() {
-  document.body.addEventListener("wheel", zoomwheel => {
+  // Store the correct 'this' context in a variable
+  const self = this;
+
+  document.body.addEventListener("wheel", function(zoomwheel) { // Use a regular function or arrow function with correct binding
     let zoom;
-    if (zoomwheel.deltaY < 0) { // Scrolling up (away from user)
-      zoom = 1; // Zoom in (increase FOV)
-    } else if (zoomwheel.deltaY > 0) { // Scrolling down (towards user)
-      zoom = -1; // Zoom out (decrease FOV)
+    if (zoomwheel.deltaY < 0) {
+      zoom = 1;
+    } else if (zoomwheel.deltaY > 0) {
+      zoom = -1;
     } else {
-        return; // No scroll detected, exit early
+      return;
     }
 
-    // Check if this.I1000 exists and has a field of view (fov) property.
-    if (this.I1000 && typeof this.I1000.fov === 'number') {
-      this.I1000.fov += zoom;
+    // Use the stored 'self' to access the correct context
+    if (self.I1000 && typeof self.I1000.fov === 'number') {
+      self.I1000.fov += zoom;
 
-      // Optional: Add limits to the FOV
-      this.I1000.fov = Math.max(1, Math.min(179, this.I1000.fov)); // Example limits: 1 to 179 degrees
+      self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));
     } else {
-        console.error("this.I1000 or this.I1000.fov is not defined correctly. Ensure this.I1000 is a camera object with an fov property.");
+      console.error("self.I1000 or self.I1000.fov is not defined correctly. Ensure self.I1000 is a camera object with an fov property.");
     }
 
-    zoomwheel.stopPropagation(); // Prevent default browser zoom
-    zoomwheel.preventDefault(); // Prevent default browser scroll
+    zoomwheel.stopPropagation();
+    zoomwheel.preventDefault();
   });
 }
 </script>
