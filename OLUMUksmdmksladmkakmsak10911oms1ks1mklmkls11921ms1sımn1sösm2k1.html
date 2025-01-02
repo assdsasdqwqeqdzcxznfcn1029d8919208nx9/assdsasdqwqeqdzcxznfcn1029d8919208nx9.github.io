@@ -34117,29 +34117,27 @@
     })();
     </script>
 <script>
-fovzoom() {
+function fovzoom() {
   // Store the correct 'this' context in a variable
   const self = this;
-
-  document.body.addEventListener("wheel", function(zoomwheel) { // Use a regular function or arrow function with correct binding
+  document.body.addEventListener("wheel", function(zoomwheel) {
     let zoom;
     if (zoomwheel.deltaY < 0) {
-      zoom = 1;
+      zoom = 1;  // Zoom in
     } else if (zoomwheel.deltaY > 0) {
-      zoom = -1;
+      zoom = -1;  // Zoom out
     } else {
       return;
     }
-
+    
     // Use the stored 'self' to access the correct context
     if (self.I1000 && typeof self.I1000.fov === 'number') {
       self.I1000.fov += zoom;
-
-      self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));
+      self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));  // Clamp FOV between 1 and 179 degrees
     } else {
       console.error("self.I1000 or self.I1000.fov is not defined correctly. Ensure self.I1000 is a camera object with an fov property.");
     }
-
+    
     zoomwheel.stopPropagation();
     zoomwheel.preventDefault();
   });
