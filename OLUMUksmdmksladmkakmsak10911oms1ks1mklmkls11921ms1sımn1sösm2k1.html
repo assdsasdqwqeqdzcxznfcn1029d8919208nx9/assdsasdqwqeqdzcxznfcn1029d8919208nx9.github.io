@@ -34119,32 +34119,41 @@
 <script>
 // Wait for game to initialize
 const checkInterval = setInterval(() => {
-    if (window.game && game.I1000) {  // Check for game object
+    // Try different possible paths to the camera
+    const possiblePaths = [
+        window.game?.I1000,
+        window.IO11l?.I1000,
+        window.lIlO0?.I1000,
+        window.scene?.I1000
+    ];
+
+    const camera = possiblePaths.find(path => path && typeof path.fov === 'number');
+    
+    if (camera) {
         console.log("Found game camera, initializing zoom control");
         
         document.body.addEventListener("wheel", function(zoomwheel) {
             let zoom;
             if (zoomwheel.deltaY < 0) {
-                zoom = 1;
+                zoom = -5;  // Changed zoom values to be more noticeable
             } else if (zoomwheel.deltaY > 0) {
-                zoom = -1;
+                zoom = 5;
             } else {
                 return;
             }
             
-            // Access I1000 through the game object
-            if (game.I1000 && typeof game.I1000.fov === 'number') {
-                game.I1000.fov += zoom;
-                game.I1000.fov = Math.max(1, Math.min(179, game.I1000.fov));
-                game.I1000.updateProjectionMatrix();  // Important: update the camera after FOV change
-                console.log("FOV changed to:", game.I1000.fov);
-            }
+            camera.fov += zoom;
+            camera.fov = Math.max(20, Math.min(100, camera.fov));  // More reasonable FOV limits
+            camera.updateProjectionMatrix();
+            console.log("FOV changed to:", camera.fov);
             
             zoomwheel.stopPropagation();
             zoomwheel.preventDefault();
         }, { capture: true });
         
         clearInterval(checkInterval);
+    } else {
+        console.log("Still searching for camera...");
     }
 }, 1000);
 </script>
