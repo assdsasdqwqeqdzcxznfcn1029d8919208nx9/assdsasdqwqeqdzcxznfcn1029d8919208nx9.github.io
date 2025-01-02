@@ -34117,31 +34117,30 @@
     })();
     </script>
 <script>
-function fovzoom() {
-  // Store the correct 'this' context in a variable
-  const self = this;
-  document.body.addEventListener("wheel", function(zoomwheel) {
+// Store the correct context reference
+const self = window;  // Using window since this is now a standalone script
+
+document.body.addEventListener("wheel", function(zoomwheel) {
     let zoom;
     if (zoomwheel.deltaY < 0) {
-      zoom = 1;  // Zoom in
+        zoom = 1;
     } else if (zoomwheel.deltaY > 0) {
-      zoom = -1;  // Zoom out
+        zoom = -1;
     } else {
-      return;
+        return;
     }
     
-    // Use the stored 'self' to access the correct context
     if (self.I1000 && typeof self.I1000.fov === 'number') {
-      self.I1000.fov += zoom;
-      self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));  // Clamp FOV between 1 and 179 degrees
+        self.I1000.fov += zoom;
+        self.I1000.fov = Math.max(1, Math.min(179, self.I1000.fov));
+        console.log("FOV changed to:", self.I1000.fov); // Debug log
     } else {
-      console.error("self.I1000 or self.I1000.fov is not defined correctly. Ensure self.I1000 is a camera object with an fov property.");
+        console.error("I1000 or I1000.fov is not defined correctly");
     }
     
     zoomwheel.stopPropagation();
     zoomwheel.preventDefault();
-  });
-}
+}, { capture: true });  // Added capture to ensure we get the event first
 </script>
 
 
