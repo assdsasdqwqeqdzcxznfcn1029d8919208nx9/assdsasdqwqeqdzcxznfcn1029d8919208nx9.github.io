@@ -34172,24 +34172,37 @@ const checkInterval = setInterval(() => {
 /*
   Show correct names and custom in every cases
 */
-let oldNameSet = Names.prototype.set.toString();
-let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)[1];
-let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/), globalVal = a[1], condition = a[0];
-Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, "return " + condition + " ? (this." + globalVal + ".player_name = " + customVal + ".player_name, Object.values(this." + globalVal + ").find(function(a) { return a && a.additional_badges }).custom = " + customVal + ".custom || {})"))();
+let oldNameSet = Names.prototype.set?.toString?.();
+if (oldNameSet) {
+    let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)?.[1];
+    let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/), globalVal = a?.[1], condition = a?.[0];
+    if (customVal && condition && globalVal) {
+        Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, `return ${condition} ? (this.${globalVal}.player_name = ${customVal}.player_name, Object.values(this.${globalVal}).find(a => a && a.additional_badges).custom = ${customVal}.custom || {}) : void 0`))();
+    }
+}
 
 /*
   Allow users to set lowercase names
 */
 let g = setInterval(function () {
-  try {
-    document.querySelector(".player-app, #player input").style.textTransform = "none";
-    clearInterval(g)
-  }
-  catch (e) {}
+    try {
+        const playerInput = document.querySelector(".player-app, #player input");
+        if (playerInput) {
+            playerInput.style.textTransform = "none";
+            clearInterval(g);
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }, 1);
 
-let x = Object.values(Object.values(module.exports.settings).find(v => v && v.mode)).find(v => v && "function" == typeof v.startModdingMode);
-if (x) x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
+if (module?.exports?.settings) {
+    let settings = module.exports.settings;
+    let x = Object.values(Object.values(settings).find(v => v && v.mode)).find(v => v && typeof v.startModdingMode === "function");
+    if (x) {
+        x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
+    }
+}
 </script>
 </body>
 
