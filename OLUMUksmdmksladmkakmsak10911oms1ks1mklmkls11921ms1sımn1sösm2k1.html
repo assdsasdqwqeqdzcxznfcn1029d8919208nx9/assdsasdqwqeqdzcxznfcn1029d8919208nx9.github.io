@@ -34167,6 +34167,30 @@ const checkInterval = setInterval(() => {
 
 
 
+
+<script>
+/*
+  Show correct names and custom in every cases
+*/
+let oldNameSet = Names.prototype.set.toString();
+let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)[1];
+let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/), globalVal = a[1], condition = a[0];
+Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, "return " + condition + " ? (this." + globalVal + ".player_name = " + customVal + ".player_name, Object.values(this." + globalVal + ").find(function(a) { return a && a.additional_badges }).custom = " + customVal + ".custom || {})"))();
+
+/*
+  Allow users to set lowercase names
+*/
+let g = setInterval(function () {
+  try {
+    document.querySelector(".player-app, #player input").style.textTransform = "none";
+    clearInterval(g)
+  }
+  catch (e) {}
+}, 1);
+
+let x = Object.values(Object.values(module.exports.settings).find(v => v && v.mode)).find(v => v && "function" == typeof v.startModdingMode);
+if (x) x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
+</script>
 </body>
 
 </html>
