@@ -34188,7 +34188,10 @@ let g = setInterval(function () {
     try {
         const playerInput = document.querySelector(".player-app, #player input");
         if (playerInput) {
-            playerInput.style.textTransform = "none";
+            playerInput.style.textTransform = "none"; // Ensure input allows lowercase
+            playerInput.addEventListener("input", (e) => {
+                e.target.value = e.target.value; // Maintain the input as typed, including lowercase
+            });
             clearInterval(g);
         }
     } catch (e) {
