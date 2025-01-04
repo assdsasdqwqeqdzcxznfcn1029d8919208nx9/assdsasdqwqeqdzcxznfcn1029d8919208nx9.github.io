@@ -34158,55 +34158,50 @@ const checkInterval = setInterval(() => {
 }, 1000);
 </script>
 
-
-
-
-
-
-
-
-
-
-
 <script>
-/*
-  Show correct names and custom in every cases
-*/
-let oldNameSet = Names.prototype.set?.toString?.();
-if (oldNameSet) {
-    let customVal = oldNameSet.match(/=\s*(\w+)\.custom/)?.[1];
-    let a = oldNameSet.match(/\w+\s*={2,3}\s*this\.(.+?)\.[^&]+/), globalVal = a?.[1], condition = a?.[0];
-    if (customVal && condition && globalVal) {
-        Names.prototype.set = Function("return " + oldNameSet.replace(/return\s+[^]+?\)/, `return ${condition} ? (this.${globalVal}.player_name = ${customVal}.player_name, Object.values(this.${globalVal}).find(a => a && a.additional_badges).custom = ${customVal}.custom || {}) : void 0`))();
-    }
+const modName = "Lowercase Name";
+const log = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
+
+function injector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+  src = src.replace(/\.toUpperCase\(\)/g, "");
+  const styleBlock = `
+    <style>
+      #player input {
+        text-transform: none !important;
+      }
+    </style>
+  `;
+  src = src.replace('</head>', `${styleBlock}</head>`);
+  checkSrcChange();
+  log(`Mod injected`);
+  return src;
 }
 
-/*
-  Allow users to set lowercase names
-*/
-let g = setInterval(function () {
-    try {
-        const playerInput = document.querySelector(".player-app, #player input");
-        if (playerInput) {
-            playerInput.style.textTransform = "none"; // Ensure input allows lowercase
-            playerInput.addEventListener("input", (e) => {
-                e.target.value = e.target.value; // Maintain the input as typed, including lowercase
-            });
-            clearInterval(g);
-        }
-    } catch (e) {
-        console.error(e);
-    }
-}, 1);
-
-if (module?.exports?.settings) {
-    let settings = module.exports.settings;
-    let x = Object.values(Object.values(settings).find(v => v && v.mode)).find(v => v && typeof v.startModdingMode === "function");
-    if (x) {
-        x.startGame = Function("return " + x.startGame.toString().replace(/\.toUpperCase\(\)/g, ""))();
-    }
-}
+if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return injector(sbCode);
+  } catch (error) {
+    alert(`${modName} failed to load; error:` + error);
+    throw error;
+  }
+});
 </script>
+
+
+
+
+
+
+
+
 </body>
 
 </html>
