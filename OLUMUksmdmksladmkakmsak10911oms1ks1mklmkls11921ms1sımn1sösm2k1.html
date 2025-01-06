@@ -34118,58 +34118,59 @@
     </script>
 
     <script>
-// Initialize code injectors array
-if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
-
-// Global settings object
-window.modSettings = {
-    fovEnabled: true,
-    crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',
-    showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
-    emoteAmount: parseInt(localStorage.getItem('emote-amount')) || 4
-};
-
-// Main code injection logic
-const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
-
-function injectLoader() {
-    if (window.location.pathname !== "/") {
-        log("Injection not needed");
-        return;
-    }
-
-    // Store original fetch
-    const originalFetch = window.fetch;
-    
-    // Override fetch before any other scripts run
-    window.fetch = async function(...args) {
-        const response = await originalFetch.apply(this, args);
-        
-        if (!response.url.includes('/js/sb.js')) {
-            return response;
-        }
-
-        const clone = response.clone();
-        let text = await clone.text();
-
-        // Apply all registered injectors
-        for (const injector of window.sbCodeInjectors) {
-            try {
-                text = injector(text);
-            } catch (error) {
-                console.error('Injector failed:', error);
-            }
-        }
-
-        return new Response(text, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
-        });
+// Wait for document load
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize settings
+    window.modSettings = {
+        fovEnabled: true,
+        crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',
+        showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
+        emoteAmount: parseInt(localStorage.getItem('emote-amount')) || 4
     };
 
-    log("Injection ready");
-}
+    // Initialize injectors array if not exists
+    window.sbCodeInjectors = window.sbCodeInjectors || [];
+
+    // Main logger
+    const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
+
+    // Immediately executing injector function
+    (function injectLoader() {
+        if (window.location.pathname !== "/") {
+            log("Injection not needed");
+            return;
+        }
+
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            const response = await originalFetch.apply(this, args);
+            
+            if (!response.url.includes('/js/sb.js')) {
+                return response;
+            }
+
+            const clone = response.clone();
+            let text = await clone.text();
+
+            // Apply registered injectors
+            for (const injector of window.sbCodeInjectors) {
+                try {
+                    text = injector(text);
+                    log(`Injector ${injector.name} applied successfully`);
+                } catch (error) {
+                    console.error('Injector failed:', error);
+                }
+            }
+
+            return new Response(text, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers
+            });
+        };
+
+        log("Injection ready");
+    })();
 
 
 // Run the injector
