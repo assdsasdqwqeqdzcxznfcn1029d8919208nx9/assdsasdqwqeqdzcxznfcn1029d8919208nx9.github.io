@@ -34165,7 +34165,44 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 // Global settings object
 window.modSettings = {
     fovEnabled: true,
-    crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',
+    crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',function injectLoader() {
+    if (window.location.pathname !== "/") {
+        log("Injection not needed");
+        return;
+    }
+
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        
+        if (!response.url.includes('/js/sb.js')) {
+            return response;
+        }
+
+        const clone = response.clone();
+        let text = await clone.text();
+
+        // Apply all registered injectors
+        for (const injector of window.sbCodeInjectors) {
+            try {
+                text = injector(text);
+            } catch (error) {
+                console.error('Injector failed:', error);
+            }
+        }
+
+        return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers
+        });
+    };
+
+    log("Injection ready");
+}
+
+// Run the injector
+injectLoader();
     showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
     emoteAmount: parseInt(localStorage.getItem('emote-amount')) || 4
 };
@@ -34604,6 +34641,39 @@ function injectLoader() {
         log("Injection not needed");
         return;
     }
+
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        
+        if (!response.url.includes('/js/sb.js')) {
+            return response;
+        }
+
+        const clone = response.clone();
+        let text = await clone.text();
+
+        // Apply all registered injectors
+        for (const injector of window.sbCodeInjectors) {
+            try {
+                text = injector(text);
+            } catch (error) {
+                console.error('Injector failed:', error);
+            }
+        }
+
+        return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers
+        });
+    };
+
+    log("Injection ready");
+}
+
+// Run the injector
+injectLoader();
     </script>
 
 
