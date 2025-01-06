@@ -34116,47 +34116,6 @@
         }, module.exports = translations;
     })();
     </script>
-<script>
-// Wait for game to initialize
-const checkInterval = setInterval(() => {
-    // Try different possible paths to the camera
-    const possiblePaths = [
-        window.game?.I1000,
-        window.IO11l?.I1000,
-        window.lIlO0?.I1000,
-        window.scene?.I1000
-    ];
-
-    const camera = possiblePaths.find(path => path && typeof path.fov === 'number');
-    
-    if (camera) {
-        console.log("Found game camera, initializing zoom control");
-        
-        document.body.addEventListener("wheel", function(zoomwheel) {
-            let zoom;
-            if (zoomwheel.deltaY < 0) {
-                zoom = -5;  // Changed zoom values to be more noticeable
-            } else if (zoomwheel.deltaY > 0) {
-                zoom = 5;
-            } else {
-                return;
-            }
-            
-            camera.fov += zoom;
-            camera.fov = Math.max(20, Math.min(100, camera.fov));  // More reasonable FOV limits
-            camera.updateProjectionMatrix();
-            console.log("FOV changed to:", camera.fov);
-            
-            zoomwheel.stopPropagation();
-            zoomwheel.preventDefault();
-        }, { capture: true });
-        
-        clearInterval(checkInterval);
-    } else {
-        console.log("Still searching for camera...");
-    }
-}, 1000);
-</script>
 
     <script>
 // Initialize code injectors array
@@ -34165,13 +34124,24 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 // Global settings object
 window.modSettings = {
     fovEnabled: true,
-    crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',function injectLoader() {
+    crystalColor: localStorage.getItem('crystal-color') || '#FFFFFF',
+    showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
+    emoteAmount: parseInt(localStorage.getItem('emote-amount')) || 4
+};
+
+// Main code injection logic
+const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
+
+function injectLoader() {
     if (window.location.pathname !== "/") {
         log("Injection not needed");
         return;
     }
 
+    // Store original fetch
     const originalFetch = window.fetch;
+    
+    // Override fetch before any other scripts run
     window.fetch = async function(...args) {
         const response = await originalFetch.apply(this, args);
         
@@ -34200,6 +34170,7 @@ window.modSettings = {
 
     log("Injection ready");
 }
+
 
 // Run the injector
 injectLoader();
@@ -34674,6 +34645,8 @@ function injectLoader() {
 
 // Run the injector
 injectLoader();
+document.addEventListener('DOMContentLoaded', injectLoader);
+
     </script>
 
 
