@@ -86,26 +86,28 @@ function fovInjector(sbCode) {
   #mod-controls {
     position: fixed;
     top: 10px;
-    right: 10px;
+    left: 10px;
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(45deg, #6a0dad, #ff1493);
-    border: 2px solid #ff1493;
+    background: linear-gradient(45deg, #8B008B, #FF1493);
+    border: 1px solid #FF1493;
     color: white;
-    padding: 10px;
+    padding: 5px;
+    border-radius: 8px;
+    opacity: 0.9;
+    width: 150px;
   }
 
   #mod-controls-header {
     cursor: pointer;
-    width: 100%;
     text-align: center;
-    padding: 10px;
-    border-bottom: 2px solid #ff1493;
+    padding: 5px;
+    border-bottom: 1px solid #FF1493;
   }
 
   #mod-controls-panel {
-    padding: 10px;
+    padding: 5px;
     display: none;
   }
 
@@ -113,7 +115,7 @@ function fovInjector(sbCode) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 10px 0;
+    margin: 5px 0;
   }
 
   .mod-control-slider {
@@ -127,7 +129,7 @@ function fovInjector(sbCode) {
   }
 
   #fov-display {
-    padding: 5px 10px;
+    padding: 5px;
     margin-top: 5px;
     display: none;
   }
@@ -157,7 +159,7 @@ function fovInjector(sbCode) {
   }
 
   input:checked + .slider {
-    background-color: #ff1493;
+    background-color: #FF1493;
   }
 
   .control-value {
