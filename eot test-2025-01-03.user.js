@@ -14,7 +14,7 @@ const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00
 function lowercaseInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-
+  
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
@@ -438,7 +438,7 @@ function injectLoader() {
   log("Fetching custom source...");
   xhr.open("GET", url);
   xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
+    if (xhr.readyState === 4 && xhr.status === 200) {
       var starSRC = xhr.responseText;
 
       if (starSRC !== undefined) {
@@ -482,3 +482,6 @@ function injectLoader() {
 
   xhr.send();
 }
+
+// Ensure the code runs after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', injectLoader);
