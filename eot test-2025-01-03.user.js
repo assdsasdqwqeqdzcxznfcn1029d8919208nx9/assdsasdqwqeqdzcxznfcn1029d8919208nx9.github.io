@@ -1,4 +1,3 @@
-// Initialize code injectors array
 if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
 // Global settings object
@@ -25,37 +24,6 @@ function lowercaseInjector(sbCode) {
   const styleBlock = `
   <style>
   #player input { text-transform: none !important; }
-  
-  /* Custom styles for nextMode and play elements */
-  #nextMode {
-    display: block;
-    background-color: #e6e6fa; /* Light shade of purple */
-    color: #4b0082; /* Darker shade for text */
-    border-radius: 10px;
-    padding: 5px 10px;
-    border: 1px solid #dcdcdc;
-  }
-  
-  #play {
-    display: block;
-    background-color: #e6e6fa; /* Light shade of purple */
-    color: #4b0082; /* Darker shade for text */
-    border-radius: 10px;
-    padding: 10px 15px;
-    border: 1px solid #dcdcdc;
-  }
-  
-  #game_modes span {
-    display: block;
-    margin-bottom: 5px;
-    padding: 5px;
-    border-radius: 5px;
-    background-color: #f8f8ff; /* Slightly lighter shade for game modes */
-  }
-  
-  #game_modes span:hover {
-    background-color: #d8bfd8; /* Hover effect for game modes */
-  }
   </style>
   `;
   src = src.replace('</head>', `${styleBlock}</head>`);
@@ -514,5 +482,3 @@ function injectLoader() {
 
   xhr.send();
 }
-
-setTimeout(injectLoader, 1);
