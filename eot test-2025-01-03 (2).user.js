@@ -14,7 +14,7 @@ const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00
 function lowercaseInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-  
+
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
