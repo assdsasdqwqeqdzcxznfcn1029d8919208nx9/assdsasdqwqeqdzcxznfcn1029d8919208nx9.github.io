@@ -293,11 +293,35 @@ function fovInjector(sbCode) {
     return res;
   };
 
+  // Extend the CrystalObject to track instances
+  CrystalObject.instances = new Set();
+
+  // Override the constructor to track instances
+  const originalConstructor = CrystalObject.prototype.constructor;
+  CrystalObject.prototype.constructor = function (...args) {
+    originalConstructor.apply(this, args);
+    CrystalObject.instances.add(this);
+  };
+
+  // Override a method to clean up destroyed crystals (if applicable)
+  const originalDestroy = CrystalObject.prototype.destroy;
+  CrystalObject.prototype.destroy = function (...args) {
+    CrystalObject.instances.delete(this);
+    if (originalDestroy) originalDestroy.apply(this, args);
+  };
+
   // Function to update the crystal color immediately
   function updateCrystalColor(color) {
+    // Save the new color in localStorage
     localStorage.setItem("crystal-color", color);
-    if (window.CrystalObject) {
-      CrystalObject.prototype.getModelInstance().material.color.set(color);
+
+    // Update the material color of all active crystal instances
+    if (window.CrystalObject && window.CrystalObject.instances) {
+      for (const instance of window.CrystalObject.instances) {
+        if (instance.material && instance.material.color) {
+          instance.material.color.set(color);
+        }
+      }
     }
   }
   `;
@@ -373,7 +397,7 @@ function fovInjector(sbCode) {
 
       crystalColorPicker.addEventListener('change', () => {
         const color = crystalColorPicker.value;
-        updateCrystalColor(color);
+        updateCrystalColor(color); // Update the color immediately
       });
     });
     </script>
