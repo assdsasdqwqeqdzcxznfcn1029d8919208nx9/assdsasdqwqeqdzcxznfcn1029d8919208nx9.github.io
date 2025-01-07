@@ -348,60 +348,34 @@ function fovInjector(sbCode) {
       document.getElementById('fov-value').textContent = window.I1000.currentFOV;
     }, { passive: false });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const controlsHeader = document.getElementById('mod-controls-header');
-      const controlsPanel = document.getElementById('mod-controls-panel');
-      const fovToggle = document.getElementById('fov-toggle');
-      const emoteSlider = document.getElementById('emote-capacity-slider');
-      const emoteValue = document.getElementById('emote-capacity-value');
-      const blankECPToggle = document.getElementById('blank-ecp-toggle');
-      const crystalColorHex = document.getElementById('crystal-color-hex');
+    crystalColorHex.addEventListener('input', (e) => {
+  const color = e.target.value;
+  // Validate hex color format
+  if(/^#[0-9A-F]{6}$/i.test(color)) {
+    localStorage.setItem('crystal-color', color);
+    updateCrystalColor(color);
+    console.log(`Crystal color updated to: ${color}`); // Debug log
+  }
+});
 
-      // Initialize values from localStorage
-      const savedCrystalColor = localStorage.getItem('crystal-color');
-      if (savedCrystalColor) {
-        crystalColorHex.value = savedCrystalColor;
-      }
+// Add a change event listener to handle when the input loses focus
+crystalColorHex.addEventListener('change', (e) => {
+  const color = e.target.value;
+  if(/^#[0-9A-F]{6}$/i.test(color)) {
+    localStorage.setItem('crystal-color', color);
+    updateCrystalColor(color);
+    console.log(`Crystal color saved to localStorage: ${color}`); // Debug log
+  } else {
+    // Reset to last valid color if invalid input
+    const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+    e.target.value = savedColor;
+    console.log(`Invalid color, reset to: ${savedColor}`); // Debug log
+  }
+});
 
-      controlsHeader.addEventListener('click', () => {
-        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-      });
-
-      fovToggle.addEventListener('change', () => {
-        window.modSettings.fovEnabled = fovToggle.checked;
-        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-      });
-
-      emoteSlider.addEventListener('input', () => {
-        const value = emoteSlider.value;
-        emoteValue.textContent = value;
-        window.modSettings.emoteCapacity = value;
-        localStorage.setItem('emote-capacity', value);
-        if (window.ChatPanel) {
-          window.ChatPanel.prototype.getEmotesCapacity = function () {
-            return parseInt(value);
-          };
-        }
-      });
-
-      blankECPToggle.addEventListener('change', () => {
-        window.modSettings.showBlankECP = blankECPToggle.checked;
-        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-        if (window.module && window.module.exports) {
-          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
-        }
-      });
-
-      // Set the "Show Blank ECPs" to true by default
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', true);
-      }
-
-      crystalColorHex.addEventListener('input', () => {
-        const color = crystalColorHex.value;
-        updateCrystalColor(color); // Update the color immediately
-      });
-    });
+// Initialize the color input with the saved value
+const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+crystalColorHex.value = savedColor;
     </script>
     </body>`);
 
