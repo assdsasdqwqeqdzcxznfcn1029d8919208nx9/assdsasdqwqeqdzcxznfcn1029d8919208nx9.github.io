@@ -267,26 +267,42 @@ function fovInjector(sbCode) {
 
   // Add crystal color mod
   const crystalColorMod = `
+  /*
+   * Change crystal color (processing code)
+   */
   let CrystalObject;
-  for (let i in window) try {
-    let val = window[i];
-    if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-      CrystalObject = val;
-      break
-    }
+  for (let i in window) {
+    try {
+      let val = window[i];
+      if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
+        CrystalObject = val;
+        break;
+      }
+    } catch (e) {}
   }
-  catch (e) {}
-  
-  let oldModel = CrystalObject.prototype.getModelInstance, getCustomCrystalColor = function () {
-    return localStorage.getItem("crystal-color") || "#ffffff";
-  };
-  
+
+  let oldModel = CrystalObject.prototype.getModelInstance,
+    getCustomCrystalColor = function () {
+      return localStorage.getItem("crystal-color") || "#ffffff";
+    };
+
   CrystalObject.prototype.getModelInstance = function () {
     let res = oldModel.apply(this, arguments);
     let color = getCustomCrystalColor();
     if (color) this.material.color.set(color);
     return res;
   };
+
+  // Function to update the crystal color immediately
+  function updateCrystalColor(color) {
+    localStorage.setItem("crystal-color", color);
+    if (window.CrystalObject) {
+      const crystals = document.querySelectorAll(".crystal-class"); // Assuming crystals have a class 'crystal-class'
+      crystals.forEach(crystal => {
+        crystal.material.color.set(color);
+      });
+    }
+  }
   `;
 
   src = src.replace('</body>', `
@@ -359,11 +375,8 @@ function fovInjector(sbCode) {
       }
 
       crystalColorPicker.addEventListener('change', () => {
-        localStorage.setItem('crystal-color', crystalColorPicker.value);
-        // Update crystal color immediately
-        if (window.CrystalObject) {
-          window.CrystalObject.prototype.getModelInstance().material.color.set(crystalColorPicker.value);
-        }
+        const color = crystalColorPicker.value;
+        updateCrystalColor(color);
       });
     });
     </script>
