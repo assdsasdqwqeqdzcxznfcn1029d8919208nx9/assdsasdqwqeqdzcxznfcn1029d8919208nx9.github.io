@@ -326,77 +326,6 @@ function fovInjector(sbCode) {
       }
     }
   }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const controlsHeader = document.getElementById('mod-controls-header');
-    const controlsPanel = document.getElementById('mod-controls-panel');
-    const fovToggle = document.getElementById('fov-toggle');
-    const emoteSlider = document.getElementById('emote-capacity-slider');
-    const emoteValue = document.getElementById('emote-capacity-value');
-    const blankECPToggle = document.getElementById('blank-ecp-toggle');
-    const crystalColorHex = document.getElementById('crystal-color-hex');
-
-    // Initialize values from localStorage
-    const savedCrystalColor = localStorage.getItem('crystal-color') || '#ffffff';
-    crystalColorHex.value = savedCrystalColor;
-    updateCrystalColor(savedCrystalColor); // Apply saved color on load
-
-    controlsHeader.addEventListener('click', () => {
-      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    fovToggle.addEventListener('change', () => {
-      window.modSettings.fovEnabled = fovToggle.checked;
-      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-    });
-
-    emoteSlider.addEventListener('input', () => {
-      const value = emoteSlider.value;
-      emoteValue.textContent = value;
-      window.modSettings.emoteCapacity = value;
-      localStorage.setItem('emote-capacity', value);
-      if (window.ChatPanel) {
-        window.ChatPanel.prototype.getEmotesCapacity = function () {
-          return parseInt(value);
-        };
-      }
-    });
-
-    blankECPToggle.addEventListener('change', () => {
-      window.modSettings.showBlankECP = blankECPToggle.checked;
-      localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
-      }
-    });
-
-    // Set the "Show Blank ECPs" to true by default
-    if (window.module && window.module.exports) {
-      window.module.exports.settings.set('show_blank_badge', true);
-    }
-
-    crystalColorHex.addEventListener('input', (e) => {
-      const color = e.target.value;
-      if (/^#[0-9A-F]{6}$/i.test(color)) {
-        localStorage.setItem('crystal-color', color);
-        updateCrystalColor(color);
-        console.log(`Crystal color updated to: ${color}`);
-      }
-    });
-
-    crystalColorHex.addEventListener('change', (e) => {
-      const color = e.target.value;
-      if (/^#[0-9A-F]{6}$/i.test(color)) {
-        localStorage.setItem('crystal-color', color);
-        updateCrystalColor(color);
-        console.log(`Crystal color saved to localStorage: ${color}`);
-      } else {
-        const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-        e.target.value = savedColor;
-        console.log(`Invalid color, reset to: ${savedColor}`);
-      }
-    });
-  });
   `;
 
   src = src.replace('</body>', `
@@ -406,6 +335,73 @@ function fovInjector(sbCode) {
     ${emoteCapacityMod}
     ${blankECPMod}
     ${crystalColorMod}
+
+    const fovDisplay = document.getElementById('fov-display');
+
+    // Add wheel event listener for FOV change
+    document.addEventListener('wheel', (e) => {
+      if (!window.modSettings.fovEnabled) return;
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1 : -1;
+      // Add bounds checking
+      window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+      document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+    }, { passive: false });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const controlsHeader = document.getElementById('mod-controls-header');
+      const controlsPanel = document.getElementById('mod-controls-panel');
+      const fovToggle = document.getElementById('fov-toggle');
+      const emoteSlider = document.getElementById('emote-capacity-slider');
+      const emoteValue = document.getElementById('emote-capacity-value');
+      const blankECPToggle = document.getElementById('blank-ecp-toggle');
+      const crystalColorHex = document.getElementById('crystal-color-hex');
+
+      // Initialize values from localStorage
+      const savedCrystalColor = localStorage.getItem('crystal-color');
+      if (savedCrystalColor) {
+        crystalColorHex.value = savedCrystalColor;
+      }
+
+      controlsHeader.addEventListener('click', () => {
+        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+      });
+
+      fovToggle.addEventListener('change', () => {
+        window.modSettings.fovEnabled = fovToggle.checked;
+        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+      });
+
+      emoteSlider.addEventListener('input', () => {
+        const value = emoteSlider.value;
+        emoteValue.textContent = value;
+        window.modSettings.emoteCapacity = value;
+        localStorage.setItem('emote-capacity', value);
+        if (window.ChatPanel) {
+          window.ChatPanel.prototype.getEmotesCapacity = function () {
+            return parseInt(value);
+          };
+        }
+      });
+
+      blankECPToggle.addEventListener('change', () => {
+        window.modSettings.showBlankECP = blankECPToggle.checked;
+        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
+        if (window.module && window.module.exports) {
+          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
+        }
+      });
+
+      // Set the "Show Blank ECPs" to true by default
+      if (window.module && window.module.exports) {
+        window.module.exports.settings.set('show_blank_badge', true);
+      }
+
+      crystalColorHex.addEventListener('input', () => {
+        const color = crystalColorHex.value;
+        updateCrystalColor(color); // Update the color immediately
+      });
+    });
     </script>
     </body>`);
 
