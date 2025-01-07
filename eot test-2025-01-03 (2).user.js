@@ -276,14 +276,16 @@ function fovInjector(sbCode) {
     }
   }
   catch (e) {}
+  
   let oldModel = CrystalObject.prototype.getModelInstance, getCustomCrystalColor = function () {
-    return localStorage.getItem("crystal-color") || ""
+    return localStorage.getItem("crystal-color") || "#ffffff";
   };
+  
   CrystalObject.prototype.getModelInstance = function () {
     let res = oldModel.apply(this, arguments);
     let color = getCustomCrystalColor();
     if (color) this.material.color.set(color);
-    return res
+    return res;
   };
   `;
 
@@ -358,6 +360,10 @@ function fovInjector(sbCode) {
 
       crystalColorPicker.addEventListener('change', () => {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
+        // Update crystal color immediately
+        if (window.CrystalObject) {
+          window.CrystalObject.prototype.getModelInstance().material.color.set(crystalColorPicker.value);
+        }
       });
     });
     </script>
