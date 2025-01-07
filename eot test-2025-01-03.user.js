@@ -235,37 +235,51 @@ function fovInjector(sbCode) {
   ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
   `;
   
-  // Add blank ECP mod
-  const blankECPMod = `
-  let pattern = /,(\\s*"blank"\\s*!={1,2}\\s*this\\.custom\\.badge)/;
-  Search: for (let i in window) try {
+  /*
+  Show blank ECPs on leaderboard
+*/
+
+// The pattern to match the "blank" badge check in the function string
+let pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
+
+Search: for (let i in window) {
+  try {
     let val = window[i].prototype;
     for (let j in val) {
       let func = val[j];
-      if ("function" == typeof func && func.toString().match(pattern)) {
+      
+      // Check if the function string matches the pattern
+      if (typeof func === "function" && func.toString().match(pattern)) {
+        
+        // Replace the function with the modified version
         val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
         found = true;
-        val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-          let gl = window[i];
-          for (let k in gl) {
-            if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
-              let oldF = gl[k];
-              gl[k] = function () {
-                let current = window.module.exports.settings.check('show_blank_badge');
-                if (this.showBlank !== current) {
-                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                  this.showBlank = current;
-                }
-                return oldF.apply(this, arguments)
-              };
-              break Search;
-            }
+        
+        // Modify the drawIcon function to respect the "blank" badge setting
+        val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+        
+        // Find and modify the function that deals with the leaderboard table
+        let gl = window[i];
+        for (let k in gl) {
+          if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+            let oldF = gl[k];
+            gl[k] = function () {
+              let current = window.module.exports.settings.check('show_blank_badge');
+              if (this.showBlank !== current) {
+                for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                this.showBlank = current;
+              }
+              return oldF.apply(this, arguments);
+            };
+            break Search;
           }
         }
+      }
     }
+  } catch (e) {
+    console.error(e);
   }
-  catch (e) {}
-  `;
+}
   
   // Add crystal color mod
   const crystalColorMod = `
