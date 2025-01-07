@@ -123,9 +123,11 @@ function fovInjector(sbCode) {
     margin-top: 5px;
   }
 
-  #crystal-color-picker {
+  #crystal-color-hex {
     width: 100%;
     margin-top: 5px;
+    padding: 5px;
+    box-sizing: border-box;
   }
 
   #fov-display {
@@ -195,7 +197,7 @@ function fovInjector(sbCode) {
       </div>
       <div class="mod-control">
         <span>Crystal Color</span>
-        <input type="color" id="crystal-color-picker" value="#ffffff">
+        <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
       </div>
     </div>
     <div id="fov-display">
@@ -353,12 +355,12 @@ function fovInjector(sbCode) {
       const emoteSlider = document.getElementById('emote-capacity-slider');
       const emoteValue = document.getElementById('emote-capacity-value');
       const blankECPToggle = document.getElementById('blank-ecp-toggle');
-      const crystalColorPicker = document.getElementById('crystal-color-picker');
+      const crystalColorHex = document.getElementById('crystal-color-hex');
 
       // Initialize values from localStorage
       const savedCrystalColor = localStorage.getItem('crystal-color');
       if (savedCrystalColor) {
-        crystalColorPicker.value = savedCrystalColor;
+        crystalColorHex.value = savedCrystalColor;
       }
 
       controlsHeader.addEventListener('click', () => {
@@ -395,8 +397,8 @@ function fovInjector(sbCode) {
         window.module.exports.settings.set('show_blank_badge', true);
       }
 
-      crystalColorPicker.addEventListener('change', () => {
-        const color = crystalColorPicker.value;
+      crystalColorHex.addEventListener('input', () => {
+        const color = crystalColorHex.value;
         updateCrystalColor(color); // Update the color immediately
       });
     });
