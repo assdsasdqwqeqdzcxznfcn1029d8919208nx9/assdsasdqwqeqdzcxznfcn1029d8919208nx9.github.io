@@ -347,16 +347,14 @@ function fovInjector(sbCode) {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
       });
       
-      document.addEventListener('wheel', (e) => {
-        if (!window.modSettings.fovEnabled) return;
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          window.I1000.currentFOV += 1;
-        } else {
-          window.I1000.currentFOV = Math.max(1, window.I1000.currentFOV - 1);
-        }
-        document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-      }, { passive: false });
+  document.addEventListener('wheel', (e) => {
+  if (!window.modSettings.fovEnabled) return;
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 1 : -1;
+  // Add bounds checking
+  window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+  document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
     });
     </script>
     </body>`);
