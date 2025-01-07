@@ -1,4 +1,3 @@
-
 // Initialize code injectors array
 if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
@@ -58,41 +57,41 @@ function emoteInjector(sbCode) {
   
   logEmote("Clown emote injected");
   return src;
+}
+
+// FOV Editor Mod
+const fovModName = "FOV Editor";
+const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
+
+window.I1000 = window.I1000 || {};
+window.I1000.baseFOV = 45;
+window.I1000.currentFOV = 45;
+
+function fovInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
   }
   
-  // FOV Editor Mod
-  const fovModName = "FOV Editor";
-  const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
+  const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+  src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+  checkSrcChange();
   
-  window.I1000 = window.I1000 || {};
-  window.I1000.baseFOV = 45;
-  window.I1000.currentFOV = 45;
-  
-  function fovInjector(sbCode) {
-    let src = sbCode;
-    let prevSrc = src;
-    
-    function checkSrcChange() {
-      if (src === prevSrc) throw new Error("replace did not work");
-      prevSrc = src;
-    }
-    
-    const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
-    src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
-    checkSrcChange();
-    
-    const controlStyles = `
-    <style>
-    #mod-controls {
+  const controlStyles = `
+  <style>
+  #mod-controls {
     position: fixed;
     top: 10px;
     right: 10px;
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    }
-    
-    #mod-controls-header {
+  }
+  
+  #mod-controls-header {
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 8px 15px;
@@ -100,9 +99,9 @@ function emoteInjector(sbCode) {
     cursor: pointer;
     width: 80px;
     text-align: center;
-    }
-    
-    #mod-controls-panel {
+  }
+  
+  #mod-controls-panel {
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 10px;
@@ -110,187 +109,187 @@ function emoteInjector(sbCode) {
     margin-top: 5px;
     width: 200px;
     display: none;
-    }
-    
-    .mod-control {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 10px 0;
-    }
-    
-    .mod-control-slider {
-      width: 100%;
-      margin-top: 5px;
-    }
-    
-    #crystal-color-picker {
+  }
+  
+  .mod-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+  }
+  
+  .mod-control-slider {
     width: 100%;
     margin-top: 5px;
-    }
-    
-    #fov-display {
+  }
+  
+  #crystal-color-picker {
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  #fov-display {
     background: rgba(0, 0, 0, 0.7);
     padding: 5px 10px;
     border-radius: 5px;
     color: white;
     margin-top: 5px;
     display: none;
-    }
-    
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 30px;
-      height: 17px;
-    }
-    
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 17px;
-    }
-    
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 13px;
-      width: 13px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    
-    input:checked + .slider {
-      background-color: #2196F3;
-    }
-    
-    input:checked + .slider:before {
-      transform: translateX(13px);
-    }
-    
-    .control-value {
-      font-size: 12px;
-      text-align: right;
-      min-width: 30px;
-    }
-    </style>
-    `;
-    
-    const controlsHTML = `
-    <div id="mod-controls">
+  }
+  
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 17px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(13px);
+  }
+  
+  .control-value {
+    font-size: 12px;
+    text-align: right;
+    min-width: 30px;
+  }
+  </style>
+  `;
+  
+  const controlsHTML = `
+  <div id="mod-controls">
     <div id="mod-controls-header">Controls</div>
     <div id="mod-controls-panel">
-    <div class="mod-control">
-    <span>FOV</span>
-    <label class="toggle-switch">
-    <input type="checkbox" id="fov-toggle" checked>
-    <span class="slider"></span>
-    </label>
-    </div>
-    <div class="mod-control">
-    <span>Emote Capacity</span>
-    <div class="control-value" id="emote-capacity-value">4</div>
-    </div>
-    <input type="range" min="1" max="5" value="4" class="mod-control-slider" id="emote-capacity-slider">
-    <div class="mod-control">
-    <span>Show Blank ECPs</span>
-    <label class="toggle-switch">
-    <input type="checkbox" id="blank-ecp-toggle">
-    <span class="slider"></span>
-    </label>
-    </div>
-    <div class="mod-control">
-    <span>Crystal Color</span>
-    <input type="color" id="crystal-color-picker" value="#ffffff">
-    </div>
+      <div class="mod-control">
+        <span>FOV</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="fov-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="mod-control">
+        <span>Emote Capacity</span>
+        <div class="control-value" id="emote-capacity-value">4</div>
+      </div>
+      <input type="range" min="1" max="5" value="4" class="mod-control-slider" id="emote-capacity-slider">
+      <div class="mod-control">
+        <span>Show Blank ECPs</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="blank-ecp-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="mod-control">
+        <span>Crystal Color</span>
+        <input type="color" id="crystal-color-picker" value="#ffffff">
+      </div>
     </div>
     <div id="fov-display">
-    FOV: <span id="fov-value">45</span>
+      FOV: <span id="fov-value">45</span>
     </div>
-    </div>
-    `;
-    
-    // Add emote capacity mod
-    const emoteCapacityMod = `
-    let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-    ChatPanel.prototype.getEmotesCapacity = function () {
-      let num = this[globalVal].settings.get("chat_emotes_capacity");
-      try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }
-      catch (e) { return 4 }
-    };
-    ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
-    `;
-    
-    // Add blank ECP mod
-    const blankECPMod = `
-    let pattern = /,(\\s*"blank"\\s*!={1,2}\\s*this\\.custom\\.badge)/;
-    Search: for (let i in window) try {
-      let val = window[i].prototype;
-      for (let j in val) {
-        let func = val[j];
-        if ("function" == typeof func && func.toString().match(pattern)) {
-          val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-          found = true;
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-            let gl = window[i];
-            for (let k in gl) {
-              if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
-                let oldF = gl[k];
-                gl[k] = function () {
-                  let current = window.module.exports.settings.check('show_blank_badge');
-                  if (this.showBlank !== current) {
-                    for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                    this.showBlank = current;
-                  }
-                  return oldF.apply(this, arguments)
-                };
-                break Search;
-              }
+  </div>
+  `;
+  
+  // Add emote capacity mod
+  const emoteCapacityMod = `
+  let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+  ChatPanel.prototype.getEmotesCapacity = function () {
+    let num = this[globalVal].settings.get("chat_emotes_capacity");
+    try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }
+    catch (e) { return 4 }
+  };
+  ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+  `;
+  
+  // Add blank ECP mod
+  const blankECPMod = `
+  let pattern = /,(\\s*"blank"\\s*!={1,2}\\s*this\\.custom\\.badge)/;
+  Search: for (let i in window) try {
+    let val = window[i].prototype;
+    for (let j in val) {
+      let func = val[j];
+      if ("function" == typeof func && func.toString().match(pattern)) {
+        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
+        found = true;
+        val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+          let gl = window[i];
+          for (let k in gl) {
+            if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
+              let oldF = gl[k];
+              gl[k] = function () {
+                let current = window.module.exports.settings.check('show_blank_badge');
+                if (this.showBlank !== current) {
+                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                  this.showBlank = current;
+                }
+                return oldF.apply(this, arguments)
+              };
+              break Search;
             }
           }
-      }
+        }
     }
-    catch (e) {}
-    `;
-    
-    // Add crystal color mod
-    const crystalColorMod = `
-    let CrystalObject;
-    for (let i in window) try {
-      let val = window[i];
-      if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-        CrystalObject = val;
-        break
-      }
+  }
+  catch (e) {}
+  `;
+  
+  // Add crystal color mod
+  const crystalColorMod = `
+  let CrystalObject;
+  for (let i in window) try {
+    let val = window[i];
+    if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
+      CrystalObject = val;
+      break
     }
-    catch (e) {}
-    let oldModel = CrystalObject.prototype.getModelInstance, getCustomCrystalColor = function () {
-      return localStorage.getItem("crystal-color") || ""
-    };
-    CrystalObject.prototype.getModelInstance = function () {
-      let res = oldModel.apply(this, arguments);
-      let color = getCustomCrystalColor();
-      if (color) this.material.color.set(color);
-      return res
-    };
-    `;
-    
-    src = src.replace('</body>', `
+  }
+  catch (e) {}
+  let oldModel = CrystalObject.prototype.getModelInstance, getCustomCrystalColor = function () {
+    return localStorage.getItem("crystal-color") || ""
+  };
+  CrystalObject.prototype.getModelInstance = function () {
+    let res = oldModel.apply(this, arguments);
+    let color = getCustomCrystalColor();
+    if (color) this.material.color.set(color);
+    return res
+  };
+  `;
+  
+  src = src.replace('</body>', `
     ${controlStyles}
     ${controlsHTML}
     <script>
@@ -339,6 +338,11 @@ function emoteInjector(sbCode) {
         }
       });
       
+      // Set the "Show Blank ECPs" to true by default
+      if (window.module && window.module.exports) {
+        window.module.exports.settings.set('show_blank_badge', true);
+      }
+      
       crystalColorPicker.addEventListener('change', () => {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
       });
@@ -356,104 +360,104 @@ function emoteInjector(sbCode) {
     });
     </script>
     </body>`);
-    
-    checkSrcChange();
-    
-    logFOV("FOV injector applied");
-    return src;
+  
+  checkSrcChange();
+  
+  logFOV("FOV injector applied");
+  return src;
+}
+
+// Add all injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return lowercaseInjector(sbCode);
+  } catch (error) {
+    alert(`${modName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return emoteInjector(sbCode);
+  } catch (error) {
+    alert(`${emoteModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return fovInjector(sbCode);
+  } catch (error) {
+    alert(`${fovModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+// Main code injection logic
+const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
+
+function injectLoader() {
+  if (window.location.pathname !== "/") {
+    log("Injection not needed");
+    return;
   }
   
-  // Add all injectors
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return lowercaseInjector(sbCode);
-    } catch (error) {
-      alert(`${modName} failed to load; error: ${error}`);
-      throw error;
-    }
-  });
+  document.open();
+  document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
+  document.close();
   
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return emoteInjector(sbCode);
-    } catch (error) {
-      alert(`${emoteModName} failed to load; error: ${error}`);
-      throw error;
-    }
-  });
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
+  url += '?_=' + new Date().getTime();
   
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return fovInjector(sbCode);
-    } catch (error) {
-      alert(`${fovModName} failed to load; error: ${error}`);
-      throw error;
-    }
-  });
-  
-  // Main code injection logic
-  const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
-  
-  function injectLoader() {
-    if (window.location.pathname !== "/") {
-      log("Injection not needed");
-      return;
-    }
-    
-    document.open();
-    document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
-    document.close();
-    
-    var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
-    url += '?_=' + new Date().getTime();
-    
-    var xhr = new XMLHttpRequest();
-    log("Fetching custom source...");
-    xhr.open("GET", url);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        var starSRC = xhr.responseText;
+  var xhr = new XMLHttpRequest();
+  log("Fetching custom source...");
+  xhr.open("GET", url);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      var starSRC = xhr.responseText;
+      
+      if (starSRC !== undefined) {
+        log("Source fetched successfully");
+        const start_time = performance.now();
+        log("Applying mods...");
         
-        if (starSRC !== undefined) {
-          log("Source fetched successfully");
-          const start_time = performance.now();
-          log("Applying mods...");
-          
-          if (!window.sbCodeInjectors) {
-            log("No Starblast.io userscripts found to load");
-          } else {
-            let error_notified = false;
-            for (const injector of window.sbCodeInjectors) {
-              try {
-                if (typeof injector === "function") starSRC = injector(starSRC);
-                else {
-                  log("Injector was not a function");
-                  console.log(injector);
-                }
-              } catch (error) {
-                if (!error_notified) {
-                  alert("One of your Starblast.io userscripts failed to load");
-                  error_notified = true;
-                }
-                console.error(error);
+        if (!window.sbCodeInjectors) {
+          log("No Starblast.io userscripts found to load");
+        } else {
+          let error_notified = false;
+          for (const injector of window.sbCodeInjectors) {
+            try {
+              if (typeof injector === "function") starSRC = injector(starSRC);
+              else {
+                log("Injector was not a function");
+                console.log(injector);
               }
+            } catch (error) {
+              if (!error_notified) {
+                alert("One of your Starblast.io userscripts failed to load");
+                error_notified = true;
+              }
+              console.error(error);
             }
           }
-          
-          const end_time = performance.now();
-          log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
-          
-          document.open();
-          document.write(starSRC);
-          document.close();
-        } else {
-          log("Source fetch failed");
-          alert("An error occurred while fetching game code");
         }
+        
+        const end_time = performance.now();
+        log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
+        
+        document.open();
+        document.write(starSRC);
+        document.close();
+      } else {
+        log("Source fetch failed");
+        alert("An error occurred while fetching game code");
       }
-    };
-    
-    xhr.send();
-  }
+    }
+  };
   
-  setTimeout(injectLoader, 1);
+  xhr.send();
+}
+
+setTimeout(injectLoader, 1);
