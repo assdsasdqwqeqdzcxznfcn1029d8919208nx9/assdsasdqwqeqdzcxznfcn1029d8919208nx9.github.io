@@ -48,7 +48,7 @@ function emoteInjector(sbCode) {
   
   const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
   const clownEmote = `,{
-    text: "Clown",
+    text: "orosbu cocu",
     icon: "🤡",
     key: "J"
   }`;
