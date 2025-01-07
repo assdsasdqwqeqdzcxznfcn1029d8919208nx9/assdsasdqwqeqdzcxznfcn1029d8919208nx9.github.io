@@ -3,7 +3,9 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
 // Global settings object
 window.modSettings = {
-  fovEnabled: true
+  fovEnabled: true,
+  emoteCapacity: localStorage.getItem('emote-capacity') || 4,
+  showBlankECP: localStorage.getItem('show-blank-ecp') === 'true'
 };
 
 // Lowercase Name Mod
@@ -203,13 +205,13 @@ function fovInjector(sbCode) {
       </div>
       <div class="mod-control">
         <span>Emote Capacity</span>
-        <div class="control-value" id="emote-capacity-value">4</div>
+        <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
       </div>
-      <input type="range" min="1" max="5" value="4" class="mod-control-slider" id="emote-capacity-slider">
+      <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
       <div class="mod-control">
         <span>Show Blank ECPs</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="blank-ecp-toggle" checked>
+          <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
           <span class="slider"></span>
         </label>
       </div>
@@ -337,23 +339,7 @@ function fovInjector(sbCode) {
       const crystalColorPicker = document.getElementById('crystal-color-picker');
 
       // Initialize values from localStorage
-      const savedFovEnabled = localStorage.getItem('fovEnabled') === 'true';
-      const savedEmoteCapacity = localStorage.getItem('emoteCapacity') || 4;
-      const savedBlankECP = localStorage.getItem('blankECP') === 'true';
       const savedCrystalColor = localStorage.getItem('crystal-color');
-
-      fovToggle.checked = savedFovEnabled;
-      window.modSettings.fovEnabled = savedFovEnabled;
-      fovDisplay.style.display = savedFovEnabled ? 'block' : 'none';
-      
-      emoteSlider.value = savedEmoteCapacity;
-      emoteValue.textContent = savedEmoteCapacity;
-      
-      blankECPToggle.checked = savedBlankECP;
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-      }
-      
       if (savedCrystalColor) {
         crystalColorPicker.value = savedCrystalColor;
       }
@@ -364,14 +350,14 @@ function fovInjector(sbCode) {
 
       fovToggle.addEventListener('change', () => {
         window.modSettings.fovEnabled = fovToggle.checked;
-        localStorage.setItem('fovEnabled', fovToggle.checked);
         fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
       });
 
       emoteSlider.addEventListener('input', () => {
         const value = emoteSlider.value;
         emoteValue.textContent = value;
-        localStorage.setItem('emoteCapacity', value);
+        window.modSettings.emoteCapacity = value;
+        localStorage.setItem('emote-capacity', value);
         if (window.ChatPanel) {
           window.ChatPanel.prototype.getEmotesCapacity = function () {
             return parseInt(value);
@@ -380,12 +366,17 @@ function fovInjector(sbCode) {
       });
 
       blankECPToggle.addEventListener('change', () => {
-        const isChecked = blankECPToggle.checked;
-        localStorage.setItem('blankECP', isChecked);
+        window.modSettings.showBlankECP = blankECPToggle.checked;
+        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
         if (window.module && window.module.exports) {
-          window.module.exports.settings.set('show_blank_badge', isChecked);
+          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
         }
       });
+
+      // Set the "Show Blank ECPs" to true by default
+      if (window.module && window.module.exports) {
+        window.module.exports.settings.set('show_blank_badge', true);
+      }
 
       crystalColorPicker.addEventListener('change', () => {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
