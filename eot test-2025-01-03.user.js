@@ -297,11 +297,22 @@ function fovInjector(sbCode) {
     ${blankECPMod}
     ${crystalColorMod}
     
+    const fovDisplay = document.getElementById('fov-display');
+
+    // Add wheel event listener for FOV change
+    document.addEventListener('wheel', (e) => {
+      if (!window.modSettings.fovEnabled) return;
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1 : -1;
+      // Add bounds checking
+      window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+      document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+    }, { passive: false });
+
     document.addEventListener('DOMContentLoaded', () => {
       const controlsHeader = document.getElementById('mod-controls-header');
       const controlsPanel = document.getElementById('mod-controls-panel');
       const fovToggle = document.getElementById('fov-toggle');
-      const fovDisplay = document.getElementById('fov-display');
       const emoteSlider = document.getElementById('emote-capacity-slider');
       const emoteValue = document.getElementById('emote-capacity-value');
       const blankECPToggle = document.getElementById('blank-ecp-toggle');
@@ -346,15 +357,6 @@ function fovInjector(sbCode) {
       crystalColorPicker.addEventListener('change', () => {
         localStorage.setItem('crystal-color', crystalColorPicker.value);
       });
-      
-  document.addEventListener('wheel', (e) => {
-  if (!window.modSettings.fovEnabled) return;
-  e.preventDefault();
-  const delta = e.deltaY < 0 ? 1 : -1;
-  // Add bounds checking
-  window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
-  document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-  }, { passive: false });
     });
     </script>
     </body>`);
