@@ -297,10 +297,7 @@ function fovInjector(sbCode) {
   function updateCrystalColor(color) {
     localStorage.setItem("crystal-color", color);
     if (window.CrystalObject) {
-      const crystals = document.querySelectorAll(".crystal-class"); // Assuming crystals have a class 'crystal-class'
-      crystals.forEach(crystal => {
-        crystal.material.color.set(color);
-      });
+      CrystalObject.prototype.getModelInstance().material.color.set(color);
     }
   }
   `;
