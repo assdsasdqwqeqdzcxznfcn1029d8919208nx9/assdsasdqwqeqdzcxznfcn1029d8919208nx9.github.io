@@ -483,5 +483,5 @@ function injectLoader() {
   xhr.send();
 }
 
-// Ensure the code runs after the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', injectLoader);
+// Run the injectLoader function immediately
+injectLoader();
