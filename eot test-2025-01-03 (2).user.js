@@ -869,4 +869,4 @@ Array.from(statsElements).forEach(statsDiv => {
       }
       themeclient()
     }
-})();
+}();
