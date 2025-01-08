@@ -561,292 +561,84 @@ function themeclient() {
         return Array.from(context.querySelectorAll(selector));
     }
 
-    // Check for top-right elements
-    const topRight = getElement('.top-right');
-    if (topRight) {
-        // Your existing top-right styling code here
-        // Wrapped in proper existence checks
-    }
-
-    // Check for play button
-    const playButton = getElement('#play');
-    if (playButton && playButton.style.color !== '#fff') {
-        setElementStyles(playButton, {
-            color: '#fff',
-            background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
-            boxShadow: '0 0 7px #b069db',
-            textShadow: '0 0 7px #b069db'
-        });
-
-        // Apply styles to other elements only if they exist
-        const elements = {
-            nextMode: getElement('#nextMode'),
-            prevMode: getElement('#prevMode'),
-            inputWrapper: getElement('.inputwrapper'),
-            moddingspace: getElement('#moddingspace'),
-            donate: getElement('#donate'),
-            rankings: getElement('#rankings'),
-            training: getElement('#training')
-        };
-
-        // Safely apply styles to each element
-        Object.entries(elements).forEach(([key, element]) => {
-            if (element) {
-                setElementStyles(element, {
-                    color: key.includes('Mode') ? '#b069db' : '#fff',
-                    background: key.includes('Mode') ? '' : 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
-                    boxShadow: '0 0 7px #b069db',
-                    textShadow: '0 0 7px #b069db'
-                });
-            }
-        });
-
-        // Handle social buttons
-        ['sbg-twitter', 'sbg-facebook', 'sbg-gears', 'sbg-info'].forEach(className => {
-            const element = getElements(`.${className}`)[1];
-            if (element) {
-                setElementStyles(element, {
-                    color: '#fff',
-                    background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
-                    boxShadow: '0 0 7px #b069db',
-                    textShadow: '0 0 7px #b069db'
-                });
-            }
-        });
-
-        // Handle changelog elements
-        const changelogElements = getElements('.changelog-new');
-        changelogElements.forEach(element => {
-            if (element) {
-                setElementStyles(element, {
-                    color: '#fff',
-                    background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
-                    boxShadow: '0 0 7px #b069db',
-                    textShadow: '0 0 7px #b069db'
-                });
-            }
-        });
-    }
-
-    // Check for stats elements
-    const statsContainer = getElement('.stats');
-    if (statsContainer && statsContainer.children.length > 0) {
-        setElementStyles(statsContainer, {
-            border: '2px solid #b069db',
-            boxShadow: '0 0 15px #b069db',
-            background: 'hsl(0deg 0% 100% / 0%)'
-        });
-
-        // Apply styles to children
-        Array.from(statsContainer.children).forEach(child => {
-            setElementStyles(child, {
-                borderBottom: '1px solid #b069db'
+    // Apply styles to elements if they exist
+    function applyStyles() {
+        const playButton = getElement('#play');
+        if (playButton && playButton.style.color !== '#fff') {
+            setElementStyles(playButton, {
+                color: '#fff',
+                background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                boxShadow: '0 0 7px #b069db',
+                textShadow: '0 0 7px #b069db'
             });
-        });
+
+            const elements = {
+                nextMode: getElement('#nextMode'),
+                prevMode: getElement('#prevMode'),
+                inputWrapper: getElement('.inputwrapper'),
+                moddingspace: getElement('#moddingspace'),
+                donate: getElement('#donate'),
+                rankings: getElement('#rankings'),
+                training: getElement('#training')
+            };
+
+            Object.entries(elements).forEach(([key, element]) => {
+                if (element) {
+                    setElementStyles(element, {
+                        color: key.includes('Mode') ? '#b069db' : '#fff',
+                        background: key.includes('Mode') ? '' : 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                        boxShadow: '0 0 7px #b069db',
+                        textShadow: '0 0 7px #b069db'
+                    });
+                }
+            });
+
+            ['sbg-twitter', 'sbg-facebook', 'sbg-gears', 'sbg-info'].forEach(className => {
+                const element = getElements(`.${className}`)[1];
+                if (element) {
+                    setElementStyles(element, {
+                        color: '#fff',
+                        background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                        boxShadow: '0 0 7px #b069db',
+                        textShadow: '0 0 7px #b069db'
+                    });
+                }
+            });
+
+            const changelogElements = getElements('.changelog-new');
+            changelogElements.forEach(element => {
+                if (element) {
+                    setElementStyles(element, {
+                        color: '#fff',
+                        background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                        boxShadow: '0 0 7px #b069db',
+                        textShadow: '0 0 7px #b069db'
+                    });
+                }
+            });
+        }
+
+        const statsContainer = getElement('.stats');
+        if (statsContainer && statsContainer.children.length > 0) {
+            setElementStyles(statsContainer, {
+                border: '2px solid #b069db',
+                boxShadow: '0 0 15px #b069db',
+                background: 'hsl(0deg 0% 100% / 0%)'
+            });
+
+            Array.from(statsContainer.children).forEach(child => {
+                setElementStyles(child, {
+                    borderBottom: '1px solid #b069db'
+                });
+            });
+        }
     }
 
-    // Schedule the next update
+    applyStyles();
     setTimeout(themeclient, 500);
 }
-        
-          // Apply styles to the community-links div
-    const communityLinksDiv = document.querySelector('.textcentered.community.changelog-new');
-    communityLinksDiv.style.color = '#fff';
-    communityLinksDiv.style.background = 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)';
-    communityLinksDiv.style.boxShadow = '0 0 7px #b069db';
-    communityLinksDiv.style.textShadow = '0 0 7px #b069db';
-  
-        // Apply styles to the changelog div
-    const changelogDiv = document.querySelector('.changelog-new');
-    changelogDiv.style.color = '#fff';
-    changelogDiv.style.background = 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)';
-    changelogDiv.style.boxShadow = '0 0 7px #b069db';
-    changelogDiv.style.textShadow = '0 0 7px #b069db';
-          //play button
-          document.getElementById("play").style.color = `#fff`
-          document.getElementById("play").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("play").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("play").style.textShadow = `0 0 7px #b069db`
-          //arrows
-          document.getElementById(`nextMode`).style.color = `#b069db`
-          document.getElementById(`nextMode`).style.textShadow = `0 0 7px #b069db`
-          document.getElementById(`prevMode`).style.color = `#b069db`
-          document.getElementById(`prevMode`).style.textShadow = `0 0 7px #b069db`
-          //name box
-          document.getElementsByClassName("inputwrapper")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("inputwrapper")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          //modding space
-          document.getElementById("moddingspace").style.color = `#fff`
-          document.getElementById("moddingspace").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("moddingspace").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("moddingspace").style.textShadow = `0 0 7px #b069db`
-          //ecp
-          document.getElementById("donate").style.color = `#fff`
-          document.getElementById("donate").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("donate").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("donate").style.textShadow = `0 0 7px #b069db`
-          //leaderboard
-          document.getElementById("rankings").style.color = `#fff`
-          document.getElementById("rankings").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("rankings").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("rankings").style.textShadow = `0 0 7px #b069db`
-          //training
-          document.getElementById("training").style.color = `#fff`
-          document.getElementById("training").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("training").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("training").style.textShadow = `0 0 7px #b069db`
-          //twitter button
-          document.getElementsByClassName("sbg-twitter")[1].style.color = `#fff`
-          document.getElementsByClassName("sbg-twitter")[1].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("sbg-twitter")[1].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("sbg-twitter")[1].style.textShadow = `0 0 7px #b069db`
-          //FB button
-          document.getElementsByClassName("sbg-facebook")[1].style.color = `#fff`
-          document.getElementsByClassName("sbg-facebook")[1].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("sbg-facebook")[1].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("sbg-facebook")[1].style.textShadow = `0 0 7px #b069db`
-          //settings button
-          document.getElementsByClassName("sbg-gears")[1].style.color = `#fff`
-          document.getElementsByClassName("sbg-gears")[1].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("sbg-gears")[1].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("sbg-gears")[1].style.textShadow = `0 0 7px #b069db`
-          //info button
-          document.getElementsByClassName("sbg-info")[1].style.color = `#fff`
-          document.getElementsByClassName("sbg-info")[1].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("sbg-info")[1].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("sbg-info")[1].style.textShadow = `0 0 7px #b069db`
-          //changelog
-          document.getElementsByClassName(`changelog-new`)[0].children[0].children[0].children[0].style.color = `#fff`
-          document.getElementsByClassName(`changelog-new`)[0].children[1].style.color = `#fff`
-          document.getElementsByClassName("changelog-new")[0].style.color = `#fff`
-          document.getElementsByClassName("changelog-new")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("changelog-new")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("changelog-new")[0].style.textShadow = `0 0 7px #b069db`
-          //music
-          document.getElementsByClassName("changelog-new")[2].style.color = `#fff`
-          document.getElementsByClassName("changelog-new")[2].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("changelog-new")[2].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("changelog-new")[2].style.textShadow = `0 0 7px #b069db`
-          document.getElementsByClassName(`community`)[0].children[0].style.color = `#fff`
-          document.getElementsByClassName(`community`)[0].children[1].style.color = `#fff`
-          //socials
-          document.getElementsByClassName(`community`)[2].children[0].style.color = `#fff`
-          document.getElementsByClassName(`community`)[2].children[1].style.color = `#fff`
-          document.getElementsByClassName(`community`)[2].children[2].style.color = `#fff`
-          document.getElementsByClassName(`community`)[2].children[3].style.color = `#fff`
-          document.getElementsByClassName("changelog-new")[4].style.color = `#fff`
-          document.getElementsByClassName("changelog-new")[4].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("changelog-new")[4].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("changelog-new")[4].style.textShadow = `0 0 7px #b069db`
-          //menus
-          document.getElementsByClassName("modal")[0].style.color = `#fff`
-          document.getElementsByClassName("modal")[0].style.background = `linear-gradient(135deg,#b069db 0,${localStorage.clientcoloralt} 150%)`
-          document.getElementsByClassName("modal")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("modal")[0].style.textShadow = `0 0 7px #b069db`
-          //loading bar
-          document.getElementsByClassName(`loaderprogress`)[0].style.background = `linear-gradient(to right,${localStorage.clientcoloralt} 0,#b069db 100%)`
-          document.getElementsByClassName(`gameloaderwrapper`)[0].style.border = `2px solid #b069db`
-          document.getElementsByClassName(`gameloaderwrapper`)[0].style.boxShadow = `0 0 10px #b069db`
-          //text below loading bar
-          document.getElementsByClassName(`textprogress`)[0].style.color = `#b069db`
-          document.getElementsByClassName(`textprogress`)[0].style.textShadow = `0 0 10px #b069db`
-          if (document.getElementsByClassName("donate-btn")[1]) {
-            //custom game button
-            document.getElementsByClassName("donate-btn")[1].style.color = `#fff`
-            document.getElementsByClassName("donate-btn")[1].style.background = `radial-gradient(ellipse at center,${localStorage.clientcoloralt} 0,#b069db 150%)`
-            document.getElementsByClassName("donate-btn")[1].style.boxShadow = `0 0 7px #b069db`
-            document.getElementsByClassName("donate-btn")[1].style.textShadow = `0 0 7px #b069db`
-            //ecp and ship preview
-            for(let i = 0; i < document.getElementsByClassName("frozenbg").length; i++){
-              document.getElementsByClassName("frozenbg")[i].style.background = `radial-gradient(ellipse at center,${localStorage.clientcoloralt} 20%,#b069db 150%)`
-              document.getElementsByClassName("frozenbg")[i].style.boxShadow = `0 0 6px #b069db`
-              document.getElementsByClassName("frozenbg")[i].style.textShadow = `0 0 7px #b069db`
-            }
-            //show ecp button
-            document.getElementById("viewEcp").style.color = `#fff`
-            document.getElementById("viewEcp").style.background = `radial-gradient(ellipse at center,${localStorage.clientcoloralt} 0,#b069db 150%)`
-            document.getElementById("viewEcp").style.boxShadow = `0 0 7px #b069db`
-            document.getElementById("viewEcp").style.textShadow = `0 0 7px #b069db`
-            //ecp key box
-            document.getElementById("ECPKey").style.color = `#fff`
-            document.getElementById("ECPKey").style.background = `radial-gradient(ellipse at center,${localStorage.clientcoloralt} 0,#b069db 150%)`
-            document.getElementById("ECPKey").style.boxShadow = `0 0 7px #b069db`
-            document.getElementById("ECPKey").style.textShadow = `0 0 7px #b069db`
-            //delete ecp button
-            document.getElementById("removeEcp").style.color = `#fff`
-            document.getElementById("removeEcp").style.background = `radial-gradient(ellipse at center,${localStorage.clientcoloralt} 0,#b069db 150%)`
-            document.getElementById("removeEcp").style.boxShadow = `0 0 7px #b069db`
-            document.getElementById("removeEcp").style.textShadow = `0 0 7px #b069db`
-          }
-        }
-        if (document.getElementsByClassName("stats")[0].children.length > 0) {
-          //continue button
-          document.getElementById("continue_btn").style.color = `#fff`
-          document.getElementById("continue_btn").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("continue_btn").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("continue_btn").style.textShadow = `0 0 7px #b069db`
-          //death stats
-          document.getElementsByClassName("stats")[0].style.border = `2px solid #b069db`
-          document.getElementsByClassName("stats")[0].style.boxShadow = `0 0 15px #b069db`
-          document.getElementsByClassName("stats")[0].style.background = `hsl(0deg 0% 100% / 0%)`
-          //death stats separators
-          for(let i = 0; i < document.getElementsByClassName("stats")[0].children.length; i++){
-            document.getElementsByClassName("stats")[0].children[i].style.borderBottom = `1px solid #b069db`
-          }
-        }
- 
-        if (document.getElementsByClassName("fa-vk")[0] != undefined) {
-          //link bar
-          document.getElementsByClassName("stats")[0].children[3].style.color = `#fff`
-          document.getElementsByClassName("stats")[0].children[3].style.background = `linear-gradient(to top,#b069db 0,${localStorage.clientcoloralt} 20%,${localStorage.clientcoloralt} 60%,#b069db 100%)`
-          document.getElementsByClassName("stats")[0].children[3].style.border = `0 solid #b069db`
-          document.getElementsByClassName("stats")[0].children[3].style.boxShadow = `0 0 6px #b069db`
-          //respawn button
-          document.getElementById("respawn_btn").style.color = `#fff`
-          document.getElementById("respawn_btn").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("respawn_btn").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("respawn_btn").style.textShadow = `0 0 7px #b069db`
-          //quit button
-          document.getElementById("refresh_btn").style.color = `#fff`
-          document.getElementById("refresh_btn").style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementById("refresh_btn").style.boxShadow = `0 0 7px #b069db`
-          document.getElementById("refresh_btn").style.textShadow = `0 0 7px #b069db`
-          //death stats
-          document.getElementsByClassName("stats")[0].style.border = `2px solid #b069db`
-          document.getElementsByClassName("stats")[0].style.boxShadow = `0 0 15px #b069db`
-          document.getElementsByClassName("stats")[0].style.background = `hsl(0deg 0% 100% / 0%)`
-          //death text
-          document.getElementById("overlay").style.color = `#fff`
-          //death twitter button
-          document.getElementsByClassName("fa-twitter")[0].style.color = `#fff`
-          document.getElementsByClassName("fa-twitter")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("fa-twitter")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("fa-twitter")[0].style.textShadow = `0 0 7px #b069db`
-          //death FB button
-          document.getElementsByClassName("fa-facebook")[0].style.color = `#fff`
-          document.getElementsByClassName("fa-facebook")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("fa-facebook")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("fa-facebook")[0].style.textShadow = `0 0 7px #b069db`
-          //death vk button
-          document.getElementsByClassName("fa-vk")[0].style.color = `#fff`
-          document.getElementsByClassName("fa-vk")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("fa-vk")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("fa-vk")[0].style.textShadow = `0 0 7px #b069db`
-          //death FB button
-          document.getElementsByClassName("fa-envelope")[0].style.color = `#fff`
-          document.getElementsByClassName("fa-envelope")[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName("fa-envelope")[0].style.boxShadow = `0 0 7px #b069db`
-          document.getElementsByClassName("fa-envelope")[0].style.textShadow = `0 0 7px #b069db`
-          //death stats separators
-          for(let i = 0; i < document.getElementsByClassName("stats")[0].children.length; i++){
-            document.getElementsByClassName("stats")[0].children[i].style.borderBottom = `1px solid #b069db`
-          }
-        }
-        setTimeout(themeclient, 500)
-      }
-      themeclient()
-    }
-})();
+
+themeclient();
 
 // Run the injectLoader function immediately
 injectLoader();
