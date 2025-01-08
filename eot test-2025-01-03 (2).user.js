@@ -817,7 +817,7 @@ Array.from(statsElements).forEach(statsDiv => {
     for(let i = 0; i < document.getElementsByClassName("stats")[0].children.length; i++) {
         document.getElementsByClassName("stats")[0].children[i].style.borderBottom = `1px solid #b069db`;
     }
- 
+  }   
         if (document.getElementsByClassName("fa-vk")[0] != undefined) {
           //link bar
           document.getElementsByClassName("stats")[0].children[3].style.color = `#fff`
