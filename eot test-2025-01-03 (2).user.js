@@ -515,6 +515,7 @@ function injectLoader() {
 // Run the injectLoader function immediately
 injectLoader();
 
+
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
   if (localStorage.clientcolor === undefined) {
