@@ -811,11 +811,12 @@ Array.from(statsElements).forEach(statsDiv => {
           document.getElementsByClassName("stats")[0].style.boxShadow = `0 0 15px #b069db`
           document.getElementsByClassName("stats")[0].style.background = `hsl(0deg 0% 100% / 0%)`
           //death stats separators
-//link bar
-document.getElementsByClassName("stats")[0].children[3].style.background = `linear-gradient(to top,#b069db 0,${localStorage.clientcoloralt} 20%,${localStorage.clientcoloralt} 60%,#b069db 100%)`;
-            document.getElementsByClassName("stats")[0].children[i].style.borderBottom = `1px solid #b069db`
-          }
-        }
+          //link bar
+           document.getElementsByClassName("stats")[0].children[3].style.background = `linear-gradient(to top,#b069db 0,${localStorage.clientcoloralt} 20%,${localStorage.clientcoloralt} 60%,#b069db 100%)`;
+        // Add the for loop here
+    for(let i = 0; i < document.getElementsByClassName("stats")[0].children.length; i++) {
+        document.getElementsByClassName("stats")[0].children[i].style.borderBottom = `1px solid #b069db`;
+    }
  
         if (document.getElementsByClassName("fa-vk")[0] != undefined) {
           //link bar
