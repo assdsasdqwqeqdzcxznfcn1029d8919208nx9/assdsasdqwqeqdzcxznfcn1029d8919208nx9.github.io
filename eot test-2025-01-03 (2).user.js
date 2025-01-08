@@ -542,95 +542,112 @@ function injectLoader() {
       window.ac = new FVclient()
       ac.help()
  
-      function themeclient() {
-        if (document.getElementsByClassName(`top-right`)[0]) {
-          //AOW
-          /*document.getElementsByClassName(`alphacentauri`)[1].style.boxShadow = `0px 0px 6px #b069db`
-          document.getElementsByClassName(`alphacentauri`)[1].children[0].style.boxShadow = `0px 0px 6px #b069db`
-          document.getElementsByClassName(`alphacentauri`)[1].children[1].style.color = `#fff`
-          document.getElementsByClassName(`alphacentauri`)[1].children[3].style.color = `#fff`
-          document.getElementsByClassName(`top-right`)[0].children[2].style.borderBottom = `3px solid #b069db`
-          document.getElementsByClassName(`top-right`)[0].children[2].children[0].style.background = `linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)`
-          document.getElementsByClassName(`top-right`)[0].children[2].children[0].style.boxShadow = `0 0 6px #b069db`
-          document.getElementsByClassName(`top-right`)[0].children[2].children[0].style.textShadow = `0 0 7px #b069db`*/
-        }
- 
-        if (document.getElementById("play").style.color != `#fff`) {
-        
-        const changelogDivs = document.getElementsByClassName('textcentered community changelog-new');
-      Array.from(changelogDivs).forEach(div => {
-        div.style.color = '#fff';
-        div.style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-        div.style.boxShadow = '0 0 7px #b069db';
-        div.style.textShadow = '0 0 7px #b069db';
-});
-
-// Style social media icons correctly using getElementsByClassName
-if (document.getElementsByClassName("fa-twitter")[0]) {
-    document.getElementsByClassName("fa-twitter")[0].style.color = '#fff';
-    document.getElementsByClassName("fa-twitter")[0].style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    document.getElementsByClassName("fa-twitter")[0].style.boxShadow = '0 0 7px #b069db';
-    document.getElementsByClassName("fa-twitter")[0].style.textShadow = '0 0 7px #b069db';
-}
-
-if (document.getElementsByClassName("fa-facebook")[0]) {
-    document.getElementsByClassName("fa-facebook")[0].style.color = '#fff';
-    document.getElementsByClassName("fa-facebook")[0].style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    document.getElementsByClassName("fa-facebook")[0].style.boxShadow = '0 0 7px #b069db';
-    document.getElementsByClassName("fa-facebook")[0].style.textShadow = '0 0 7px #b069db';
-}
-
-if (document.getElementsByClassName("fa-vk")[0]) {
-    document.getElementsByClassName("fa-vk")[0].style.color = '#fff';
-    document.getElementsByClassName("fa-vk")[0].style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    document.getElementsByClassName("fa-vk")[0].style.boxShadow = '0 0 7px #b069db';
-    document.getElementsByClassName("fa-vk")[0].style.textShadow = '0 0 7px #b069db';
-}
-
-if (document.getElementsByClassName("fa-envelope")[0]) {
-    document.getElementsByClassName("fa-envelope")[0].style.color = '#fff';
-    document.getElementsByClassName("fa-envelope")[0].style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    document.getElementsByClassName("fa-envelope")[0].style.boxShadow = '0 0 7px #b069db';
-    document.getElementsByClassName("fa-envelope")[0].style.textShadow = '0 0 7px #b069db';
-}
-
-// Style the continue, respawn, and refresh buttons
-const buttonIds = ['continue_btn', 'respawn_btn', 'refresh_btn'];
-buttonIds.forEach(id => {
-    const button = document.getElementById(id);
-    if (button) {
-        button.style.color = '#fff';
-        button.style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-        button.style.boxShadow = '0 0 7px #b069db';
-        button.style.textShadow = '0 0 7px #b069db';
+function themeclient() {
+    // Helper function to safely set styles
+    function setElementStyles(element, styles) {
+        if (!element) return;
+        Object.entries(styles).forEach(([property, value]) => {
+            element.style[property] = value;
+        });
     }
-});
 
-// Style the social media icons
-const socialIcons = document.querySelectorAll('.fa-facebook, .fa-twitter, .fa-vk');
-socialIcons.forEach(icon => {
-    icon.style.color = '#fff';
-    icon.style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    icon.style.boxShadow = '0 0 7px #b069db';
-    icon.style.textShadow = '0 0 7px #b069db';
-});
+    // Helper function to safely get element
+    function getElement(selector, context = document) {
+        return context.querySelector(selector);
+    }
 
-// Select all elements with class 'stats'
-const statsElements = document.getElementsByClassName('stats');
-Array.from(statsElements).forEach(statsDiv => {
-    // Apply the gradient background and other styling
-    statsDiv.style.background = 'linear-gradient(-45deg, hsla(306, 100%, 50%, 0.5) 0, hsla(200, 50%, 50%, 0.15) 100%)';
-    statsDiv.style.color = '#fff';
-    statsDiv.style.boxShadow = '0 0 7px #b069db';
-    statsDiv.style.textShadow = '0 0 7px #b069db';
-    
-    // Style the child elements (statinfo)
-    const statInfoDivs = statsDiv.getElementsByClassName('statinfo');
-    Array.from(statInfoDivs).forEach(statInfo => {
-        statInfo.style.color = '#fff';
-        statInfo.style.textShadow = '0 0 7px #b069db';
-    });
-});
+    // Helper function to safely get elements
+    function getElements(selector, context = document) {
+        return Array.from(context.querySelectorAll(selector));
+    }
+
+    // Check for top-right elements
+    const topRight = getElement('.top-right');
+    if (topRight) {
+        // Your existing top-right styling code here
+        // Wrapped in proper existence checks
+    }
+
+    // Check for play button
+    const playButton = getElement('#play');
+    if (playButton && playButton.style.color !== '#fff') {
+        setElementStyles(playButton, {
+            color: '#fff',
+            background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+            boxShadow: '0 0 7px #b069db',
+            textShadow: '0 0 7px #b069db'
+        });
+
+        // Apply styles to other elements only if they exist
+        const elements = {
+            nextMode: getElement('#nextMode'),
+            prevMode: getElement('#prevMode'),
+            inputWrapper: getElement('.inputwrapper'),
+            moddingspace: getElement('#moddingspace'),
+            donate: getElement('#donate'),
+            rankings: getElement('#rankings'),
+            training: getElement('#training')
+        };
+
+        // Safely apply styles to each element
+        Object.entries(elements).forEach(([key, element]) => {
+            if (element) {
+                setElementStyles(element, {
+                    color: key.includes('Mode') ? '#b069db' : '#fff',
+                    background: key.includes('Mode') ? '' : 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                    boxShadow: '0 0 7px #b069db',
+                    textShadow: '0 0 7px #b069db'
+                });
+            }
+        });
+
+        // Handle social buttons
+        ['sbg-twitter', 'sbg-facebook', 'sbg-gears', 'sbg-info'].forEach(className => {
+            const element = getElements(`.${className}`)[1];
+            if (element) {
+                setElementStyles(element, {
+                    color: '#fff',
+                    background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                    boxShadow: '0 0 7px #b069db',
+                    textShadow: '0 0 7px #b069db'
+                });
+            }
+        });
+
+        // Handle changelog elements
+        const changelogElements = getElements('.changelog-new');
+        changelogElements.forEach(element => {
+            if (element) {
+                setElementStyles(element, {
+                    color: '#fff',
+                    background: 'linear-gradient(-45deg, hsl(306.06deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)',
+                    boxShadow: '0 0 7px #b069db',
+                    textShadow: '0 0 7px #b069db'
+                });
+            }
+        });
+    }
+
+    // Check for stats elements
+    const statsContainer = getElement('.stats');
+    if (statsContainer && statsContainer.children.length > 0) {
+        setElementStyles(statsContainer, {
+            border: '2px solid #b069db',
+            boxShadow: '0 0 15px #b069db',
+            background: 'hsl(0deg 0% 100% / 0%)'
+        });
+
+        // Apply styles to children
+        Array.from(statsContainer.children).forEach(child => {
+            setElementStyles(child, {
+                borderBottom: '1px solid #b069db'
+            });
+        });
+    }
+
+    // Schedule the next update
+    setTimeout(themeclient, 500);
+}
         
           // Apply styles to the community-links div
     const communityLinksDiv = document.querySelector('.textcentered.community.changelog-new');
