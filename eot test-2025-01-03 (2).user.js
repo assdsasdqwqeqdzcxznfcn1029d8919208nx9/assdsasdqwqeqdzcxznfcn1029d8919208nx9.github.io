@@ -867,5 +867,5 @@ Array.from(statsElements).forEach(statsDiv => {
         }
         setTimeout(themeclient, 500)
       }
-    themeclient()
+    themeclient();
 })();
