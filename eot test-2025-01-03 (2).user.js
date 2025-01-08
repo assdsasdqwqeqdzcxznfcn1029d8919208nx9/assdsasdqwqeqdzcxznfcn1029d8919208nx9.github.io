@@ -449,18 +449,26 @@ function injectLoader() {
   }
 
   document.open();
-  document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1>');
+  document.write(`
+    <html>
+      <head><title></title></head>
+      <body style="background-color:#ffffff;">
+        <div style="margin: auto; width: 50%;">
+          <h1 style="text-align: center;padding: 170px 0;color: #000;"></h1>
+        </div>
+      </body>
+    </html>
+  `);
   document.close();
 
-  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
-  url += '?_=' + new Date().getTime();
+  const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${new Date().getTime()}`;
 
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   log("Fetching custom source...");
   xhr.open("GET", url);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      var starSRC = xhr.responseText;
+      let starSRC = xhr.responseText;
 
       if (starSRC !== undefined) {
         log("Source fetched successfully");
@@ -507,16 +515,15 @@ function injectLoader() {
 // Run the injectLoader function immediately
 injectLoader();
 
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
-  if (localStorage.clientcolor == undefined) {
+  if (localStorage.clientcolor === undefined) {
     localStorage.clientcolor = '#b069db';
   }
-  if (localStorage.clientcoloralt == undefined) {
+  if (localStorage.clientcoloralt === undefined) {
     localStorage.clientcoloralt = '#000';
   }
-  if (window.location.pathname == "/") {
+  if (window.location.pathname === "/") {
     document.getElementsByClassName('textcentered community changelog-new')[0].innerHTML = `
       <a href="https://open.spotify.com/user/gilpom/playlist/47N9rRbMXezlPXvhqVM3lJ?si=6bHzE9A9S-2TGh7C4OndkA" target="_blank" style="color: rgb(255, 255, 255);">
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414">
