@@ -268,65 +268,82 @@ function fovInjector(sbCode) {
   `;
 
   // Add crystal color mod
-  const crystalColorMod = `
-  /*
-   * Change crystal color (processing code)
-   */
+const crystalColorMod = `
   let CrystalObject;
-  for (let i in window) {
-    try {
-      let val = window[i];
-      if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-        CrystalObject = val;
-        break;
-      }
-    } catch (e) {}
-  }
+  
+  // Wait for Crystal object to be available
+  const findCrystalObject = () => {
+    for (let i in window) {
+      try {
+        let val = window[i];
+        if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
+          CrystalObject = val;
+          // Attach to window for global access
+          window.CrystalObject = CrystalObject;
+          initializeCrystalModifications();
+          break;
+        }
+      } catch (e) {}
+    }
+  };
 
-  let oldModel = CrystalObject.prototype.getModelInstance,
-    getCustomCrystalColor = function () {
+  const initializeCrystalModifications = () => {
+    let oldModel = CrystalObject.prototype.getModelInstance;
+    
+    const getCustomCrystalColor = function () {
       return localStorage.getItem("crystal-color") || "#ffffff";
     };
 
-  CrystalObject.prototype.getModelInstance = function () {
-    let res = oldModel.apply(this, arguments);
-    let color = getCustomCrystalColor();
-    if (color) this.material.color.set(color);
-    return res;
-  };
+    CrystalObject.prototype.getModelInstance = function () {
+      let res = oldModel.apply(this, arguments);
+      // Wait for next frame to ensure material is initialized
+      requestAnimationFrame(() => {
+        if (this.material && this.material.color) {
+          let color = getCustomCrystalColor();
+          if (color) this.material.color.set(color);
+        }
+      });
+      return res;
+    };
 
-  // Extend the CrystalObject to track instances
-  CrystalObject.instances = new Set();
+    // Extend the CrystalObject to track instances
+    CrystalObject.instances = new Set();
 
-  // Override the constructor to track instances
-  const originalConstructor = CrystalObject.prototype.constructor;
-  CrystalObject.prototype.constructor = function (...args) {
-    originalConstructor.apply(this, args);
-    CrystalObject.instances.add(this);
-  };
+    // Override the constructor to track instances
+    const originalConstructor = CrystalObject.prototype.constructor;
+    CrystalObject.prototype.constructor = function (...args) {
+      originalConstructor.apply(this, args);
+      CrystalObject.instances.add(this);
+    };
 
-  // Override a method to clean up destroyed crystals (if applicable)
-  const originalDestroy = CrystalObject.prototype.destroy;
-  CrystalObject.prototype.destroy = function (...args) {
-    CrystalObject.instances.delete(this);
-    if (originalDestroy) originalDestroy.apply(this, args);
+    // Override destroy method
+    const originalDestroy = CrystalObject.prototype.destroy;
+    CrystalObject.prototype.destroy = function (...args) {
+      CrystalObject.instances.delete(this);
+      if (originalDestroy) originalDestroy.apply(this, args);
+    };
   };
 
   // Function to update the crystal color immediately
-  function updateCrystalColor(color) {
-    // Save the new color in localStorage
+  window.updateCrystalColor = function(color) {
     localStorage.setItem("crystal-color", color);
-
-    // Update the material color of all active crystal instances
+    
     if (window.CrystalObject && window.CrystalObject.instances) {
-      for (const instance of window.CrystalObject.instances) {
-        if (instance.material && instance.material.color) {
-          instance.material.color.set(color);
+      requestAnimationFrame(() => {
+        for (const instance of window.CrystalObject.instances) {
+          if (instance.material && instance.material.color) {
+            instance.material.color.set(color);
+            // Force material update
+            instance.material.needsUpdate = true;
+          }
         }
-      }
+      });
     }
-  }
-  `;
+  };
+
+  // Start looking for Crystal object
+  findCrystalObject();
+`;
 
   src = src.replace('</body>', `
     ${controlStyles}
