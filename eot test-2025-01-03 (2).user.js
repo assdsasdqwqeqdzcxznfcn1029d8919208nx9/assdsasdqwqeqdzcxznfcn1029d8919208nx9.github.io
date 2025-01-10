@@ -242,13 +242,25 @@ function fovInjector(sbCode) {
     '};' +
     'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
 
-const blankECPMod = `
-/*
- Show blank ECPs on leaderboard
-*/
+// First ensure required objects exist
+if (!window.module) window.module = {};
+if (!window.module.exports) window.module.exports = {};
+if (!window.module.exports.settings) {
+    window.module.exports.settings = {
+        set: function(key, value) {
+            this[key] = value;
+        },
+        check: function(key) {
+            return this[key];
+        }
+    };
+}
 
+const blankECPMod = `
 // The pattern to match the "blank" badge check in the function string
 let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+
+const settings = window.module.exports.settings;
 
 Search: for (let i in window) {
   try {
@@ -260,7 +272,7 @@ Search: for (let i in window) {
       // Check if the function string matches the pattern
       if (typeof func === "function" && func.toString().match(pattern)) {
         // Replace the function with the modified version
-        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
+        val[j] = Function("return " + func.toString().replace(pattern, ", settings.check('show_blank_badge') || $1"))();
 
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
@@ -273,7 +285,7 @@ Search: for (let i in window) {
           if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
             let oldF = gl[k];
             gl[k] = function () {
-              let current = window.module.exports.settings.check('show_blank_badge');
+              let current = settings.check('show_blank_badge');
               if (this.showBlank !== current) {
                 for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
                 this.showBlank = current;
@@ -301,9 +313,8 @@ function initializeBlankECP() {
     // Initialize settings
     window.modSettings.showBlankECP = savedBlankECP;
     
-    // Safely set module settings
     try {
-        if (window.module?.exports?.settings) {
+        if (window.module?.exports?.settings?.set) {
             window.module.exports.settings.set('show_blank_badge', savedBlankECP);
         }
     } catch (error) {
@@ -337,20 +348,20 @@ function initializeBlankECP() {
     } else {
         initUI();
     }
+    
+    // Execute the blank ECP modification
+    try {
+        eval(blankECPMod);
+    } catch (error) {
+        console.error('Error executing blank ECP mod:', error);
+    }
 }
-  
-  // Execute the blank ECP modification
-  try {
-    eval(blankECPMod);
-  } catch (error) {
-    console.error('Error executing blank ECP mod:', error);
-  }
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeBlankECP);
+    document.addEventListener('DOMContentLoaded', initializeBlankECP);
 } else {
-  initializeBlankECP();
+    initializeBlankECP();
 }
 
   // Add crystal color mod
