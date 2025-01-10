@@ -77,13 +77,13 @@ function fovInjector(sbCode) {
     prevSrc = src;
   }
 
-  const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
-  src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
-  checkSrcChange();
+const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+checkSrcChange();
 
-   const controlStyles = `
-  <style>
-  #mod-controls {
+const controlStyles = `
+<style>
+#mod-controls {
     position: fixed;
     top: 10px;
     left: 10px;
@@ -97,59 +97,59 @@ function fovInjector(sbCode) {
     border-radius: 8px;
     opacity: 0.9;
     width: 150px;
-  }
+}
 
-  #mod-controls-header {
+#mod-controls-header {
     cursor: pointer;
     text-align: center;
     padding: 5px;
     border-bottom: 1px solid #FF1493;
-  }
+}
 
-  #mod-controls-panel {
+#mod-controls-panel {
     padding: 5px;
     display: none;
-  }
+}
 
-  .mod-control {
+.mod-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 5px 0;
-  }
+}
 
-  .mod-control-slider {
+.mod-control-slider {
     width: 100%;
     margin-top: 5px;
-  }
+}
 
-  #crystal-color-hex {
+#crystal-color-hex {
     width: 100%;
     margin-top: 5px;
     padding: 5px;
     box-sizing: border-box;
-  }
+}
 
-  #fov-display {
+#fov-display {
     padding: 5px;
     margin-top: 5px;
     display: none;
-  }
+}
 
-  .toggle-switch {
+.toggle-switch {
     position: relative;
     display: inline-block;
     width: 30px;
     height: 17px;
-  }
+}
 
-  .toggle-switch input {
+.toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
+}
 
-  .slider {
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -158,147 +158,147 @@ function fovInjector(sbCode) {
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-  }
+}
 
-  input:checked + .slider {
+input:checked + .slider {
     background-color: #FF1493;
-  }
+}
 
-  .control-value {
+.control-value {
     font-size: 12px;
     text-align: right;
     min-width: 30px;
-  }
-  </style>
-  `;
+}
+</style>
+`;
 
-  const controlsHTML = `
-  <div id="mod-controls">
+const controlsHTML = `
+<div id="mod-controls">
     <div id="mod-controls-header">Controls</div>
     <div id="mod-controls-panel">
-      <div class="mod-control">
-        <span>FOV</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="fov-toggle" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="mod-control">
-        <span>Emote Capacity</span>
-        <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
-      </div>
-      <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
-      <div class="mod-control">
-        <span>Show Blank ECPs</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="mod-control">
-        <span>Crystal Color</span>
-        <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
-      </div>
+        <div class="mod-control">
+            <span>FOV</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="fov-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="mod-control">
+            <span>Emote Capacity</span>
+            <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
+        </div>
+        <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
+        <div class="mod-control">
+            <span>Show Blank ECPs</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="mod-control">
+            <span>Crystal Color</span>
+            <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
+        </div>
     </div>
     <div id="fov-display">
-      FOV: <span id="fov-value">45</span>
+        FOV: <span id="fov-value">45</span>
     </div>
-  </div>
-  `;
+</div>
+`;
 
 // Initialize the controls
 function initializeControls() {
-  // Add styles and HTML to the document
-  document.head.insertAdjacentHTML('beforeend', controlStyles);
-  document.body.insertAdjacentHTML('beforeend', controlsHTML);
+    // Add styles and HTML to the document
+    document.head.insertAdjacentHTML('beforeend', controlStyles);
+    document.body.insertAdjacentHTML('beforeend', controlsHTML);
 
-  // Initialize window.modSettings if it doesn't exist
-  if (!window.modSettings) {
-    window.modSettings = {
-      fovEnabled: false,
-      emoteCapacity: 1,
-      showBlankECP: false,
-      crystalColor: '#ffffff'
+    // Initialize window.modSettings if it doesn't exist
+    if (!window.modSettings) {
+        window.modSettings = {
+            fovEnabled: false,
+            emoteCapacity: 1,
+            showBlankECP: false,
+            crystalColor: '#ffffff'
+        };
+    }
+
+    // Get DOM elements
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteCapacitySlider = document.getElementById('emote-capacity-slider');
+    const emoteCapacityValue = document.getElementById('emote-capacity-value');
+    const blankECPToggle = document.getElementById('blank-ecp-toggle');
+    const crystalColorInput = document.getElementById('crystal-color-hex');
+
+    // Set initial values from modSettings
+    fovToggle.checked = window.modSettings.fovEnabled;
+    emoteCapacitySlider.value = window.modSettings.emoteCapacity;
+    emoteCapacityValue.textContent = window.modSettings.emoteCapacity;
+    blankECPToggle.checked = window.modSettings.showBlankECP;
+    crystalColorInput.value = window.modSettings.crystalColor;
+
+    // Add event listeners
+    controlsHeader.addEventListener('click', () => {
+        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', (e) => {
+        window.modSettings.fovEnabled = e.target.checked;
+        localStorage.setItem('fov-enabled', e.target.checked);
+        // Add your FOV toggle functionality here
+    });
+
+    blankECPToggle.addEventListener('change', (e) => {
+        window.modSettings.showBlankECP = e.target.checked;
+        localStorage.setItem('show-blank-ecp', e.target.checked);
+        
+        // Update the settings in the module
+        if (window.module?.exports?.settings?.set) {
+            try {
+                window.module.exports.settings.set('show_blank_badge', e.target.checked);
+            } catch (error) {
+                console.error('Error updating blank badge setting:', error);
+            }
+        }
+    });
+
+    emoteCapacitySlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        window.modSettings.emoteCapacity = value;
+        emoteCapacityValue.textContent = value;
+        localStorage.setItem('emote-capacity', value);
+    });
+
+    crystalColorInput.addEventListener('change', (e) => {
+        window.modSettings.crystalColor = e.target.value;
+        localStorage.setItem('crystal-color', e.target.value);
+    });
+
+    // Load saved settings from localStorage
+    const loadSettings = () => {
+        const savedFOV = localStorage.getItem('fov-enabled');
+        const savedEmoteCapacity = localStorage.getItem('emote-capacity');
+        const savedBlankECP = localStorage.getItem('show-blank-ecp');
+        const savedCrystalColor = localStorage.getItem('crystal-color');
+
+        if (savedFOV !== null) fovToggle.checked = savedFOV === 'true';
+        if (savedEmoteCapacity !== null) {
+            emoteCapacitySlider.value = savedEmoteCapacity;
+            emoteCapacityValue.textContent = savedEmoteCapacity;
+        }
+        if (savedBlankECP !== null) blankECPToggle.checked = savedBlankECP === 'true';
+        if (savedCrystalColor !== null) crystalColorInput.value = savedCrystalColor;
     };
-  }
 
-  // Get DOM elements
-  const controlsPanel = document.getElementById('mod-controls-panel');
-  const controlsHeader = document.getElementById('mod-controls-header');
-  const fovToggle = document.getElementById('fov-toggle');
-  const emoteCapacitySlider = document.getElementById('emote-capacity-slider');
-  const emoteCapacityValue = document.getElementById('emote-capacity-value');
-  const blankECPToggle = document.getElementById('blank-ecp-toggle');
-  const crystalColorInput = document.getElementById('crystal-color-hex');
-
-  // Set initial values from modSettings
-  fovToggle.checked = window.modSettings.fovEnabled;
-  emoteCapacitySlider.value = window.modSettings.emoteCapacity;
-  emoteCapacityValue.textContent = window.modSettings.emoteCapacity;
-  blankECPToggle.checked = window.modSettings.showBlankECP;
-  crystalColorInput.value = window.modSettings.crystalColor;
-
-  // Add event listeners
-  controlsHeader.addEventListener('click', () => {
-    controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-  });
-
-  fovToggle.addEventListener('change', (e) => {
-    window.modSettings.fovEnabled = e.target.checked;
-    localStorage.setItem('fov-enabled', e.target.checked);
-    // Add your FOV toggle functionality here
-  });
-
-  blankECPToggle.addEventListener('change', (e) => {
-    window.modSettings.showBlankECP = e.target.checked;
-    localStorage.setItem('show-blank-ecp', e.target.checked);
-    
-    // Update the settings in the module
-    if (window.module?.exports?.settings?.set) {
-      try {
-        window.module.exports.settings.set('show_blank_badge', e.target.checked);
-      } catch (error) {
-        console.error('Error updating blank badge setting:', error);
-      }
-    }
-  });
-
-  emoteCapacitySlider.addEventListener('input', (e) => {
-    const value = parseInt(e.target.value);
-    window.modSettings.emoteCapacity = value;
-    emoteCapacityValue.textContent = value;
-    localStorage.setItem('emote-capacity', value);
-  });
-
-  crystalColorInput.addEventListener('change', (e) => {
-    window.modSettings.crystalColor = e.target.value;
-    localStorage.setItem('crystal-color', e.target.value);
-  });
-
-  // Load saved settings from localStorage
-  const loadSettings = () => {
-    const savedFOV = localStorage.getItem('fov-enabled');
-    const savedEmoteCapacity = localStorage.getItem('emote-capacity');
-    const savedBlankECP = localStorage.getItem('show-blank-ecp');
-    const savedCrystalColor = localStorage.getItem('crystal-color');
-
-    if (savedFOV !== null) fovToggle.checked = savedFOV === 'true';
-    if (savedEmoteCapacity !== null) {
-      emoteCapacitySlider.value = savedEmoteCapacity;
-      emoteCapacityValue.textContent = savedEmoteCapacity;
-    }
-    if (savedBlankECP !== null) blankECPToggle.checked = savedBlankECP === 'true';
-    if (savedCrystalColor !== null) crystalColorInput.value = savedCrystalColor;
-  };
-
-  loadSettings();
+    loadSettings();
 }
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeControls);
+    document.addEventListener('DOMContentLoaded', initializeControls);
 } else {
-  initializeControls();
+    initializeControls();
 }
   // Add emote capacity mod
   const emoteCapacityMod = `
