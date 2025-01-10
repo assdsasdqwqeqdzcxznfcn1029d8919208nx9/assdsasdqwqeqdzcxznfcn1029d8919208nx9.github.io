@@ -244,19 +244,12 @@ function fovInjector(sbCode) {
     }
   };
 
-  // Store the original typed function
-  const originalTyped = ChatPanel.prototype.typed;
-  ChatPanel.prototype.typed = function(...args) {
-    // Get current emote capacity
-    const capacity = this.getEmotesCapacity();
-    // Create new function with updated capacity check
-    return new Function("return function() {" + 
-        originalTyped.toString()
-            .replace(/function[^{]+{/i, '')
-            .replace(/}[^}]*$/i, '')
-            .replace(/>=\\s*4/, ">= " + capacity) + 
-        "}")();
-  };
+  (function() {
+    const originalTyped = ChatPanel.prototype.typed;
+    const typedStr = originalTyped.toString();
+    const modifiedTypedStr = typedStr.replace(/>=\\s*4/, " >= this.getEmotesCapacity()");
+    ChatPanel.prototype.typed = new Function("return " + modifiedTypedStr)();
+  })();
   `;
 
 const blankECPMod = `
