@@ -257,51 +257,118 @@ if (!window.module.exports.settings) {
 }
 
 const blankECPMod = `
-// The pattern to match the "blank" badge check in the function string
-let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+/*
+ Show blank ECPs on leaderboard
+*/
 
-const settings = window.module.exports.settings;
-
-Search: for (let i in window) {
-  try {
-    let val = window[i]?.prototype;
-    if (!val) continue;
-    for (let j in val) {
-      let func = val[j];
-
-      // Check if the function string matches the pattern
-      if (typeof func === "function" && func.toString().match(pattern)) {
-        // Replace the function with the modified version
-        val[j] = Function("return " + func.toString().replace(pattern, ", settings.check('show_blank_badge') || $1"))();
-
-        // Ensure drawIcon exists before modifying
-        if (val.drawIcon) {
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+try {
+    // Create a local settings object to prevent illegal invocation
+    const settings = {
+        check: function(key) {
+            return window.module.exports.settings.check(key);
         }
+    };
 
-        // Find and modify the function that deals with the leaderboard table
-        let gl = window[i];
-        for (let k in gl) {
-          if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-            let oldF = gl[k];
-            gl[k] = function () {
-              let current = settings.check('show_blank_badge');
-              if (this.showBlank !== current) {
-                for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                this.showBlank = current;
-              }
-              return oldF.apply(this, arguments);
-            };
-            break Search;
-          }
+    // The pattern to match the "blank" badge check in the function string
+    let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+
+    Search: for (let i in window) {
+        try {
+            let val = window[i]?.prototype;
+            if (!val) continue;
+            for (let j in val) {
+                let func = val[j];
+
+                // Check if the function string matches the pattern
+                if (typeof func === "function" && func.toString().match(pattern)) {
+                    // Replace the function with the modified version
+                    val[j] = Function("return " + func.toString().replace(pattern, ", settings.check('show_blank_badge') || $1"))();
+
+                    // Ensure drawIcon exists before modifying
+                    if (val.drawIcon) {
+                        val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+                    }
+
+                    // Find and modify the function that deals with the leaderboard table
+                    let gl = window[i];
+                    for (let k in gl) {
+                        if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+                            let oldF = gl[k];
+                            gl[k] = function () {
+                                let current = settings.check('show_blank_badge');
+                                if (this.showBlank !== current) {
+                                    for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                                    this.showBlank = current;
+                                }
+                                return oldF.apply(this, arguments);
+                            };
+                            break Search;
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error in blank ECP mod:', e);
         }
-      }
     }
-  } catch (e) {
-    console.error('Error in blank ECP mod:', e);
-  }
+} catch (e) {
+    console.error('Error initializing blank ECP mod:', e);
 }
 `;
+
+function initializeBlankECP() {
+    // Ensure required objects exist
+    window.modSettings = window.modSettings || {};
+    
+    // Load saved preference with a default of true
+    const savedBlankECP = localStorage.getItem('show-blank-ecp') !== 'false';
+    
+    // Initialize settings
+    window.modSettings.showBlankECP = savedBlankECP;
+    
+    try {
+        if (window.module?.exports?.settings?.set) {
+            window.module.exports.settings.set('show_blank_badge', savedBlankECP);
+        }
+    } catch (error) {
+        console.warn('Could not set initial blank badge setting:', error);
+    }
+    
+    // Wait for DOM to be ready before accessing elements
+    const initUI = () => {
+        const blankECPToggle = document.getElementById('blank-ecp-toggle');
+        if (blankECPToggle) {
+            blankECPToggle.checked = savedBlankECP;
+            
+            blankECPToggle.addEventListener('change', () => {
+                const isChecked = blankECPToggle.checked;
+                window.modSettings.showBlankECP = isChecked;
+                localStorage.setItem('show-blank-ecp', isChecked);
+                
+                try {
+                    if (window.module?.exports?.settings?.set) {
+                        window.module.exports.settings.set('show_blank_badge', isChecked);
+                    }
+                } catch (error) {
+                    console.warn('Could not update blank badge setting:', error);
+                }
+            });
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initUI);
+    } else {
+        initUI();
+    }
+    
+    // Execute the blank ECP modification
+    try {
+        eval(blankECPMod);
+    } catch (error) {
+        console.error('Error executing blank ECP mod:', error);
+    }
+}
 
 function initializeBlankECP() {
     // Ensure required objects exist
