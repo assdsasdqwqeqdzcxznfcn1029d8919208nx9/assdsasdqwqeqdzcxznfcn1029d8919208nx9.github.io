@@ -201,15 +201,17 @@ function initializeFOVControls() {
     });
 
     // Add wheel event listener for FOV change
-    document.addEventListener('wheel', (e) => {
-        if (!window.modSettings.fovEnabled) // Removed illegal return;
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 1 : -1;
-        window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
-        if (fovValue) {
-            fovValue.textContent = window.I1000.currentFOV;
-        }
-    }, { passive: false });
+document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) {
+        return;
+    }
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
+    if (fovValue) {
+        fovValue.textContent = window.I1000.currentFOV;
+    }
+}, { passive: false });
 
     logFOV("FOV controls initialized");
 }
@@ -484,13 +486,12 @@ const crystalColorMod = `
 
 CrystalObject.prototype.getModelInstance = function () {
   const res = oldModel.apply(this, arguments);
-  requestAnimationFrame(() => {
-    if (this.material && this.material.color) {
-      const color = getCustomCrystalColor();
-      if (color) this.material.color.set(color);
-    }
-  });
-  return res; // It's okay to return here since it's not inside eval
+  const color = getCustomCrystalColor();
+  if (this.material && this.material.color && color) {
+    this.material.color.set(color);
+    this.material.needsUpdate = true;
+  }
+  return res;
 };
     // Extend the CrystalObject to track instances
     CrystalObject.instances = new Set();
@@ -626,10 +627,10 @@ document.addEventListener('wheel', (e) => {
 // Add all injectors
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    lowercaseInjector(sbCode);
-    return window.modifiedSrc; // Use the stored modified source
+    const modifiedCode = lowercaseInjector(sbCode);
+    return modifiedCode;
   } catch (error) {
-    alert(`${modName} failed to load; error: ${error}`);
+    console.error(`${modName} failed to load; error:`, error);
     throw error;
   }
 });
@@ -714,11 +715,13 @@ injectLoader();
 document.addEventListener('DOMContentLoaded', function () {
   const script = document.createElement('script');
   script.src = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/minecraftgamer.js';
+  script.async = true; // Add async loading
   script.onload = function () {
-    console.log('minecraftgamer.js has been loaded successfully.');
+    console.log('minecraftgamer.js loaded successfully.');
   };
-  script.onerror = function () {
-    console.error('Failed to load minecraftgamer.js.');
+  script.onerror = function (error) {
+    console.error('Failed to load minecraftgamer.js:', error);
+    // Add fallback behavior if needed
   };
   document.body.appendChild(script);
 });
