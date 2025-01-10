@@ -244,13 +244,15 @@ function fovInjector(sbCode) {
     }
   };
 
-  ChatPanel.prototype.typed = function() {
-    const capacity = this.getEmotesCapacity();
-    if (this.vocabulary && this.vocabulary.length >= capacity) {
-      return false;
-    }
-    return true;
-  };
+  (function modifyTyped() {
+    const original = ChatPanel.prototype.typed;
+    ChatPanel.prototype.typed = function() {
+      const result = original.apply(this, arguments);
+      const modifiedFunction = result.toString().replace(/>=\\s*4/, ">= this.getEmotesCapacity()");
+      eval('ChatPanel.prototype.typed = ' + modifiedFunction);
+      return result;
+    };
+  })();
   `;
 
 const blankECPMod = `
