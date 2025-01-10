@@ -14,7 +14,7 @@ const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00
 function lowercaseInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-
+  
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
@@ -28,9 +28,8 @@ function lowercaseInjector(sbCode) {
   `;
   src = src.replace('</head>', `${styleBlock}</head>`);
   checkSrcChange();
-
   logLowercase("Mod injected");
-  return src;
+  window.modifiedSrc = src; // Store in window instead of returning
 }
 
 // Custom Emote Mod
@@ -240,14 +239,22 @@ function fovInjector(sbCode) {
     return src;
 }
 // Add emote capacity mod
-  const emoteCapacityMod = 
-  'var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
-  'ChatPanel.prototype.getEmotesCapacity = function () {' +
-  '  var num = this[globalVal].settings.get("chat_emotes_capacity");' +
-  '  try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }' +  // Add back return
-  '  catch (e) { return 4 }' +  // Add back return
-  '};' +
-  'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
+  const emoteCapacityMod = `
+  var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+  ChatPanel.prototype.getEmotesCapacity = function () {
+    var num = this[globalVal].settings.get("chat_emotes_capacity");
+    var result = 4; // Default value
+    try {
+      if (!(num == null || isNaN(num))) {
+        result = Math.trunc(Math.min(Math.max(1, num), 5)) || 4;
+      }
+    } catch (e) {
+      // Keep default value
+    }
+    return result;
+  };
+  ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");
+`;
 
 // First ensure required objects exist
 if (!window.module) window.module = {};
@@ -422,17 +429,16 @@ const crystalColorMod = `
       return localStorage.getItem("crystal-color") || "#ffffff";
     };
 
-    CrystalObject.prototype.getModelInstance = function () {
-      let res = oldModel.apply(this, arguments);
-      // Wait for next frame to ensure material is initialized
-      requestAnimationFrame(() => {
-        if (this.material && this.material.color) {
-          let color = getCustomCrystalColor();
-          if (color) this.material.color.set(color);
-        }
-      });
-      // Removed illegal return res;
-    };
+CrystalObject.prototype.getModelInstance = function () {
+  let res = oldModel.apply(this, arguments);
+  requestAnimationFrame(() => {
+    if (this.material && this.material.color) {
+      let color = getCustomCrystalColor();
+      if (color) this.material.color.set(color);
+    }
+  });
+  window.crystalModelInstance = res; // Store in window instead of returning
+};
 
     // Extend the CrystalObject to track instances
     CrystalObject.instances = new Set();
@@ -491,14 +497,17 @@ const crystalColorMod = `
     const fovDisplay = document.getElementById('fov-display');
 
     // Add wheel event listener for FOV change
-    document.addEventListener('wheel', (e) => {
-      if (!window.modSettings.fovEnabled) return;
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 1 : -1;
-      // Add bounds checking
-      window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
-      document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-    }, { passive: false });
+document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) {
+      return; // This return is OK in event listener
+    }
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
+    if (fovValue) {
+        fovValue.textContent = window.I1000.currentFOV;
+    }
+}, { passive: false });
 
     document.addEventListener('DOMContentLoaded', () => {
       const controlsHeader = document.getElementById('mod-controls-header');
@@ -584,13 +593,15 @@ window.sbCodeInjectors.push((sbCode) => {
 
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    // Removed illegal return fovInjector(sbCode);
+    lowercaseInjector(sbCode);
+    emoteInjector(window.modifiedSrc);
+    fovInjector(window.modifiedSrc);
+    return window.modifiedSrc;
   } catch (error) {
-    alert(`${fovModName} failed to load; error: ${error}`);
+    alert(`Mod failed to load; error: ${error}`);
     throw error;
   }
 });
-
 // Main code injection logic
 const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
@@ -601,69 +612,44 @@ function injectLoader() {
     return;
   }
 
-  document.open();
-  document.write(`
-    <html>
-      <head><title></title></head>
-      <body style="background-color:#ffffff;">
-        <div style="margin: auto; width: 50%;">
-          <h1 style="text-align: center;padding: 170px 0;color: #000;"></h1>
-        </div>
-      </body>
-    </html>
-  `);
-  document.close();
-
   const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${new Date().getTime()}`;
 
-  const xhr = new XMLHttpRequest();
-  log("Fetching custom source...");
-  xhr.open("GET", url);
-
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      let starSRC = xhr.responseText;
-
-      if (starSRC !== undefined) {
+  fetch(url)
+    .then(response => response.text())
+    .then(starSRC => {
+      if (starSRC) {
         log("Source fetched successfully");
         const start_time = performance.now();
         log("Applying mods...");
 
-        if (!window.sbCodeInjectors) {
-          log("No Starblast.io userscripts found to load");
-        } else {
-          let error_notified = false;
+        window.modifiedSrc = starSRC;
+
+        if (window.sbCodeInjectors) {
           for (const injector of window.sbCodeInjectors) {
             try {
-              if (typeof injector === "function") starSRC = injector(starSRC);
-              else {
-                log("Injector was not a function");
-                console.log(injector);
+              if (typeof injector === "function") {
+                injector(window.modifiedSrc);
               }
             } catch (error) {
-              if (!error_notified) {
-                alert("One of your Starblast.io userscripts failed to load");
-                error_notified = true;
-              }
-              console.error(error);
+              console.error('Injector error:', error);
             }
           }
         }
 
         const end_time = performance.now();
-        log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
+        log(`Mods applied (${(end_time - start_time).toFixed(0)}ms)`);
 
+        // Use the final modified source
         document.open();
-        document.write(starSRC);
+        document.write(window.modifiedSrc);
         document.close();
-      } else {
-        log("Source fetch failed");
-        alert("An error occurred while fetching game code");
       }
-    }
-  };
-
-  xhr.send();
+    })
+    .catch(error => {
+      log("Source fetch failed");
+      console.error(error);
+      alert("Failed to load game code");
+    });
 }
 
 // Run the injectLoader function immediately
