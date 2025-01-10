@@ -287,6 +287,7 @@ if (!window.module.exports.settings) {
 }
 
 // Initialize the blank ECP functionality
+// Initialize the blank ECP functionality
 function initializeBlankECP() {
   try {
     console.log("Initializing blank ECP...");
@@ -335,14 +336,80 @@ function initializeBlankECP() {
 
     initializeToggle();
     
-    // Execute the blank ECP modification
-    try {
-        console.log("Executing blank ECP modification...");
-        eval(blankECPMod);
-        console.log("Blank ECP modification executed successfully");
-    } catch (error) {
-        console.error('Error executing blank ECP mod:', error);
+    // Apply the blank ECP modifications directly instead of using eval
+    console.log("Starting blank ECP mod...");
+    
+    // Pattern for finding blank badge check
+    const pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
+
+    // Search through window properties
+    for (let i in window) {
+        try {
+            let val = window[i]?.prototype;
+            if (!val) continue;
+            
+            for (let j in val) {
+                let func = val[j];
+                
+                // Check if the function matches our pattern
+                if (typeof func === "function" && func.toString().match(pattern)) {
+                    console.log(`Found matching function: ${j}`);
+                    
+                    // Replace the function with our modified version
+                    val[j] = function(...args) {
+                        // Get the original result
+                        const origResult = func.apply(this, args);
+                        // Override with our setting check
+                        return window.module.exports.settings.check('show_blank_badge') || origResult;
+                    };
+
+                    // Modify drawIcon if it exists
+                    if (val.drawIcon) {
+                        console.log("Modifying drawIcon function");
+                        const originalDrawIcon = val.drawIcon;
+                        val.drawIcon = function(...args) {
+                            if (this.icon === "blank") {
+                                return originalDrawIcon.apply(this, args);
+                            }
+                            if (this.icon !== "blank") {
+                                return originalDrawIcon.apply(this, args);
+                            }
+                            return originalDrawIcon.apply(this, args);
+                        };
+                    }
+
+                    // Find and modify the leaderboard table function
+                    let gl = window[i];
+                    for (let k in gl) {
+                        if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+                            console.log("Modifying leaderboard table function:", k);
+                            const oldF = gl[k];
+                            gl[k] = function(...args) {
+                                const current = window.module.exports.settings.check('show_blank_badge');
+                                if (this.showBlank !== current) {
+                                    for (let i in this.table) {
+                                        if (i.startsWith("blank")) {
+                                            delete this.table[i];
+                                        }
+                                    }
+                                    this.showBlank = current;
+                                }
+                                return oldF.apply(this, args);
+                            };
+                            // Break the outer loop since we found what we needed
+                            i = undefined;
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error while processing window property:', e);
+        }
     }
+    
+    console.log("Blank ECP mod applied successfully");
+    
   } catch (e) {
     console.error('Error in initializeBlankECP:', e);
   }
@@ -360,39 +427,25 @@ Search: for (let i in window) {
   try {
     let val = window[i]?.prototype;
     if (!val) continue;
-    console.log("Inspecting window property: ", i);
     for (let j in val) {
       let func = val[j];
-      console.log("Inspecting function: ", j);
-
-      // Check if the function string matches the pattern
+      
       if (typeof func === "function" && func.toString().match(pattern)) {
-        console.log("Function matches pattern: ", j);
-        // Replace the function with the modified version
-        val[j] = new Function(func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"));
+        // Use a regular function instead of Function constructor
+        val[j] = function(...args) {
+          const origResult = func.apply(this, args);
+          return window.module.exports.settings.check('show_blank_badge') || origResult;
+        };
 
-        // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
-          console.log("Modifying drawIcon function");
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-        }
-
-        // Find and modify the function that deals with the leaderboard table
-        let gl = window[i];
-        for (let k in gl) {
-          if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-            let oldF = gl[k];
-            console.log("Modifying leaderboard table function: ", k);
-            gl[k] = function () {
-              let current = window.module.exports.settings.check('show_blank_badge');
-              if (this.showBlank !== current) {
-                for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                this.showBlank = current;
-              }
-              return oldF.apply(this, arguments);
-            };
-            break Search;
-          }
+          const originalDrawIcon = val.drawIcon;
+          val.drawIcon = function(...args) {
+            if (this.icon === "blank") {
+              return originalDrawIcon.apply(this, args);
+            } else if (this.icon !== "blank") {
+              return originalDrawIcon.apply(this, args);
+            }
+          };
         }
       }
     }
@@ -495,10 +548,9 @@ CrystalObject.prototype.getModelInstance = function () {
 }
     const fovDisplay = document.getElementById('fov-display');
 
-    // Add wheel event listener for FOV change
 document.addEventListener('wheel', (e) => {
     if (!window.modSettings.fovEnabled) {
-      return; // This return is OK in event listener
+        return; // This is OK in event listener context
     }
     e.preventDefault();
     const delta = e.deltaY < 0 ? 1 : -1;
@@ -574,7 +626,8 @@ document.addEventListener('wheel', (e) => {
 // Add all injectors
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    // Removed illegal return lowercaseInjector(sbCode);
+    lowercaseInjector(sbCode);
+    return window.modifiedSrc; // Use the stored modified source
   } catch (error) {
     alert(`${modName} failed to load; error: ${error}`);
     throw error;
@@ -583,7 +636,9 @@ window.sbCodeInjectors.push((sbCode) => {
 
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    // Removed illegal return emoteInjector(sbCode);
+    const modifiedCode = emoteInjector(sbCode);
+    window.modifiedSrc = modifiedCode;
+    return modifiedCode;
   } catch (error) {
     alert(`${emoteModName} failed to load; error: ${error}`);
     throw error;
