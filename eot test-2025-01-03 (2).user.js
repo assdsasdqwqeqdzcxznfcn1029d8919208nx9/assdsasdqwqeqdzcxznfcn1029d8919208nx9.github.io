@@ -271,27 +271,29 @@ Search: for (let i in window) {
 document.addEventListener('DOMContentLoaded', () => {
   const blankECPToggle = document.getElementById('blank-ecp-toggle');
 
-  blankECPToggle.addEventListener('change', () => {
-    const isChecked = blankECPToggle.checked;
-    window.modSettings.showBlankECP = isChecked;
-    localStorage.setItem('show-blank-ecp', isChecked);
+  if (blankECPToggle) {
+    blankECPToggle.addEventListener('change', () => {
+      const isChecked = blankECPToggle.checked;
+      window.modSettings.showBlankECP = isChecked;
+      localStorage.setItem('show-blank-ecp', isChecked);
 
+      if (window.module && window.module.exports) {
+        const settings = window.module.exports.settings;
+        if (settings && typeof settings.set === 'function') {
+          settings.set('show_blank_badge', isChecked);
+        }
+      }
+    });
+
+    // Initialize the toggle based on saved settings
+    const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
+    blankECPToggle.checked = savedBlankECP;
+    window.modSettings.showBlankECP = savedBlankECP;
     if (window.module && window.module.exports) {
       const settings = window.module.exports.settings;
       if (settings && typeof settings.set === 'function') {
-        settings.set('show_blank_badge', isChecked);
+        settings.set('show_blank_badge', savedBlankECP);
       }
-    }
-  });
-
-  // Initialize the toggle based on saved settings
-  const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
-  blankECPToggle.checked = savedBlankECP;
-  window.modSettings.showBlankECP = savedBlankECP;
-  if (window.module && window.module.exports) {
-    const settings = window.module.exports.settings;
-    if (settings && typeof settings.set === 'function') {
-      settings.set('show_blank_badge', savedBlankECP);
     }
   }
 });
@@ -488,6 +490,7 @@ window.sbCodeInjectors.push((sbCode) => {
 // Main code injection logic
 const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
+// Function to inject the loader
 function injectLoader() {
   if (window.location.pathname !== "/") {
     log("Injection not needed");
@@ -512,6 +515,7 @@ function injectLoader() {
   const xhr = new XMLHttpRequest();
   log("Fetching custom source...");
   xhr.open("GET", url);
+
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
       let starSRC = xhr.responseText;
@@ -914,6 +918,7 @@ Array.from(statsElements).forEach(statsDiv => {
         setTimeout(themeclient, 500)
       }
     themeclient();
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
