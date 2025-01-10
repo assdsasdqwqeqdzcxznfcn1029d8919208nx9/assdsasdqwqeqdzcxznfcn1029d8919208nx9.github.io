@@ -149,22 +149,29 @@ function initializeFOVControls() {
 
     // Add HTML
     const controlsHTML = `
-    <div id="mod-controls">
-        <div id="mod-controls-header">FOV Controls</div>
-        <div id="mod-controls-panel">
-            <div class="mod-control">
-                <span>FOV</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="fov-toggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
+<div id="mod-controls">
+    <div id="mod-controls-header">Game Controls</div>
+    <div id="mod-controls-panel">
+        <div class="mod-control">
+            <span>FOV</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="fov-toggle">
+                <span class="slider"></span>
+            </label>
         </div>
-        <div id="fov-display">
-            FOV: <span id="fov-value">45</span>
+        <div class="mod-control">
+            <span>Blank ECP</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="blank-ecp-toggle">
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
-    `;
+    <div id="fov-display">
+        FOV: <span id="fov-value">45</span>
+    </div>
+</div>
+`;
 
     // Add elements to document
     document.head.insertAdjacentHTML('beforeend', controlStyles);
@@ -286,53 +293,52 @@ function initializeBlankECP() {
         window.module.exports.settings.set('show_blank_badge', savedBlankECP);
     }
 
-    // Set up the toggle UI
-    const blankECPToggle = document.getElementById('blank-ecp-toggle');
-    if (blankECPToggle) {
-      console.log("blank-ecp-toggle element found");
-      // Set initial state
-      blankECPToggle.checked = savedBlankECP;
-      
-      // Add change listener
-      blankECPToggle.addEventListener('change', () => {
-        const isChecked = blankECPToggle.checked;
-        console.log(`blankECPToggle changed to: ${isChecked}`);
-        
-        // Update settings
-        window.modSettings.showBlankECP = isChecked;
-        localStorage.setItem('show-blank-ecp', isChecked);
-        
-        // Update module settings
-        if (window.module?.exports?.settings?.set) {
-          try {
-            window.module.exports.settings.set('show_blank_badge', isChecked);
-          } catch (error) {
-            console.error('Error updating blank badge setting:', error);
-          }
+    // Wait for DOM to be ready
+    const initializeToggle = () => {
+        const blankECPToggle = document.getElementById('blank-ecp-toggle');
+        if (!blankECPToggle) {
+            console.log('Waiting for blank-ecp-toggle element...');
+            setTimeout(initializeToggle, 100); // Try again in 100ms
+            return;
         }
-      });
-    } else {
-        console.log('blank-ecp-toggle element not found');
-    }
+
+        console.log("blank-ecp-toggle element found");
+        // Set initial state
+        blankECPToggle.checked = savedBlankECP;
+        
+        // Add change listener
+        blankECPToggle.addEventListener('change', () => {
+            const isChecked = blankECPToggle.checked;
+            console.log(`blankECPToggle changed to: ${isChecked}`);
+            
+            // Update settings
+            window.modSettings.showBlankECP = isChecked;
+            localStorage.setItem('show-blank-ecp', isChecked);
+            
+            // Update module settings
+            if (window.module?.exports?.settings?.set) {
+                try {
+                    window.module.exports.settings.set('show_blank_badge', isChecked);
+                } catch (error) {
+                    console.error('Error updating blank badge setting:', error);
+                }
+            }
+        });
+    };
+
+    initializeToggle();
     
     // Execute the blank ECP modification
     try {
-      console.log("Executing blank ECP modification...");
-      eval(blankECPMod);
-      console.log("Blank ECP modification executed successfully");
+        console.log("Executing blank ECP modification...");
+        eval(blankECPMod);
+        console.log("Blank ECP modification executed successfully");
     } catch (error) {
-      console.error('Error executing blank ECP mod:', error);
+        console.error('Error executing blank ECP mod:', error);
     }
   } catch (e) {
     console.error('Error in initializeBlankECP:', e);
   }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeBlankECP);
-} else {
-  initializeBlankECP();
 }
 const blankECPMod = `
 /*
@@ -467,14 +473,21 @@ const crystalColorMod = `
   findCrystalObject();
 `;
 
-  src = src.replace('</body>', `
-    ${controlStyles}
-    ${controlsHTML}
-    <script>
-    ${emoteCapacityMod}
-    ${blankECPMod}
-    ${crystalColorMod}
+      src = src.replace('</body>', `
+        ${controlStyles}
+        ${controlsHTML}
+        <script>
+        ${emoteCapacityMod}
+        ${blankECPMod}
+        ${crystalColorMod}
+        // ... rest of your script ...
+        </script>
+        </body>`);
 
+    checkSrcChange();
+    logFOV("FOV injector applied");
+    return src;
+}
     const fovDisplay = document.getElementById('fov-display');
 
     // Add wheel event listener for FOV change
