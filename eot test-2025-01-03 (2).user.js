@@ -635,7 +635,7 @@ window.sbCodeInjectors = window.sbCodeInjectors || [];
 window.sbCodeInjectors.push((sbCode) => {
     try {
         lowercaseInjector(sbCode);
-        window.modifiedSrc = sbCode;
+        return window.modifiedSrc; // Need to return the modified source
     } catch (error) {
         console.error(`${modName} failed to load; error:`, error);
         throw error;
@@ -644,8 +644,9 @@ window.sbCodeInjectors.push((sbCode) => {
 
 window.sbCodeInjectors.push((sbCode) => {
     try {
-        emoteInjector(sbCode);
-        window.modifiedSrc = sbCode;
+        const modified = emoteInjector(sbCode);
+        window.modifiedSrc = modified;
+        return modified; // Need to return the modified source
     } catch (error) {
         console.error(`${emoteModName} failed to load; error:`, error);
         throw error;
@@ -658,7 +659,7 @@ window.sbCodeInjectors.push((sbCode) => {
         lowercaseInjector(modified);
         emoteInjector(modified);
         fovInjector(modified);
-        window.modifiedSrc = modified;
+        return window.modifiedSrc; // Need to return the final modified source
     } catch (error) {
         console.error(`Mod failed to load; error:`, error);
         throw error;
