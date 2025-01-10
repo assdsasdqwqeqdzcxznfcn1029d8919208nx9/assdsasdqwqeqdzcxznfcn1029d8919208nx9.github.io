@@ -234,26 +234,13 @@ function fovInjector(sbCode) {
 }
 // Add emote capacity mod
   const emoteCapacityMod = 
-    '(function setupEmoteCapacity() {' +
-    '  var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
-    '  ChatPanel.prototype.getEmotesCapacity = function () {' +
-    '    var num = this[globalVal].settings.get("chat_emotes_capacity");' +
-    '    try {' +
-    '      if (num == null || isNaN(num)) return 4;' +
-    '      return Math.trunc(Math.min(Math.max(1, num), 5)) || 4;' +
-    '    } catch (e) {' +
-    '      return 4;' +
-    '    }' +
-    '  };' +
-    '  var oldTyped = ChatPanel.prototype.typed;' +
-    '  ChatPanel.prototype.typed = function() {' +
-    '    var cap = this.getEmotesCapacity();' +
-    '    var oldFn = oldTyped.toString();' +
-    '    var newFn = oldFn.replace(/>=\\\\s*4/, ">= " + cap);' +
-    '    ChatPanel.prototype.typed = eval("(" + newFn + ")");' +
-    '    return ChatPanel.prototype.typed.apply(this, arguments);' +
-    '  };' +
-    '})();';
+    'var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
+    'ChatPanel.prototype.getEmotesCapacity = function () {' +
+    '  var num = this[globalVal].settings.get("chat_emotes_capacity");' +
+    '  try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }' +
+    '  catch (e) { return 4 }' +
+    '};' +
+    'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
 
 const blankECPMod = `
 /*
