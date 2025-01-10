@@ -30,7 +30,7 @@ function lowercaseInjector(sbCode) {
   checkSrcChange();
 
   logLowercase("Mod injected");
-  // Removed illegal return src;
+  return src;
 }
 
 // Custom Emote Mod
@@ -57,7 +57,7 @@ function emoteInjector(sbCode) {
   checkSrcChange();
 
   logEmote("Clown emote injected");
-  // Removed illegal return src;
+  return src;
 }
 
 // FOV Editor Mod
@@ -237,17 +237,17 @@ function fovInjector(sbCode) {
     }
 
     logFOV("FOV injector applied");
-    // Removed illegal return src;
+    return src;
 }
 // Add emote capacity mod
   const emoteCapacityMod = 
-    'var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
-    'ChatPanel.prototype.getEmotesCapacity = function () {' +
-    '  var num = this[globalVal].settings.get("chat_emotes_capacity");' +
-    '  try { // Removed illegal return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }' +
-    '  catch (e) { // Removed illegal return 4 }' +
-    '};' +
-    'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
+  'var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
+  'ChatPanel.prototype.getEmotesCapacity = function () {' +
+  '  var num = this[globalVal].settings.get("chat_emotes_capacity");' +
+  '  try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }' +  // Add back return
+  '  catch (e) { return 4 }' +  // Add back return
+  '};' +
+  'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
 
 // First ensure required objects exist
 if (!window.module) window.module = {};
@@ -560,7 +560,7 @@ const crystalColorMod = `
   checkSrcChange();
 
   logFOV("FOV injector applied");
-  // Removed illegal return src;
+  return src;
 // Unmatched closing brace removed: }
 
 // Add all injectors
