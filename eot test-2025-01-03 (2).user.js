@@ -218,13 +218,13 @@ function fovInjector(sbCode) {
   `;
 
   // Add blank ECP mod
-  const blankECPMod = `
+ const blankECPMod = `
  /*
   Show blank ECPs on leaderboard
 */
 
 // The pattern to match the "blank" badge check in the function string
-let pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
+let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
 
 Search: for (let i in window) {
   try {
@@ -238,10 +238,10 @@ Search: for (let i in window) {
 
         // Replace the function with the modified version
         val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-        
+
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
         }
 
         // Find and modify the function that deals with the leaderboard table
@@ -266,6 +266,9 @@ Search: for (let i in window) {
     console.error(e);
   }
 }
+`;
+
+window.blankECPMod = blankECPMod;
 
   // Add crystal color mod
 const crystalColorMod = `
