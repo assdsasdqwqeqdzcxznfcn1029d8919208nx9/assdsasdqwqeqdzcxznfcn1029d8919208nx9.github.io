@@ -130,12 +130,6 @@ function fovInjector(sbCode) {
     box-sizing: border-box;
   }
 
-  #fov-display {
-    padding: 5px;
-    margin-top: 5px;
-    display: none;
-  }
-
   .toggle-switch {
     position: relative;
     display: inline-block;
@@ -158,10 +152,27 @@ function fovInjector(sbCode) {
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
+    border-radius: 17px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
   }
 
   input:checked + .slider {
     background-color: #FF1493;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(13px);
   }
 
   .control-value {
@@ -172,26 +183,26 @@ function fovInjector(sbCode) {
   </style>
   `;
 
-  const controlsHTML = `
+const controlsHTML = `
   <div id="mod-controls">
     <div id="mod-controls-header">Controls</div>
     <div id="mod-controls-panel">
       <div class="mod-control">
-        <span>FOV</span>
+        <span>FOV Toggle</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="fov-toggle" checked>
+          <input type="checkbox" id="fov-toggle">
           <span class="slider"></span>
         </label>
       </div>
       <div class="mod-control">
         <span>Emote Capacity</span>
-        <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
+        <div class="control-value" id="emote-capacity-value">1</div>
       </div>
-      <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
+      <input type="range" min="1" max="5" value="1" class="mod-control-slider" id="emote-capacity-slider">
       <div class="mod-control">
         <span>Show Blank ECPs</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
+          <input type="checkbox" id="blank-ecp-toggle">
           <span class="slider"></span>
         </label>
       </div>
@@ -200,12 +211,103 @@ function fovInjector(sbCode) {
         <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
       </div>
     </div>
-    <div id="fov-display">
-      FOV: <span id="fov-value">45</span>
-    </div>
   </div>
-  `;
+`;
 
+// Initialize the controls
+function initializeControls() {
+  // Add styles and HTML to the document
+  document.head.insertAdjacentHTML('beforeend', controlStyles);
+  document.body.insertAdjacentHTML('beforeend', controlsHTML);
+
+  // Initialize window.modSettings if it doesn't exist
+  if (!window.modSettings) {
+    window.modSettings = {
+      fovEnabled: false,
+      emoteCapacity: 1,
+      showBlankECP: false,
+      crystalColor: '#ffffff'
+    };
+  }
+
+  // Get DOM elements
+  const controlsPanel = document.getElementById('mod-controls-panel');
+  const controlsHeader = document.getElementById('mod-controls-header');
+  const fovToggle = document.getElementById('fov-toggle');
+  const emoteCapacitySlider = document.getElementById('emote-capacity-slider');
+  const emoteCapacityValue = document.getElementById('emote-capacity-value');
+  const blankECPToggle = document.getElementById('blank-ecp-toggle');
+  const crystalColorInput = document.getElementById('crystal-color-hex');
+
+  // Set initial values from modSettings
+  fovToggle.checked = window.modSettings.fovEnabled;
+  emoteCapacitySlider.value = window.modSettings.emoteCapacity;
+  emoteCapacityValue.textContent = window.modSettings.emoteCapacity;
+  blankECPToggle.checked = window.modSettings.showBlankECP;
+  crystalColorInput.value = window.modSettings.crystalColor;
+
+  // Add event listeners
+  controlsHeader.addEventListener('click', () => {
+    controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  fovToggle.addEventListener('change', (e) => {
+    window.modSettings.fovEnabled = e.target.checked;
+    localStorage.setItem('fov-enabled', e.target.checked);
+    // Add your FOV toggle functionality here
+  });
+
+  blankECPToggle.addEventListener('change', (e) => {
+    window.modSettings.showBlankECP = e.target.checked;
+    localStorage.setItem('show-blank-ecp', e.target.checked);
+    
+    // Update the settings in the module
+    if (window.module?.exports?.settings?.set) {
+      try {
+        window.module.exports.settings.set('show_blank_badge', e.target.checked);
+      } catch (error) {
+        console.error('Error updating blank badge setting:', error);
+      }
+    }
+  });
+
+  emoteCapacitySlider.addEventListener('input', (e) => {
+    const value = parseInt(e.target.value);
+    window.modSettings.emoteCapacity = value;
+    emoteCapacityValue.textContent = value;
+    localStorage.setItem('emote-capacity', value);
+  });
+
+  crystalColorInput.addEventListener('change', (e) => {
+    window.modSettings.crystalColor = e.target.value;
+    localStorage.setItem('crystal-color', e.target.value);
+  });
+
+  // Load saved settings from localStorage
+  const loadSettings = () => {
+    const savedFOV = localStorage.getItem('fov-enabled');
+    const savedEmoteCapacity = localStorage.getItem('emote-capacity');
+    const savedBlankECP = localStorage.getItem('show-blank-ecp');
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+
+    if (savedFOV !== null) fovToggle.checked = savedFOV === 'true';
+    if (savedEmoteCapacity !== null) {
+      emoteCapacitySlider.value = savedEmoteCapacity;
+      emoteCapacityValue.textContent = savedEmoteCapacity;
+    }
+    if (savedBlankECP !== null) blankECPToggle.checked = savedBlankECP === 'true';
+    if (savedCrystalColor !== null) crystalColorInput.value = savedCrystalColor;
+  };
+
+  loadSettings();
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeControls);
+} else {
+  initializeControls();
+}
   // Add emote capacity mod
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
