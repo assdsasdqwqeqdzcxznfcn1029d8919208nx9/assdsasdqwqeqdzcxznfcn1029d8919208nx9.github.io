@@ -234,25 +234,36 @@ function fovInjector(sbCode) {
 }
 // Add emote capacity mod
   const emoteCapacityMod = `
-  const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-  ChatPanel.prototype.getEmotesCapacity = function () {
-    let num = this[globalVal].settings.get("chat_emotes_capacity");
-    try { 
+  (function initEmoteCapacity() {
+    // Get the global value
+    const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+    
+    // Add capacity function to prototype
+    ChatPanel.prototype.getEmotesCapacity = function () {
+      let num = this[globalVal].settings.get("chat_emotes_capacity");
+      try { 
         return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
-    } catch (e) { 
+      } catch (e) { 
         return 4;
-    }
-  };
-
-  (function modifyTyped() {
-    const original = ChatPanel.prototype.typed;
-    ChatPanel.prototype.typed = function() {
-      const result = original.apply(this, arguments);
-      const modifiedFunction = result.toString().replace(/>=\\s*4/, ">= this.getEmotesCapacity()");
-      eval('ChatPanel.prototype.typed = ' + modifiedFunction);
-      return result;
+      }
     };
-  })();
+
+    // Store original typed function
+    const originalTyped = ChatPanel.prototype.typed;
+    
+    // Create new typed function
+    ChatPanel.prototype.typed = function() {
+      const capacity = this.getEmotesCapacity();
+      const originalResult = originalTyped.apply(this, arguments);
+      
+      if (typeof originalResult === 'function') {
+        const modifiedFn = originalResult.toString().replace(/>=\\s*4/, ">= " + capacity);
+        return new Function('return ' + modifiedFn)();
+      }
+      
+      return originalResult;
+    };
+  })(); // Immediately invoke the function
   `;
 
 const blankECPMod = `
