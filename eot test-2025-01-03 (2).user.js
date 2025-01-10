@@ -264,7 +264,7 @@ Search: for (let i in window) {
 
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
-          val.drawIcon = Function("// Removed illegal return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
         }
 
         // Find and modify the function that deals with the leaderboard table
@@ -278,7 +278,7 @@ Search: for (let i in window) {
                 for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
                 this.showBlank = current;
               }
-              // Removed illegal return oldF.apply(this, arguments);
+              return oldF.apply(this, arguments);
             };
             break Search;
           }
@@ -291,39 +291,53 @@ Search: for (let i in window) {
 }
 `;
 
-// Initialize the blank ECP functionality
 function initializeBlankECP() {
-  // Load saved preference
-  const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
-  
-  // Initialize settings
-  window.modSettings.showBlankECP = savedBlankECP;
-  window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-  
-  // Set up the toggle UI
-  const blankECPToggle = document.getElementById('blank-ecp-toggle');
-  if (blankECPToggle) {
-    // Set initial state
-    blankECPToggle.checked = savedBlankECP;
+    // Ensure required objects exist
+    window.modSettings = window.modSettings || {};
     
-    // Add change listener
-    blankECPToggle.addEventListener('change', () => {
-      const isChecked = blankECPToggle.checked;
-      
-      // Update settings
-      window.modSettings.showBlankECP = isChecked;
-      localStorage.setItem('show-blank-ecp', isChecked);
-      
-      // Update module settings
-      if (window.module?.exports?.settings?.set) {
-        try {
-          window.module.exports.settings.set('show_blank_badge', isChecked);
-        } catch (error) {
-          console.error('Error updating blank badge setting:', error);
+    // Load saved preference with a default of true
+    const savedBlankECP = localStorage.getItem('show-blank-ecp') !== 'false';
+    
+    // Initialize settings
+    window.modSettings.showBlankECP = savedBlankECP;
+    
+    // Safely set module settings
+    try {
+        if (window.module?.exports?.settings) {
+            window.module.exports.settings.set('show_blank_badge', savedBlankECP);
         }
-      }
-    });
-  }
+    } catch (error) {
+        console.warn('Could not set initial blank badge setting:', error);
+    }
+    
+    // Wait for DOM to be ready before accessing elements
+    const initUI = () => {
+        const blankECPToggle = document.getElementById('blank-ecp-toggle');
+        if (blankECPToggle) {
+            blankECPToggle.checked = savedBlankECP;
+            
+            blankECPToggle.addEventListener('change', () => {
+                const isChecked = blankECPToggle.checked;
+                window.modSettings.showBlankECP = isChecked;
+                localStorage.setItem('show-blank-ecp', isChecked);
+                
+                try {
+                    if (window.module?.exports?.settings?.set) {
+                        window.module.exports.settings.set('show_blank_badge', isChecked);
+                    }
+                } catch (error) {
+                    console.warn('Could not update blank badge setting:', error);
+                }
+            });
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initUI);
+    } else {
+        initUI();
+    }
+}
   
   // Execute the blank ECP modification
   try {
