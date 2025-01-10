@@ -217,8 +217,7 @@ function fovInjector(sbCode) {
   ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
   `;
 
-  // Add blank ECP mod
- const blankECPMod = `
+const blankECPMod = `
  /*
   Show blank ECPs on leaderboard
 */
@@ -268,7 +267,34 @@ Search: for (let i in window) {
 }
 `;
 
-window.blankECPMod = blankECPMod;
+// Initialization and event listener for blank ECP toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const blankECPToggle = document.getElementById('blank-ecp-toggle');
+
+  blankECPToggle.addEventListener('change', () => {
+    const isChecked = blankECPToggle.checked;
+    window.modSettings.showBlankECP = isChecked;
+    localStorage.setItem('show-blank-ecp', isChecked);
+
+    if (window.module && window.module.exports) {
+      const settings = window.module.exports.settings;
+      if (settings && typeof settings.set === 'function') {
+        settings.set('show_blank_badge', isChecked);
+      }
+    }
+  });
+
+  // Initialize the toggle based on saved settings
+  const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
+  blankECPToggle.checked = savedBlankECP;
+  window.modSettings.showBlankECP = savedBlankECP;
+  if (window.module && window.module.exports) {
+    const settings = window.module.exports.settings;
+    if (settings && typeof settings.set === 'function') {
+      settings.set('show_blank_badge', savedBlankECP);
+    }
+  }
+});
 
   // Add crystal color mod
 const crystalColorMod = `
