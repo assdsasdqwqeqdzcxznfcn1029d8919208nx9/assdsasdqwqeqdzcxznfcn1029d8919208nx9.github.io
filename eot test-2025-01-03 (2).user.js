@@ -629,87 +629,89 @@ document.addEventListener('wheel', (e) => {
 // Unmatched closing brace removed: }
 
 // Add all injectors
+window.sbCodeInjectors = window.sbCodeInjectors || [];
+
+// Modified version of the injectors
 window.sbCodeInjectors.push((sbCode) => {
-  try {
-    const modifiedCode = lowercaseInjector(sbCode);
-    return modifiedCode;
-  } catch (error) {
-    console.error(`${modName} failed to load; error:`, error);
-    throw error;
-  }
+    try {
+        lowercaseInjector(sbCode);
+        window.modifiedSrc = sbCode;
+    } catch (error) {
+        console.error(`${modName} failed to load; error:`, error);
+        throw error;
+    }
 });
 
 window.sbCodeInjectors.push((sbCode) => {
-  try {
-    const modifiedCode = emoteInjector(sbCode);
-    window.modifiedSrc = modifiedCode;
-    return modifiedCode;
-  } catch (error) {
-    alert(`${emoteModName} failed to load; error: ${error}`);
-    throw error;
-  }
+    try {
+        emoteInjector(sbCode);
+        window.modifiedSrc = sbCode;
+    } catch (error) {
+        console.error(`${emoteModName} failed to load; error:`, error);
+        throw error;
+    }
 });
 
 window.sbCodeInjectors.push((sbCode) => {
-  try {
-    let modified = sbCode;
-    modified = lowercaseInjector(modified);
-    modified = emoteInjector(modified);
-    modified = fovInjector(modified);
-    window.modifiedSrc = modified;
-  } catch (error) {
-    console.error(`Mod failed to load; error:`, error);
-    throw error;
-  }
+    try {
+        let modified = sbCode;
+        lowercaseInjector(modified);
+        emoteInjector(modified);
+        fovInjector(modified);
+        window.modifiedSrc = modified;
+    } catch (error) {
+        console.error(`Mod failed to load; error:`, error);
+        throw error;
+    }
 });
 // Main code injection logic
 const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
 // Function to inject the loader
 function injectLoader() {
-  if (window.location.pathname !== "/") {
-    log("Injection not needed");
-    return;
-  }
+    if (window.location.pathname !== "/") {
+        log("Injection not needed");
+        return;
+    }
 
-  const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${new Date().getTime()}`;
+    const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${new Date().getTime()}`;
 
-  fetch(url)
-    .then(response => response.text())
-    .then(starSRC => {
-      if (starSRC) {
-        log("Source fetched successfully");
-        const start_time = performance.now();
-        log("Applying mods...");
+    fetch(url)
+        .then(response => response.text())
+        .then(starSRC => {
+            if (starSRC) {
+                log("Source fetched successfully");
+                const start_time = performance.now();
+                log("Applying mods...");
 
-        window.modifiedSrc = starSRC;
+                window.modifiedSrc = starSRC;
 
-        if (window.sbCodeInjectors) {
-          for (const injector of window.sbCodeInjectors) {
-            try {
-              if (typeof injector === "function") {
-                injector(window.modifiedSrc);
-              }
-            } catch (error) {
-              console.error('Injector error:', error);
+                if (window.sbCodeInjectors) {
+                    for (const injector of window.sbCodeInjectors) {
+                        try {
+                            if (typeof injector === "function") {
+                                injector(window.modifiedSrc);
+                            }
+                        } catch (error) {
+                            console.error('Injector error:', error);
+                        }
+                    }
+                }
+
+                const end_time = performance.now();
+                log(`Mods applied (${(end_time - start_time).toFixed(0)}ms)`);
+
+                // Use the final modified source
+                const script = document.createElement('script');
+                script.textContent = window.modifiedSrc;
+                document.body.appendChild(script);
             }
-          }
-        }
-
-        const end_time = performance.now();
-        log(`Mods applied (${(end_time - start_time).toFixed(0)}ms)`);
-
-        // Use the final modified source
-        document.open();
-        document.write(window.modifiedSrc);
-        document.close();
-      }
-    })
-    .catch(error => {
-      log("Source fetch failed");
-      console.error(error);
-      alert("Failed to load game code");
-    });
+        })
+        .catch(error => {
+            log("Source fetch failed");
+            console.error(error);
+            alert("Failed to load game code");
+        });
 }
 
 // Run the injectLoader function immediately
