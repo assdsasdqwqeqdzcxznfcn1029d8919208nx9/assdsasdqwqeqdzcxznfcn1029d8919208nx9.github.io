@@ -345,7 +345,6 @@ function initializeBlankECP() {
   } catch (error) {
     console.error('Error executing blank ECP mod:', error);
   }
-}
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
