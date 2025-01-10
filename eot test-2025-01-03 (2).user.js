@@ -233,38 +233,27 @@ function fovInjector(sbCode) {
     return src;
 }
 // Add emote capacity mod
-  const emoteCapacityMod = `
-  (function initEmoteCapacity() {
-    // Get the global value
-    const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-    
-    // Add capacity function to prototype
-    ChatPanel.prototype.getEmotesCapacity = function () {
-      let num = this[globalVal].settings.get("chat_emotes_capacity");
-      try { 
-        return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
-      } catch (e) { 
-        return 4;
-      }
-    };
-
-    // Store original typed function
-    const originalTyped = ChatPanel.prototype.typed;
-    
-    // Create new typed function
-    ChatPanel.prototype.typed = function() {
-      const capacity = this.getEmotesCapacity();
-      const originalResult = originalTyped.apply(this, arguments);
-      
-      if (typeof originalResult === 'function') {
-        const modifiedFn = originalResult.toString().replace(/>=\\s*4/, ">= " + capacity);
-        return new Function('return ' + modifiedFn)();
-      }
-      
-      return originalResult;
-    };
-  })(); // Immediately invoke the function
-  `;
+  const emoteCapacityMod = 
+    '(function setupEmoteCapacity() {' +
+    '  var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
+    '  ChatPanel.prototype.getEmotesCapacity = function () {' +
+    '    var num = this[globalVal].settings.get("chat_emotes_capacity");' +
+    '    try {' +
+    '      if (num == null || isNaN(num)) return 4;' +
+    '      return Math.trunc(Math.min(Math.max(1, num), 5)) || 4;' +
+    '    } catch (e) {' +
+    '      return 4;' +
+    '    }' +
+    '  };' +
+    '  var oldTyped = ChatPanel.prototype.typed;' +
+    '  ChatPanel.prototype.typed = function() {' +
+    '    var cap = this.getEmotesCapacity();' +
+    '    var oldFn = oldTyped.toString();' +
+    '    var newFn = oldFn.replace(/>=\\\\s*4/, ">= " + cap);' +
+    '    ChatPanel.prototype.typed = eval("(" + newFn + ")");' +
+    '    return ChatPanel.prototype.typed.apply(this, arguments);' +
+    '  };' +
+    '})();';
 
 const blankECPMod = `
 /*
