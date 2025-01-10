@@ -264,21 +264,27 @@ const blankECPMod = `
 // The pattern to match the "blank" badge check in the function string
 let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
 
+console.log("Starting blank ECP mod...");
+
 Search: for (let i in window) {
   try {
     let val = window[i]?.prototype;
     if (!val) continue;
+    console.log("Inspecting window property: ", i);
     for (let j in val) {
       let func = val[j];
+      console.log("Inspecting function: ", j);
 
       // Check if the function string matches the pattern
       if (typeof func === "function" && func.toString().match(pattern)) {
+        console.log("Function matches pattern: ", j);
         // Replace the function with the modified version
-        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1")).call(val);
+        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
 
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
-          val.drawIcon = Function("// Removed illegal return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {')).call(val);
+          console.log("Modifying drawIcon function");
+          val.drawIcon = Function("// Removed illegal return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
         }
 
         // Find and modify the function that deals with the leaderboard table
@@ -286,13 +292,14 @@ Search: for (let i in window) {
         for (let k in gl) {
           if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
             let oldF = gl[k];
+            console.log("Modifying leaderboard table function: ", k);
             gl[k] = function () {
               let current = window.module.exports.settings.check('show_blank_badge');
               if (this.showBlank !== current) {
                 for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
                 this.showBlank = current;
               }
-              return oldF.apply(this, arguments);
+              // Removed illegal return oldF.apply(this, arguments);
             };
             break Search;
           }
@@ -303,8 +310,8 @@ Search: for (let i in window) {
     console.error('Error in blank ECP mod:', e);
   }
 }
+console.log("Finished blank ECP mod");
 `;
-
 // Initialize the blank ECP functionality
 function initializeBlankECP() {
   // Load saved preference
@@ -341,7 +348,9 @@ function initializeBlankECP() {
   
   // Execute the blank ECP modification
   try {
+    console.log("Executing blank ECP modification...");
     eval(blankECPMod);
+    console.log("Blank ECP modification executed successfully");
   } catch (error) {
     console.error('Error executing blank ECP mod:', error);
   }
@@ -352,67 +361,6 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeBlankECP);
 } else {
   initializeBlankECP();
-}
-
-function initializeBlankECP() {
-    // Ensure required objects exist
-    window.modSettings = window.modSettings || {};
-    
-    // Load saved preference with a default of true
-    const savedBlankECP = localStorage.getItem('show-blank-ecp') !== 'false';
-    
-    // Initialize settings
-    window.modSettings.showBlankECP = savedBlankECP;
-    
-    try {
-        if (window.module?.exports?.settings?.set) {
-            window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-        }
-    } catch (error) {
-        console.warn('Could not set initial blank badge setting:', error);
-    }
-    
-    // Wait for DOM to be ready before accessing elements
-    const initUI = () => {
-        const blankECPToggle = document.getElementById('blank-ecp-toggle');
-        if (blankECPToggle) {
-            blankECPToggle.checked = savedBlankECP;
-            
-            blankECPToggle.addEventListener('change', () => {
-                const isChecked = blankECPToggle.checked;
-                window.modSettings.showBlankECP = isChecked;
-                localStorage.setItem('show-blank-ecp', isChecked);
-                
-                try {
-                    if (window.module?.exports?.settings?.set) {
-                        window.module.exports.settings.set('show_blank_badge', isChecked);
-                    }
-                } catch (error) {
-                    console.warn('Could not update blank badge setting:', error);
-                }
-            });
-        }
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initUI);
-    } else {
-        initUI();
-    }
-    
-    // Execute the blank ECP modification
-    try {
-        eval(blankECPMod);
-    } catch (error) {
-        console.error('Error executing blank ECP mod:', error);
-    }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeBlankECP);
-} else {
-    initializeBlankECP();
 }
 
   // Add crystal color mod
