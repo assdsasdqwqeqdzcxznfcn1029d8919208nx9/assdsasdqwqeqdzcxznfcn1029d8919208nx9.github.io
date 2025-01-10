@@ -232,63 +232,67 @@ function fovInjector(sbCode) {
     logFOV("FOV injector applied");
     return src;
 }
-// Add emote capacity mod
-  const emoteCapacityMod = 
-    'var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];' +
-    'ChatPanel.prototype.getEmotesCapacity = function () {' +
-    '  var num = this[globalVal].settings.get("chat_emotes_capacity");' +
-    '  try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }' +
-    '  catch (e) { return 4 }' +
-    '};' +
-    'ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");';
+const emoteCapacityMod = `
+(function() {
+  var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+  
+  ChatPanel.prototype.getEmotesCapacity = function () {
+    var num = this[globalVal].settings.get("chat_emotes_capacity");
+    try { 
+      return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
+    } catch (e) { 
+      return 4;
+    }
+  };
+
+  var originalTyped = ChatPanel.prototype.typed;
+  var typedStr = originalTyped.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()");
+  ChatPanel.prototype.typed = new Function("return " + typedStr)();
+})();
+`;
+
+// Change this part of the blankECPMod:
 
 const blankECPMod = `
-/*
- Show blank ECPs on leaderboard
-*/
+(function() {
+  let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
 
-// The pattern to match the "blank" badge check in the function string
-let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+  for (let i in window) {
+    try {
+      let val = window[i]?.prototype;
+      if (!val) continue;
+      for (let j in val) {
+        let func = val[j];
 
-Search: for (let i in window) {
-  try {
-    let val = window[i]?.prototype;
-    if (!val) continue;
-    for (let j in val) {
-      let func = val[j];
+        if (typeof func === "function" && func.toString().match(pattern)) {
+          val[j] = new Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
 
-      // Check if the function string matches the pattern
-      if (typeof func === "function" && func.toString().match(pattern)) {
-        // Replace the function with the modified version
-        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
+          if (val.drawIcon) {
+            val.drawIcon = new Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+          }
 
-        // Ensure drawIcon exists before modifying
-        if (val.drawIcon) {
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-        }
-
-        // Find and modify the function that deals with the leaderboard table
-        let gl = window[i];
-        for (let k in gl) {
-          if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-            let oldF = gl[k];
-            gl[k] = function () {
-              let current = window.module.exports.settings.check('show_blank_badge');
-              if (this.showBlank !== current) {
-                for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                this.showBlank = current;
-              }
-              return oldF.apply(this, arguments);
-            };
-            break Search;
+          let gl = window[i];
+          for (let k in gl) {
+            if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+              let oldF = gl[k];
+              gl[k] = function () {
+                let current = window.module.exports.settings.check('show_blank_badge');
+                if (this.showBlank !== current) {
+                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                  this.showBlank = current;
+                }
+                return oldF.apply(this, arguments);
+              };
+              break;
+            }
           }
         }
       }
+    } catch (e) {
+      console.error('Error in blank ECP mod:', e);
     }
-  } catch (e) {
-    console.error('Error in blank ECP mod:', e);
   }
-}
+})();
 `;
 
 // Initialize the blank ECP functionality
