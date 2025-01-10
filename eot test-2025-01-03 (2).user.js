@@ -262,9 +262,11 @@ if (!window.module.exports) window.module.exports = {};
 if (!window.module.exports.settings) {
     window.module.exports.settings = {
         set: function(key, value) {
+            console.log(`Setting ${key} to ${value}`);
             this[key] = value;
         },
         check: function(key) {
+            console.log(`Checking value of ${key}`);
             return this[key];
         }
     };
@@ -273,8 +275,10 @@ if (!window.module.exports.settings) {
 // Initialize the blank ECP functionality
 function initializeBlankECP() {
   try {
+    console.log("Initializing blank ECP...");
     // Load saved preference
     const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
+    console.log(`Loaded savedBlankECP: ${savedBlankECP}`);
     
     // Initialize settings
     window.modSettings.showBlankECP = savedBlankECP;
@@ -285,12 +289,14 @@ function initializeBlankECP() {
     // Set up the toggle UI
     const blankECPToggle = document.getElementById('blank-ecp-toggle');
     if (blankECPToggle) {
+      console.log("blank-ecp-toggle element found");
       // Set initial state
       blankECPToggle.checked = savedBlankECP;
       
       // Add change listener
       blankECPToggle.addEventListener('change', () => {
         const isChecked = blankECPToggle.checked;
+        console.log(`blankECPToggle changed to: ${isChecked}`);
         
         // Update settings
         window.modSettings.showBlankECP = isChecked;
