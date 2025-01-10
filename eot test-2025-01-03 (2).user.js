@@ -256,6 +256,20 @@ if (!window.module.exports.settings) {
     };
 }
 
+// Ensure required objects exist
+if (!window.module) window.module = {};
+if (!window.module.exports) window.module.exports = {};
+if (!window.module.exports.settings) {
+    window.module.exports.settings = {
+        set: function(key, value) {
+            this[key] = value;
+        },
+        check: function(key) {
+            return this[key];
+        }
+    };
+}
+
 // Initialize the blank ECP functionality
 function initializeBlankECP() {
   try {
@@ -314,8 +328,6 @@ if (document.readyState === 'loading') {
 } else {
   initializeBlankECP();
 }
-
-// Blank ECP modification script
 const blankECPMod = `
 /*
  Show blank ECPs on leaderboard
@@ -371,7 +383,6 @@ Search: for (let i in window) {
 }
 console.log("Finished blank ECP mod");
 `;
-
   // Add crystal color mod
 const crystalColorMod = `
   let CrystalObject;
