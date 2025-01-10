@@ -226,9 +226,9 @@ function fovInjector(sbCode) {
     }
 
     // Replace FOV calculation
-    const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
-    src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
-    checkSrcChange();
+ const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+  src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+  checkSrcChange();
 
     // Initialize controls when DOM is ready
     if (document.readyState === 'loading') {
@@ -484,15 +484,19 @@ const crystalColorMod = `
       return localStorage.getItem("crystal-color") || "#ffffff";
     };
 
-CrystalObject.prototype.getModelInstance = function () {
-  const res = oldModel.apply(this, arguments);
-  const color = getCustomCrystalColor();
-  if (this.material && this.material.color && color) {
-    this.material.color.set(color);
-    this.material.needsUpdate = true;
-  }
-  return res;
-};
+// Fix 1: Modify the Crystal Color implementation
+CrystalObject.prototype.getModelInstance = (function() {
+    const originalMethod = CrystalObject.prototype.getModelInstance;
+    return function() {
+        const result = originalMethod.apply(this, arguments);
+        const color = getCustomCrystalColor();
+        if (this.material && this.material.color && color) {
+            this.material.color.set(color);
+            this.material.needsUpdate = true;
+        }
+        return result;
+    };
+})();
     // Extend the CrystalObject to track instances
     CrystalObject.instances = new Set();
 
@@ -648,12 +652,13 @@ window.sbCodeInjectors.push((sbCode) => {
 
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    lowercaseInjector(sbCode);
-    emoteInjector(window.modifiedSrc);
-    fovInjector(window.modifiedSrc);
-    return window.modifiedSrc;
+    let modified = sbCode;
+    modified = lowercaseInjector(modified);
+    modified = emoteInjector(modified);
+    modified = fovInjector(modified);
+    window.modifiedSrc = modified;
   } catch (error) {
-    alert(`Mod failed to load; error: ${error}`);
+    console.error(`Mod failed to load; error:`, error);
     throw error;
   }
 });
