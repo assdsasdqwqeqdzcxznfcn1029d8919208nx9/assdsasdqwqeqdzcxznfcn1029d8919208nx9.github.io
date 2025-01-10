@@ -81,7 +81,7 @@ function fovInjector(sbCode) {
   src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
   checkSrcChange();
 
-  const controlStyles = `
+   const controlStyles = `
   <style>
   #mod-controls {
     position: fixed;
@@ -130,6 +130,12 @@ function fovInjector(sbCode) {
     box-sizing: border-box;
   }
 
+  #fov-display {
+    padding: 5px;
+    margin-top: 5px;
+    display: none;
+  }
+
   .toggle-switch {
     position: relative;
     display: inline-block;
@@ -152,27 +158,10 @@ function fovInjector(sbCode) {
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-    border-radius: 17px;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 13px;
-    width: 13px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
   }
 
   input:checked + .slider {
     background-color: #FF1493;
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(13px);
   }
 
   .control-value {
@@ -183,26 +172,26 @@ function fovInjector(sbCode) {
   </style>
   `;
 
-const controlsHTML = `
+  const controlsHTML = `
   <div id="mod-controls">
     <div id="mod-controls-header">Controls</div>
     <div id="mod-controls-panel">
       <div class="mod-control">
-        <span>FOV Toggle</span>
+        <span>FOV</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="fov-toggle">
+          <input type="checkbox" id="fov-toggle" checked>
           <span class="slider"></span>
         </label>
       </div>
       <div class="mod-control">
         <span>Emote Capacity</span>
-        <div class="control-value" id="emote-capacity-value">1</div>
+        <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
       </div>
-      <input type="range" min="1" max="5" value="1" class="mod-control-slider" id="emote-capacity-slider">
+      <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
       <div class="mod-control">
         <span>Show Blank ECPs</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="blank-ecp-toggle">
+          <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
           <span class="slider"></span>
         </label>
       </div>
@@ -211,8 +200,11 @@ const controlsHTML = `
         <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
       </div>
     </div>
+    <div id="fov-display">
+      FOV: <span id="fov-value">45</span>
+    </div>
   </div>
-`;
+  `;
 
 // Initialize the controls
 function initializeControls() {
