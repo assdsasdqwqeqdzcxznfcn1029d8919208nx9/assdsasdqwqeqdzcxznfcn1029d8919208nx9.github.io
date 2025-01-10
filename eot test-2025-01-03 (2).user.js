@@ -219,53 +219,53 @@ function fovInjector(sbCode) {
 
   // Add blank ECP mod
   const blankECPMod = `
-  /*
+ /*
   Show blank ECPs on leaderboard
-  */
+*/
 
-  // The pattern to match the "blank" badge check in the function string
-  let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+// The pattern to match the "blank" badge check in the function string
+let pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
 
-  Search: for (let i in window) {
-    try {
-      let val = window[i]?.prototype;
-      if (!val) continue;
-      for (let j in val) {
-        let func = val[j];
+Search: for (let i in window) {
+  try {
+    let val = window[i]?.prototype;
+    if (!val) continue;
+    for (let j in val) {
+      let func = val[j];
 
-        // Check if the function string matches the pattern
-        if (typeof func === "function" && func.toString().match(pattern)) {
+      // Check if the function string matches the pattern
+      if (typeof func === "function" && func.toString().match(pattern)) {
 
-          // Replace the function with the modified version
-          val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-          found = true;
+        // Replace the function with the modified version
+        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
+        
+        // Ensure drawIcon exists before modifying
+        if (val.drawIcon) {
+          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+        }
 
-          // Modify the drawIcon function to respect the "blank" badge setting
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-
-          // Find and modify the function that deals with the leaderboard table
-          let gl = window[i];
-          for (let k in gl) {
-            if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-              let oldF = gl[k];
-              gl[k] = function () {
-                let current = window.module.exports.settings.check('show_blank_badge');
-                if (this.showBlank !== current) {
-                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                  this.showBlank = current;
-                }
-                return oldF.apply(this, arguments);
-              };
-              break Search;
-            }
+        // Find and modify the function that deals with the leaderboard table
+        let gl = window[i];
+        for (let k in gl) {
+          if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+            let oldF = gl[k];
+            gl[k] = function () {
+              let current = window.module.exports.settings.check('show_blank_badge');
+              if (this.showBlank !== current) {
+                for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                this.showBlank = current;
+              }
+              return oldF.apply(this, arguments);
+            };
+            break Search;
           }
         }
       }
-    } catch (e) {
-      console.error(e);
     }
+  } catch (e) {
+    console.error(e);
   }
-  `;
+}
 
   // Add crystal color mod
 const crystalColorMod = `
