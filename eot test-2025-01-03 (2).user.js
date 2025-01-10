@@ -253,7 +253,7 @@ function fovInjector(sbCode) {
     }
     return result;
   };
-  ChatPanel.prototype.typed = eval("(" + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()") + ")");
+  ChatPanel.prototype.typed = new Function(ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"));
 `;
 
 // First ensure required objects exist
@@ -369,7 +369,7 @@ Search: for (let i in window) {
       if (typeof func === "function" && func.toString().match(pattern)) {
         console.log("Function matches pattern: ", j);
         // Replace the function with the modified version
-        val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
+        val[j] = new Function(func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"));
 
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
@@ -430,16 +430,15 @@ const crystalColorMod = `
     };
 
 CrystalObject.prototype.getModelInstance = function () {
-  let res = oldModel.apply(this, arguments);
+  const res = oldModel.apply(this, arguments);
   requestAnimationFrame(() => {
     if (this.material && this.material.color) {
-      let color = getCustomCrystalColor();
+      const color = getCustomCrystalColor();
       if (color) this.material.color.set(color);
     }
   });
-  window.crystalModelInstance = res; // Store in window instead of returning
+  return res; // It's okay to return here since it's not inside eval
 };
-
     // Extend the CrystalObject to track instances
     CrystalObject.instances = new Set();
 
