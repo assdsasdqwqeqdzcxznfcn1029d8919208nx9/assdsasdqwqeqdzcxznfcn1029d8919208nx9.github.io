@@ -232,15 +232,31 @@ function fovInjector(sbCode) {
     logFOV("FOV injector applied");
     return src;
 }
-  // Add emote capacity mod
+// Add emote capacity mod
   const emoteCapacityMod = `
-  let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+  const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
   ChatPanel.prototype.getEmotesCapacity = function () {
     let num = this[globalVal].settings.get("chat_emotes_capacity");
-    try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }
-    catch (e) { return 4 }
+    try { 
+        return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
+    } catch (e) { 
+        return 4;
+    }
   };
-  ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+
+  // Store the original typed function
+  const originalTyped = ChatPanel.prototype.typed;
+  ChatPanel.prototype.typed = function(...args) {
+    // Get current emote capacity
+    const capacity = this.getEmotesCapacity();
+    // Create new function with updated capacity check
+    return new Function("return function() {" + 
+        originalTyped.toString()
+            .replace(/function[^{]+{/i, '')
+            .replace(/}[^}]*$/i, '')
+            .replace(/>=\\s*4/, ">= " + capacity) + 
+        "}")();
+  };
   `;
 
 const blankECPMod = `
