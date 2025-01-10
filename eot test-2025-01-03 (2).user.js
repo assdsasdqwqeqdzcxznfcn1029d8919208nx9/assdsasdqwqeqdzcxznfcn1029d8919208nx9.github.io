@@ -58,7 +58,7 @@ function emoteInjector(sbCode) {
 
   logEmote("Clown emote injected");
   // Removed illegal return src;
-// Unmatched closing brace removed: }
+}
 
 // FOV Editor Mod
 const fovModName = "FOV Editor";
