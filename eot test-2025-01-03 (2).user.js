@@ -256,12 +256,71 @@ if (!window.module.exports.settings) {
     };
 }
 
+// Initialize the blank ECP functionality
+function initializeBlankECP() {
+  try {
+    // Load saved preference
+    const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
+    
+    // Initialize settings
+    window.modSettings.showBlankECP = savedBlankECP;
+    if (window.module?.exports?.settings?.set) {
+        window.module.exports.settings.set('show_blank_badge', savedBlankECP);
+    }
+
+    // Set up the toggle UI
+    const blankECPToggle = document.getElementById('blank-ecp-toggle');
+    if (blankECPToggle) {
+      // Set initial state
+      blankECPToggle.checked = savedBlankECP;
+      
+      // Add change listener
+      blankECPToggle.addEventListener('change', () => {
+        const isChecked = blankECPToggle.checked;
+        
+        // Update settings
+        window.modSettings.showBlankECP = isChecked;
+        localStorage.setItem('show-blank-ecp', isChecked);
+        
+        // Update module settings
+        if (window.module?.exports?.settings?.set) {
+          try {
+            window.module.exports.settings.set('show_blank_badge', isChecked);
+          } catch (error) {
+            console.error('Error updating blank badge setting:', error);
+          }
+        }
+      });
+    } else {
+        console.log('blank-ecp-toggle element not found');
+    }
+    
+    // Execute the blank ECP modification
+    try {
+      console.log("Executing blank ECP modification...");
+      eval(blankECPMod);
+      console.log("Blank ECP modification executed successfully");
+    } catch (error) {
+      console.error('Error executing blank ECP mod:', error);
+    }
+  } catch (e) {
+    console.error('Error in initializeBlankECP:', e);
+  }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeBlankECP);
+} else {
+  initializeBlankECP();
+}
+
+// Blank ECP modification script
 const blankECPMod = `
 /*
  Show blank ECPs on leaderboard
 */
 
-// The pattern to match the "blank" badge check in the function string
 let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
 
 console.log("Starting blank ECP mod...");
@@ -284,7 +343,7 @@ Search: for (let i in window) {
         // Ensure drawIcon exists before modifying
         if (val.drawIcon) {
           console.log("Modifying drawIcon function");
-          val.drawIcon = Function("// Removed illegal return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
         }
 
         // Find and modify the function that deals with the leaderboard table
@@ -299,7 +358,7 @@ Search: for (let i in window) {
                 for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
                 this.showBlank = current;
               }
-              // Removed illegal return oldF.apply(this, arguments);
+              return oldF.apply(this, arguments);
             };
             break Search;
           }
@@ -312,56 +371,6 @@ Search: for (let i in window) {
 }
 console.log("Finished blank ECP mod");
 `;
-// Initialize the blank ECP functionality
-function initializeBlankECP() {
-  // Load saved preference
-  const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
-  
-  // Initialize settings
-  window.modSettings.showBlankECP = savedBlankECP;
-  window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-  
-  // Set up the toggle UI
-  const blankECPToggle = document.getElementById('blank-ecp-toggle');
-  if (blankECPToggle) {
-    // Set initial state
-    blankECPToggle.checked = savedBlankECP;
-    
-    // Add change listener
-    blankECPToggle.addEventListener('change', () => {
-      const isChecked = blankECPToggle.checked;
-      
-      // Update settings
-      window.modSettings.showBlankECP = isChecked;
-      localStorage.setItem('show-blank-ecp', isChecked);
-      
-      // Update module settings
-      if (window.module?.exports?.settings?.set) {
-        try {
-          window.module.exports.settings.set('show_blank_badge', isChecked);
-        } catch (error) {
-          console.error('Error updating blank badge setting:', error);
-        }
-      }
-    });
-  }
-  
-  // Execute the blank ECP modification
-  try {
-    console.log("Executing blank ECP modification...");
-    eval(blankECPMod);
-    console.log("Blank ECP modification executed successfully");
-  } catch (error) {
-    console.error('Error executing blank ECP mod:', error);
-  }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeBlankECP);
-} else {
-  initializeBlankECP();
-}
 
   // Add crystal color mod
 const crystalColorMod = `
