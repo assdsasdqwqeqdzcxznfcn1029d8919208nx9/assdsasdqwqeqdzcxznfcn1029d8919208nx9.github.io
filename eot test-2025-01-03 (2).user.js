@@ -226,9 +226,9 @@ function fovInjector(sbCode) {
     }
 
     // Replace FOV calculation
- const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
-  src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
-  checkSrcChange();
+    const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+    src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+    checkSrcChange();
 
     // Initialize controls when DOM is ready
     if (document.readyState === 'loading') {
@@ -238,6 +238,19 @@ function fovInjector(sbCode) {
     }
 
     logFOV("FOV injector applied");
+    
+    // Add FOV-specific event listener
+    document.addEventListener('wheel', (e) => {
+        if (!window.modSettings.fovEnabled) return;
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 1 : -1;
+        window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
+        const fovValue = document.getElementById('fov-value');
+        if (fovValue) {
+            fovValue.textContent = window.I1000.currentFOV;
+        }
+    }, { passive: false });
+
     return src;
 }
 // Add emote capacity mod
