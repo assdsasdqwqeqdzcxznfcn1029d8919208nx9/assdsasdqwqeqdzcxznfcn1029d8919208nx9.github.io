@@ -443,6 +443,7 @@ function injectLoader() {
         log("Injection not needed");
         return;
     }
+
     // New script to load content from URL and inject it into the document
     document.open();
     document.write('');
@@ -456,7 +457,19 @@ function injectLoader() {
             document.open();
             document.write(mErt);
             document.close();
+
+            // Apply injectors after content is loaded
+            window.sbCodeInjectors.forEach((injector) => {
+                try {
+                    document.documentElement.innerHTML = injector(document.documentElement.innerHTML);
+                } catch (error) {
+                    console.error(`Injector failed: ${error}`);
+                }
+            });
         }
     };
     xhr.send();
 }
+
+// Call the loader function
+injectLoader();
