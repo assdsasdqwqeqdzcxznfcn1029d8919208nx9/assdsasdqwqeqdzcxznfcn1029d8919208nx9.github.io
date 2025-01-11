@@ -452,7 +452,7 @@ function injectLoader() {
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 var mErt = xhr.responseText;
-                document.querySelector('html').innerHTML = mErt;
+                document.body.innerHTML = mErt;
 
                 // Apply injectors after content is loaded
                 window.sbCodeInjectors.forEach((injector) => {
