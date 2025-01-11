@@ -313,11 +313,11 @@ function initializeBlankECP() {
     const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
     console.log(`Loaded savedBlankECP: ${savedBlankECP}`);
     
-    // Initialize settings
-    window.modSettings.showBlankECP = savedBlankECP;
-    if (window.module?.exports?.settings?.set) {
-        window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-    }
+   // Initialize settings
+window.modSettings.showBlankECP = savedBlankECP;
+if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
+    window.module.exports.settings.set('show_blank_badge', savedBlankECP);
+}
 
     // Wait for DOM to be ready
     const initializeToggle = () => {
@@ -340,16 +340,13 @@ function initializeBlankECP() {
                 localStorage.setItem('show-blank-ecp', isChecked);
                 
                 // Update module settings
-                if (window.module?.exports?.settings?.set) {
-                    try {
-                        window.module.exports.settings.set('show_blank_badge', isChecked);
-                    } catch (error) {
-                        console.error('Error updating blank badge setting:', error);
-                    }
-                }
-            });
-        }
-    };
+   if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
+    try {
+        window.module.exports.settings.set('show_blank_badge', isChecked);
+    } catch (error) {
+        console.error('Error updating blank badge setting:', error);
+    }
+}
 
     initializeToggle();
     
