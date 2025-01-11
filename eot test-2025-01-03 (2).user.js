@@ -704,47 +704,39 @@ const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 // Function to inject the loader
 function injectLoader() {
     if (window.location.pathname !== "/") {
-        log("Injection not needed");
         return;
     }
 
-    const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${new Date().getTime()}`;
+    const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${Date.now()}`;
 
     fetch(url)
         .then(response => response.text())
         .then(starSRC => {
-            if (starSRC) {
-                log("Source fetched successfully");
-                const start_time = performance.now();
-                log("Applying mods...");
-
-                window.modifiedSrc = starSRC;
-
-                if (window.sbCodeInjectors) {
-                    for (const injector of window.sbCodeInjectors) {
-                        try {
-                            if (typeof injector === "function") {
-                                injector(window.modifiedSrc);
-                            }
-                        } catch (error) {
-                            console.error('Injector error:', error);
-                        }
+            if (!starSRC || starSRC.includes('<!DOCTYPE html>')) {
+                throw new Error('Invalid JavaScript content received');
+            }
+            
+            window.modifiedSrc = starSRC;
+            
+            // Apply injectors synchronously
+            if (window.sbCodeInjectors) {
+                for (const injector of window.sbCodeInjectors) {
+                    if (typeof injector === "function") {
+                        window.modifiedSrc = injector(window.modifiedSrc) || window.modifiedSrc;
                     }
                 }
+            }
 
-                const end_time = performance.now();
-                log(`Mods applied (${(end_time - start_time).toFixed(0)}ms)`);
-
-                // Use the final modified source
-                const script = document.createElement('script');
-                script.textContent = window.modifiedSrc;
-                document.body.appendChild(script);
+            // Execute the modified source directly
+            const scriptContent = window.modifiedSrc;
+            try {
+                (new Function(scriptContent))();
+            } catch (e) {
+                console.error('Error executing modified source:', e);
             }
         })
         .catch(error => {
-            log("Source fetch failed");
-            console.error(error);
-            alert("Failed to load game code");
+            console.error("Load failed:", error);
         });
 }
 
