@@ -217,25 +217,34 @@ function fovInjector(sbCode) {
     );
     checkSrcChange();
 
-    // Add FOV control styles and HTML if not already present
-    if (!document.getElementById('mod-controls')) {
-        const controlStyles = `
-            <style>
-                #mod-controls { /* Your existing styles */ }
-                .mod-control { /* Your existing styles */ }
-                #fov-display { /* Your existing styles */ }
-            </style>
-        `;
-        const controlsHTML = `
-            <div id="mod-controls">
-                <!-- Your existing HTML -->
-            </div>
-        `;
-        
-        // Inject the HTML
-        src = src.replace('</body>', `${controlStyles}${controlsHTML}</body>`);
-        checkSrcChange();
-    }
+    // Add FOV control styles to head
+    const controlStyles = 
+        '.mod-controls{position:fixed;top:10px;left:10px;z-index:1000;font-family:Arial,sans-serif;user-select:none;background:linear-gradient(45deg,#8B008B,#FF1493);border:1px solid #FF1493;color:white;padding:5px;border-radius:8px;opacity:0.9;width:150px}' +
+        '.mod-control{display:flex;justify-content:space-between;align-items:center;margin:5px 0}' +
+        '#fov-display{padding:5px;margin-top:5px}' +
+        '.toggle-switch{position:relative;display:inline-block;width:30px;height:17px}' +
+        '.toggle-switch input{opacity:0;width:0;height:0}' +
+        '.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s}' +
+        'input:checked + .slider{background-color:#FF1493}';
+
+    // Add FOV control HTML to body
+    const controlsHTML = 
+        '<div id="mod-controls">' +
+        '  <div class="mod-control">' +
+        '    <span>FOV</span>' +
+        '    <label class="toggle-switch">' +
+        '      <input type="checkbox" id="fov-toggle">' +
+        '      <span class="slider"></span>' +
+        '    </label>' +
+        '  </div>' +
+        '  <div id="fov-display">FOV: <span id="fov-value">45</span></div>' +
+        '</div>';
+
+    // Inject styles and HTML
+    src = src.replace('</head>', `<style>${controlStyles}</style></head>`);
+    src = src.replace('</body>', `${controlsHTML}</body>`);
+    
+    checkSrcChange();
 
     // Initialize controls when DOM is ready
     if (document.readyState === 'loading') {
