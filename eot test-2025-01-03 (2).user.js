@@ -200,21 +200,6 @@ function initializeFOVControls() {
         fovDisplay.style.display = e.target.checked ? 'block' : 'none';
     });
 
-    // Add wheel event listener for FOV change
-document.addEventListener('wheel', (e) => {
-    if (!window.modSettings.fovEnabled) {
-        return;
-    }
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 1 : -1;
-    window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
-    if (fovValue) {
-        fovValue.textContent = window.I1000.currentFOV;
-    }
-}, { passive: false });
-
-    logFOV("FOV controls initialized");
-}
 
 function fovInjector(sbCode) {
     let src = sbCode;
@@ -225,10 +210,32 @@ function fovInjector(sbCode) {
         prevSrc = src;
     }
 
-    // Replace FOV calculation
-    const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
-    src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+    // Replace FOV calculation with a more robust pattern
+    const fovPattern = /(\w+)\.I1000\.fov\s*=\s*45\s*\*\s*(\w+)\.IO11l\.I1000\.zoom/g;
+    src = src.replace(fovPattern, (match, obj1, obj2) => 
+        `${obj1}.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * ${obj2}.IO11l.I1000.zoom`
+    );
     checkSrcChange();
+
+    // Add FOV control styles and HTML if not already present
+    if (!document.getElementById('mod-controls')) {
+        const controlStyles = `
+            <style>
+                #mod-controls { /* Your existing styles */ }
+                .mod-control { /* Your existing styles */ }
+                #fov-display { /* Your existing styles */ }
+            </style>
+        `;
+        const controlsHTML = `
+            <div id="mod-controls">
+                <!-- Your existing HTML -->
+            </div>
+        `;
+        
+        // Inject the HTML
+        src = src.replace('</body>', `${controlStyles}${controlsHTML}</body>`);
+        checkSrcChange();
+    }
 
     // Initialize controls when DOM is ready
     if (document.readyState === 'loading') {
@@ -237,20 +244,7 @@ function fovInjector(sbCode) {
         initializeFOVControls();
     }
 
-    logFOV("FOV injector applied");
-    
-    // Add FOV-specific event listener
-    document.addEventListener('wheel', (e) => {
-        if (!window.modSettings.fovEnabled) return;
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 1 : -1;
-        window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
-        const fovValue = document.getElementById('fov-value');
-        if (fovValue) {
-            fovValue.textContent = window.I1000.currentFOV;
-        }
-    }, { passive: false });
-
+    logFOV("FOV injector applied successfully");
     return src;
 }
 // Add emote capacity mod
