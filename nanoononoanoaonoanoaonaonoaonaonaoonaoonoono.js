@@ -14,7 +14,7 @@ const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00
 function lowercaseInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-
+  
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
@@ -123,11 +123,9 @@ function fovInjector(sbCode) {
     margin-top: 5px;
   }
 
-  #crystal-color-hex {
+  #crystal-color-picker {
     width: 100%;
     margin-top: 5px;
-    padding: 5px;
-    box-sizing: border-box;
   }
 
   #fov-display {
@@ -197,7 +195,7 @@ function fovInjector(sbCode) {
       </div>
       <div class="mod-control">
         <span>Crystal Color</span>
-        <input type="text" id="crystal-color-hex" placeholder="#ffffff" value="#ffffff">
+        <input type="color" id="crystal-color-picker" value="#ffffff">
       </div>
     </div>
     <div id="fov-display">
@@ -295,108 +293,13 @@ function fovInjector(sbCode) {
     return res;
   };
 
-  // Extend the CrystalObject to track instances
-  CrystalObject.instances = new Set();
-
-  // Override the constructor to track instances
-  const originalConstructor = CrystalObject.prototype.constructor;
-  CrystalObject.prototype.constructor = function (...args) {
-    originalConstructor.apply(this, args);
-    CrystalObject.instances.add(this);
-  };
-
-  // Override a method to clean up destroyed crystals (if applicable)
-  const originalDestroy = CrystalObject.prototype.destroy;
-  CrystalObject.prototype.destroy = function (...args) {
-    CrystalObject.instances.delete(this);
-    if (originalDestroy) originalDestroy.apply(this, args);
-  };
-
   // Function to update the crystal color immediately
   function updateCrystalColor(color) {
-    // Save the new color in localStorage
     localStorage.setItem("crystal-color", color);
-
-    // Update the material color of all active crystal instances
-    if (window.CrystalObject && window.CrystalObject.instances) {
-      for (const instance of window.CrystalObject.instances) {
-        if (instance.material && instance.material.color) {
-          instance.material.color.set(color);
-        }
-      }
+    if (window.CrystalObject) {
+      CrystalObject.prototype.getModelInstance().material.color.set(color);
     }
   }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const controlsHeader = document.getElementById('mod-controls-header');
-    const controlsPanel = document.getElementById('mod-controls-panel');
-    const fovToggle = document.getElementById('fov-toggle');
-    const emoteSlider = document.getElementById('emote-capacity-slider');
-    const emoteValue = document.getElementById('emote-capacity-value');
-    const blankECPToggle = document.getElementById('blank-ecp-toggle');
-    const crystalColorHex = document.getElementById('crystal-color-hex');
-
-    // Initialize values from localStorage
-    const savedCrystalColor = localStorage.getItem('crystal-color') || '#ffffff';
-    crystalColorHex.value = savedCrystalColor;
-    updateCrystalColor(savedCrystalColor); // Apply saved color on load
-
-    controlsHeader.addEventListener('click', () => {
-      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    fovToggle.addEventListener('change', () => {
-      window.modSettings.fovEnabled = fovToggle.checked;
-      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-    });
-
-    emoteSlider.addEventListener('input', () => {
-      const value = emoteSlider.value;
-      emoteValue.textContent = value;
-      window.modSettings.emoteCapacity = value;
-      localStorage.setItem('emote-capacity', value);
-      if (window.ChatPanel) {
-        window.ChatPanel.prototype.getEmotesCapacity = function () {
-          return parseInt(value);
-        };
-      }
-    });
-
-    blankECPToggle.addEventListener('change', () => {
-      window.modSettings.showBlankECP = blankECPToggle.checked;
-      localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
-      }
-    });
-
-    // Set the "Show Blank ECPs" to true by default
-    if (window.module && window.module.exports) {
-      window.module.exports.settings.set('show_blank_badge', true);
-    }
-
-    crystalColorHex.addEventListener('input', (e) => {
-      const color = e.target.value;
-      if (/^#[0-9A-F]{6}$/i.test(color)) {
-        localStorage.setItem('crystal-color', color);
-        updateCrystalColor(color);
-        console.log(`Crystal color updated to: ${color}`);
-      }
-    });
-
-    crystalColorHex.addEventListener('change', (e) => {
-      const color = e.target.value;
-      if (/^#[0-9A-F]{6}$/i.test(color)) {
-        localStorage.setItem('crystal-color', color);
-        updateCrystalColor(color);
-        console.log(`Crystal color saved to localStorage: ${color}`);
-      } else {
-        const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-        e.target.value = savedColor;
-        console.log(`Invalid color, reset to: ${savedColor}`);
-      }
-    });
-  });
   `;
 
   src = src.replace('</body>', `
@@ -406,6 +309,73 @@ function fovInjector(sbCode) {
     ${emoteCapacityMod}
     ${blankECPMod}
     ${crystalColorMod}
+
+    const fovDisplay = document.getElementById('fov-display');
+
+    // Add wheel event listener for FOV change
+    document.addEventListener('wheel', (e) => {
+      if (!window.modSettings.fovEnabled) return;
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1 : -1;
+      // Add bounds checking
+      window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+      document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+    }, { passive: false });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const controlsHeader = document.getElementById('mod-controls-header');
+      const controlsPanel = document.getElementById('mod-controls-panel');
+      const fovToggle = document.getElementById('fov-toggle');
+      const emoteSlider = document.getElementById('emote-capacity-slider');
+      const emoteValue = document.getElementById('emote-capacity-value');
+      const blankECPToggle = document.getElementById('blank-ecp-toggle');
+      const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+      // Initialize values from localStorage
+      const savedCrystalColor = localStorage.getItem('crystal-color');
+      if (savedCrystalColor) {
+        crystalColorPicker.value = savedCrystalColor;
+      }
+
+      controlsHeader.addEventListener('click', () => {
+        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+      });
+
+      fovToggle.addEventListener('change', () => {
+        window.modSettings.fovEnabled = fovToggle.checked;
+        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+      });
+
+      emoteSlider.addEventListener('input', () => {
+        const value = emoteSlider.value;
+        emoteValue.textContent = value;
+        window.modSettings.emoteCapacity = value;
+        localStorage.setItem('emote-capacity', value);
+        if (window.ChatPanel) {
+          window.ChatPanel.prototype.getEmotesCapacity = function () {
+            return parseInt(value);
+          };
+        }
+      });
+
+      blankECPToggle.addEventListener('change', () => {
+        window.modSettings.showBlankECP = blankECPToggle.checked;
+        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
+        if (window.module && window.module.exports) {
+          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
+        }
+      });
+
+      // Set the "Show Blank ECPs" to true by default
+      if (window.module && window.module.exports) {
+        window.module.exports.settings.set('show_blank_badge', true);
+      }
+
+      crystalColorPicker.addEventListener('change', () => {
+        const color = crystalColorPicker.value;
+        updateCrystalColor(color);
+      });
+    });
     </script>
     </body>`);
 
