@@ -441,13 +441,15 @@ Search: for (let i in window) {
 
         if (val.drawIcon) {
           const originalDrawIcon = val.drawIcon;
-          val.drawIcon = function(...args) {
-            if (this.icon === "blank") {
-              return originalDrawIcon.apply(this, args);
-            } else if (this.icon !== "blank") {
-              return originalDrawIcon.apply(this, args);
-            }
-          };
+         val.drawIcon = function(...args) {
+  if (this.icon === "blank") {
+    return originalDrawIcon.apply(this, args);
+  }
+  if (this.icon !== "blank") {
+    return originalDrawIcon.apply(this, args);
+  }
+  return originalDrawIcon.apply(this, args); // Default case
+};
         }
       }
     }
