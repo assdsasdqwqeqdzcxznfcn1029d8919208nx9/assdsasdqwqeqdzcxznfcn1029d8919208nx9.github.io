@@ -438,75 +438,78 @@ window.sbCodeInjectors.push((sbCode) => {
 // Main code injection logic
 const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
-// At the bottom of your script, complete the injectLoader function:
 function injectLoader() {
     if (window.location.pathname !== "/") {
         log("Injection not needed");
         return;
     }
 
-    // Get the game's script element
-    const gameScript = document.querySelector('script[src*="game"]'); // Adjust selector based on actual game script
-    if (!gameScript) {
-        log("Game script not found");
-        return;
-    }
+    var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html';
+    fetch(url)
+        .then(response => response.text())
+        .then(mErt => {
+            // Create temporary container
+            const temp = document.createElement('div');
+            temp.innerHTML = mErt;
 
-    // Create an observer to watch for script changes
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'childList') {
-                const scriptContent = mutation.target.textContent;
-                if (scriptContent) {
-                    // Apply all injectors
-                    let modifiedCode = scriptContent;
-                    window.sbCodeInjectors.forEach((injector) => {
-                        try {
-                            modifiedCode = injector(modifiedCode);
-                        } catch (error) {
-                            console.error('Injector failed:', error);
-                        }
-                    });
-
-                    // Replace the original script content
-                    mutation.target.textContent = modifiedCode;
-                    log("Injections complete");
-                    observer.disconnect();
+            // Apply injectors to the new content
+            let modifiedContent = temp.innerHTML;
+            window.sbCodeInjectors.forEach(injector => {
+                try {
+                    modifiedContent = injector(modifiedContent);
+                } catch (error) {
+                    console.error(`Injector failed: ${error}`);
                 }
-            }
-        });
-    });
+            });
 
-    // Start observing the script element
-    observer.observe(gameScript, { childList: true });
-}
+            // Remove old UI elements
+            const oldControls = document.getElementById('mod-controls');
+            if (oldControls) oldControls.remove();
 
-// Add this line to actually call the function when the script loads
-document.addEventListener('DOMContentLoaded', injectLoader);
+            // Insert new content without destroying existing document
+            const gameContainer = document.querySelector('#gameContainer') || document.body;
+            const modControls = new DOMParser().parseFromString(modifiedContent, 'text/html')
+                .querySelector('#mod-controls');
+            
+            if (modControls) {
+                gameContainer.appendChild(modControls);
+                
+                // Set up event listeners
+                const controlsHeader = modControls.querySelector('#mod-controls-header');
+                const controlsPanel = modControls.querySelector('#mod-controls-panel');
+                const fovToggle = modControls.querySelector('#fov-toggle');
+                const fovDisplay = modControls.querySelector('#fov-display');
+                const crystalColorInput = modControls.querySelector('#crystal-color-input');
+                const showBlankBadgeToggle = modControls.querySelector('#show-blank-badge-toggle');
+                const emoteAmountSlider = modControls.querySelector('#emote-amount-slider');
 
+                controlsHeader.addEventListener('click', () => {
+                    controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+                });
 
-    // New script to load content from URL and inject it into the document
-    document.addEventListener('DOMContentLoaded', () => {
-        var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html',
-            xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                var mErt = xhr.responseText;
-                document.body.innerHTML = mErt;
+                fovToggle.addEventListener('change', () => {
+                    window.modSettings.fovEnabled = fovToggle.checked;
+                    fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+                });
 
-                // Apply injectors after content is loaded
-                window.sbCodeInjectors.forEach((injector) => {
-                    try {
-                        document.documentElement.innerHTML = injector(document.documentElement.innerHTML);
-                    } catch (error) {
-                        console.error(`Injector failed: ${error}`);
-                    }
+                crystalColorInput.addEventListener('input', (e) => {
+                    window.modSettings.crystalColor = e.target.value;
+                    localStorage.setItem('crystal-color', e.target.value);
+                });
+
+                showBlankBadgeToggle.addEventListener('change', (e) => {
+                    window.modSettings.showBlankBadge = e.target.checked;
+                    localStorage.setItem('show-blank-badge', e.target.checked);
+                });
+
+                emoteAmountSlider.addEventListener('input', (e) => {
+                    window.modSettings.emoteAmount = parseInt(e.target.value);
+                    localStorage.setItem('emote-amount', e.target.value);
                 });
             }
-        };
-        xhr.send();
-    });
+        })
+        .catch(error => console.error('Error loading content:', error));
+}
 
 // Call the loader function
 injectLoader();
