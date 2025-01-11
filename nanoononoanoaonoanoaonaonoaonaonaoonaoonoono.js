@@ -507,7 +507,6 @@ document.addEventListener('DOMContentLoaded', injectLoader);
         };
         xhr.send();
     });
-}
 
 // Call the loader function
 injectLoader();
