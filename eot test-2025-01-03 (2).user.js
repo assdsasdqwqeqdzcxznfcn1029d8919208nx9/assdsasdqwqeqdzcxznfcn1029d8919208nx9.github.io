@@ -309,31 +309,30 @@ function initializeBlankECP() {
         if (!blankECPToggle) {
             console.log('Waiting for blank-ecp-toggle element...');
             setTimeout(initializeToggle, 100); // Try again in 100ms
-            return;
-        }
-
-        console.log("blank-ecp-toggle element found");
-        // Set initial state
-        blankECPToggle.checked = savedBlankECP;
-        
-        // Add change listener
-        blankECPToggle.addEventListener('change', () => {
-            const isChecked = blankECPToggle.checked;
-            console.log(`blankECPToggle changed to: ${isChecked}`);
+        } else {
+            console.log("blank-ecp-toggle element found");
+            // Set initial state
+            blankECPToggle.checked = savedBlankECP;
             
-            // Update settings
-            window.modSettings.showBlankECP = isChecked;
-            localStorage.setItem('show-blank-ecp', isChecked);
-            
-            // Update module settings
-            if (window.module?.exports?.settings?.set) {
-                try {
-                    window.module.exports.settings.set('show_blank_badge', isChecked);
-                } catch (error) {
-                    console.error('Error updating blank badge setting:', error);
+            // Add change listener
+            blankECPToggle.addEventListener('change', () => {
+                const isChecked = blankECPToggle.checked;
+                console.log(`blankECPToggle changed to: ${isChecked}`);
+                
+                // Update settings
+                window.modSettings.showBlankECP = isChecked;
+                localStorage.setItem('show-blank-ecp', isChecked);
+                
+                // Update module settings
+                if (window.module?.exports?.settings?.set) {
+                    try {
+                        window.module.exports.settings.set('show_blank_badge', isChecked);
+                    } catch (error) {
+                        console.error('Error updating blank badge setting:', error);
+                    }
                 }
-            }
-        });
+            });
+        }
     };
 
     initializeToggle();
@@ -376,7 +375,7 @@ function initializeBlankECP() {
                             if (this.icon !== "blank") {
                                 return originalDrawIcon.apply(this, args);
                             }
-                            return originalDrawIcon.apply(this, args);
+                            return originalDrawIcon.apply(this, args); // Default case
                         };
                     }
 
@@ -415,6 +414,22 @@ function initializeBlankECP() {
   } catch (e) {
     console.error('Error in initializeBlankECP:', e);
   }
+}
+
+// And ensure the required objects exist first:
+if (!window.module) window.module = {};
+if (!window.module.exports) window.module.exports = {};
+if (!window.module.exports.settings) {
+    window.module.exports.settings = {
+        set: function(key, value) {
+            console.log(`Setting ${key} to ${value}`);
+            this[key] = value;
+        },
+        check: function(key) {
+            console.log(`Checking value of ${key}`);
+            return this[key];
+        }
+    };
 }
 const blankECPMod = `
 /*
