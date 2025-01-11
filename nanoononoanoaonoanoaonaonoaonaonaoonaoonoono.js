@@ -438,11 +438,52 @@ window.sbCodeInjectors.push((sbCode) => {
 // Main code injection logic
 const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
+// At the bottom of your script, complete the injectLoader function:
 function injectLoader() {
     if (window.location.pathname !== "/") {
         log("Injection not needed");
         return;
     }
+
+    // Get the game's script element
+    const gameScript = document.querySelector('script[src*="game"]'); // Adjust selector based on actual game script
+    if (!gameScript) {
+        log("Game script not found");
+        return;
+    }
+
+    // Create an observer to watch for script changes
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                const scriptContent = mutation.target.textContent;
+                if (scriptContent) {
+                    // Apply all injectors
+                    let modifiedCode = scriptContent;
+                    window.sbCodeInjectors.forEach((injector) => {
+                        try {
+                            modifiedCode = injector(modifiedCode);
+                        } catch (error) {
+                            console.error('Injector failed:', error);
+                        }
+                    });
+
+                    // Replace the original script content
+                    mutation.target.textContent = modifiedCode;
+                    log("Injections complete");
+                    observer.disconnect();
+                }
+            }
+        });
+    });
+
+    // Start observing the script element
+    observer.observe(gameScript, { childList: true });
+}
+
+// Add this line to actually call the function when the script loads
+document.addEventListener('DOMContentLoaded', injectLoader);
+
 
     // New script to load content from URL and inject it into the document
     document.addEventListener('DOMContentLoaded', () => {
