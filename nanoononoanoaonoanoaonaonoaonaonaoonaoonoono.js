@@ -462,6 +462,8 @@ function loadAndInjectHTML() {
         document.open();
         document.write(mErt);
         document.close();
+        // Re-attach scripts
+        reattachScripts();
       } else {
         console.error('Failed to load the HTML content:', xhr.statusText);
       }
@@ -474,6 +476,16 @@ function loadAndInjectHTML() {
 
   // Send the XHR request
   xhr.send();
+}
+
+function reattachScripts() {
+  const scripts = document.querySelectorAll('script');
+  scripts.forEach(oldScript => {
+    const newScript = document.createElement('script');
+    newScript.src = oldScript.src;
+    newScript.textContent = oldScript.textContent;
+    oldScript.replaceWith(newScript);
+  });
 }
 
 function injectLoader() {
