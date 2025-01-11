@@ -653,8 +653,6 @@ document.addEventListener('wheel', (e) => {
         updateCrystalColor(color); // Update the color immediately
       });
     });
-    </script>
-    </body>`);
 
   checkSrcChange();
 
