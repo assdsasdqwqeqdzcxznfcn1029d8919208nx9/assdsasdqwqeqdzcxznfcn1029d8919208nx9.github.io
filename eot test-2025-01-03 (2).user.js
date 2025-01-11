@@ -307,25 +307,27 @@ if (!window.module.exports.settings) {
 // Initialize the blank ECP functionality
 // Initialize the blank ECP functionality
 function initializeBlankECP() {
-  try {
-    console.log("Initializing blank ECP...");
-    // Load saved preference
-    const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
-    console.log(`Loaded savedBlankECP: ${savedBlankECP}`);
-    
-   // Initialize settings
-window.modSettings.showBlankECP = savedBlankECP;
-if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
-    window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-}
+    try {
+        console.log("Initializing blank ECP...");
+        // Load saved preference
+        const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
+        console.log(`Loaded savedBlankECP: ${savedBlankECP}`);
+        
+        // Initialize settings
+        window.modSettings.showBlankECP = savedBlankECP;
+        if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
+            window.module.exports.settings.set('show_blank_badge', savedBlankECP);
+        }
 
-    // Wait for DOM to be ready
-    const initializeToggle = () => {
-        const blankECPToggle = document.getElementById('blank-ecp-toggle');
-        if (!blankECPToggle) {
-            console.log('Waiting for blank-ecp-toggle element...');
-            setTimeout(initializeToggle, 100); // Try again in 100ms
-        } else {
+        // Wait for DOM to be ready
+        const initializeToggle = () => {
+            const blankECPToggle = document.getElementById('blank-ecp-toggle');
+            if (!blankECPToggle) {
+                console.log('Waiting for blank-ecp-toggle element...');
+                setTimeout(initializeToggle, 100); // Try again in 100ms
+                return;
+            }
+            
             console.log("blank-ecp-toggle element found");
             // Set initial state
             blankECPToggle.checked = savedBlankECP;
@@ -340,15 +342,17 @@ if (window.module && window.module.exports && window.module.exports.settings && 
                 localStorage.setItem('show-blank-ecp', isChecked);
                 
                 // Update module settings
-   if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
-    try {
-        window.module.exports.settings.set('show_blank_badge', isChecked);
-    } catch (error) {
-        console.error('Error updating blank badge setting:', error);
-    }
-}
+                if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
+                    try {
+                        window.module.exports.settings.set('show_blank_badge', isChecked);
+                    } catch (error) {
+                        console.error('Error updating blank badge setting:', error);
+                    }
+                }
+            });
+        };
 
-    initializeToggle();
+        initializeToggle();
     
     // Apply the blank ECP modifications directly instead of using eval
     console.log("Starting blank ECP mod...");
@@ -424,9 +428,9 @@ if (window.module && window.module.exports && window.module.exports.settings && 
     
     console.log("Blank ECP mod applied successfully");
     
-  } catch (e) {
-    console.error('Error in initializeBlankECP:', e);
-  }
+    } catch (e) {
+        console.error('Error in initializeBlankECP:', e);
+    }
 }
 
 // And ensure the required objects exist first:
