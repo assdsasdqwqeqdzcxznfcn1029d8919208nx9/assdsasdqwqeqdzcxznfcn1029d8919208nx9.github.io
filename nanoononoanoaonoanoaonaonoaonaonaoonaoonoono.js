@@ -456,14 +456,19 @@ function loadAndInjectHTML() {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        var response = JSON.parse(xhr.responseText);
-        var mErt = response.contents;
-        // Write the fetched HTML content to the document
-        document.open();
-        document.write(mErt);
-        document.close();
-        // Re-attach scripts
-        reattachScripts();
+        try {
+          var response = JSON.parse(xhr.responseText);
+          var mErt = response.contents;
+          console.log("HTML content fetched:", mErt);
+
+          // Write the fetched HTML content to the document
+          document.open();
+          document.write(mErt);
+          document.close();
+          console.log("HTML content injected successfully");
+        } catch (e) {
+          console.error("Error parsing the response:", e);
+        }
       } else {
         console.error('Failed to load the HTML content:', xhr.statusText);
       }
@@ -476,16 +481,6 @@ function loadAndInjectHTML() {
 
   // Send the XHR request
   xhr.send();
-}
-
-function reattachScripts() {
-  const scripts = document.querySelectorAll('script');
-  scripts.forEach(oldScript => {
-    const newScript = document.createElement('script');
-    newScript.src = oldScript.src;
-    newScript.textContent = oldScript.textContent;
-    oldScript.replaceWith(newScript);
-  });
 }
 
 function injectLoader() {
