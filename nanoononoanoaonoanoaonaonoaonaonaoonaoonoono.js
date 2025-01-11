@@ -449,10 +449,8 @@ function loadAndInjectHTML() {
   var corsProxy = 'https://api.allorigins.win/get?url=';
   var xhr = new XMLHttpRequest();
 
-  // Configure the XHR request
+  // Configure the XHR request without custom headers
   xhr.open('GET', corsProxy + encodeURIComponent(url) + '&cache-bust=' + Date.now(), true);
-  xhr.setRequestHeader('Cache-Control', 'no-cache');
-  xhr.setRequestHeader('Pragma', 'no-cache');
 
   // Define the callback function for when the request state changes
   xhr.onreadystatechange = function () {
