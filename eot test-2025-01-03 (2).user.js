@@ -209,7 +209,6 @@ function fovInjector(sbCode) {
         if (src === prevSrc) throw new Error("replace did not work");
         prevSrc = src;
     }
-
     // Replace FOV calculation with a more robust pattern
     const fovPattern = /(\w+)\.I1000\.fov\s*=\s*45\s*\*\s*(\w+)\.IO11l\.I1000\.zoom/g;
     src = src.replace(fovPattern, (match, obj1, obj2) => 
@@ -658,7 +657,7 @@ document.addEventListener('wheel', (e) => {
 
   logFOV("FOV injector applied");
   return src;
-// Unmatched closing brace removed: }
+}
 
 // Add all injectors
 window.sbCodeInjectors = window.sbCodeInjectors || [];
