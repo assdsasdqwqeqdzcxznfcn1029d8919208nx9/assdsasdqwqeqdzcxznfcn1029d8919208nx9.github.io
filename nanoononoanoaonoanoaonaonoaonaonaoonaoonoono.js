@@ -438,8 +438,33 @@ function emoteInjector(sbCode) {
   // Main code injection logic
   const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
 
-  function injectLoader() {
-    if (window.location.pathname !== "/") {
-      log("Injection not needed");
-      return;
+// Add this code to your existing JavaScript file
+function loadAndInjectHTML() {
+  // First, clear the entire document
+  document.documentElement.innerHTML = '';
+  
+  // Fetch the HTML content with cache-busting
+  fetch('OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?' + new Date().getTime(), {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
     }
+  })
+  .then(response => response.text())
+  .then(html => {
+    // Write the new HTML content to the document
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(error => console.error('Error loading HTML:', error));
+}
+
+
+function injectLoader() {
+  if (window.location.pathname !== "/") {
+    log("Injection not needed");
+    return;
+  }
+loadAndInjectHTML();
