@@ -24,101 +24,7 @@ function lowercaseInjector(sbCode) {
   const styleBlock = `
   <style>
   #player input { text-transform: none !important; }
-  
-<style>
-  <style>
-  #mod-controls {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 10000; /* Increase z-index to ensure it's above other elements */
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: #1c1c1c;
-    border: 1px solid #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    opacity: 0.95;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    pointer-events: auto; /* Ensure clicks are registered */
-  }
-</style>
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: #1c1c1c;
-    border: 1px solid #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    opacity: 0.95;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  #mod-controls-header {
-    cursor: pointer;
-    text-align: center;
-    padding: 8px;
-    border-bottom: 1px solid #333;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  #mod-controls-panel {
-    padding: 8px;
-  }
-
-  .mod-control {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-  }
-
-  .mod-control-slider {
-    width: 100%;
-    margin-top: 5px;
-  }
-
-  #crystal-color-picker {
-    width: 100%;
-    margin-top: 5px;
-  }
-
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-  }
-
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #444;
-    transition: .4s;
-    border-radius: 10px;
-  }
-
-  input:checked + .slider {
-    background-color: #FF1493;
-  }
-</style>
-</style>
+  </style>
   `;
   src = src.replace('</head>', `${styleBlock}</head>`);
   checkSrcChange();
@@ -177,24 +83,7 @@ function fovInjector(sbCode) {
 
   const controlStyles = `
   <style>
-  <style>
   #mod-controls {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 10000; /* Increase z-index to ensure it's above other elements */
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: #1c1c1c;
-    border: 1px solid #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    opacity: 0.95;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    pointer-events: auto; /* Ensure clicks are registered */
-  }
-</style>
   position: fixed;
   top: 10px;
   left: 10px;
@@ -279,101 +168,7 @@ function fovInjector(sbCode) {
     text-align: right;
     min-width: 30px;
   }
-  
-<style>
-  <style>
-  #mod-controls {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 10000; /* Increase z-index to ensure it's above other elements */
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: #1c1c1c;
-    border: 1px solid #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    opacity: 0.95;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    pointer-events: auto; /* Ensure clicks are registered */
-  }
-</style>
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: #1c1c1c;
-    border: 1px solid #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    opacity: 0.95;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  #mod-controls-header {
-    cursor: pointer;
-    text-align: center;
-    padding: 8px;
-    border-bottom: 1px solid #333;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  #mod-controls-panel {
-    padding: 8px;
-  }
-
-  .mod-control {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-  }
-
-  .mod-control-slider {
-    width: 100%;
-    margin-top: 5px;
-  }
-
-  #crystal-color-picker {
-    width: 100%;
-    margin-top: 5px;
-  }
-
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-  }
-
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #444;
-    transition: .4s;
-    border-radius: 10px;
-  }
-
-  input:checked + .slider {
-    background-color: #FF1493;
-  }
-</style>
-</style>
+  </style>
   `;
 
   const controlsHTML = `
@@ -421,41 +216,7 @@ function fovInjector(sbCode) {
   ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
   `;
 
-  
-/*
-  Show blank ECPs on leaderboard
-*/
-
-let pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
-
-Search: for (let i in window) try {
-  let val = window[i].prototype;
-  for (let j in val) {
-    let func = val[j];
-    if ("function" == typeof func && func.toString().match(pattern)) {
-      val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-      found = true;
-      val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
-      let gl = window[i];
-      for (let k in gl) {
-        if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
-          let oldF = gl[k];
-          gl[k] = function () {
-            let current = window.module.exports.settings.check('show_blank_badge');
-            if (this.showBlank !== current) {
-              for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-              this.showBlank = current;
-            }
-            return oldF.apply(this, arguments)
-          };
-          break Search;
-        }
-      }
-    }
-  }
-}
-catch (e) {}
-
+  // Add blank ECP mod
   const blankECPMod = `
   /*
   Show blank ECPs on leaderboard
@@ -505,32 +266,7 @@ catch (e) {}
   }
   `;
 
-  
-/*
- * change crystal color (processing code)
- */
-
-let CrystalObject;
-for (let i in window) try {
-    let val = window[i];
-    if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-      CrystalObject = val;
-      break
-    }
-}
-catch (e) {}
-
-let oldModel = CrystalObject.prototype.getModelInstance, getCustomCrystalColor = function () {
-  return localStorage.getItem("crystal-color") || ""
-};
-
-CrystalObject.prototype.getModelInstance = function () {
-  let res = oldModel.apply(this, arguments);
-  let color = getCustomCrystalColor();
-  if (color) this.material.color.set(color);
-  return res
-};
-
+  // Add crystal color mod
   const crystalColorMod = `
   /*
    * Change crystal color (processing code)
@@ -623,19 +359,7 @@ CrystalObject.prototype.getModelInstance = function () {
         }
       });
 
-      document.addEventListener('DOMContentLoaded', () => {
-  const blankECPToggle = document.getElementById('blank-ecp-toggle');
-
-  blankECPToggle.addEventListener('change', () => {
-    const settings = window.module?.exports?.settings;
-    if (settings) {
-      settings.set('show_blank_badge', blankECPToggle.checked);
-      localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-    } else {
-      console.error("Settings object is undefined; cannot update 'show_blank_badge'.");
-    }
-  });
-});
+      blankECPToggle.addEventListener('change', () => {
         window.modSettings.showBlankECP = blankECPToggle.checked;
         localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
         if (window.module && window.module.exports) {
@@ -648,22 +372,7 @@ CrystalObject.prototype.getModelInstance = function () {
         window.module.exports.settings.set('show_blank_badge', true);
       }
 
-      document.addEventListener('DOMContentLoaded', () => {
-  const crystalColorPicker = document.getElementById('crystal-color-picker');
-
-  crystalColorPicker.addEventListener('change', () => {
-    const color = crystalColorPicker.value;
-    localStorage.setItem('crystal-color', color);
-    if (window.CrystalObject) {
-      const crystalInstance = CrystalObject.prototype.getModelInstance();
-      if (crystalInstance?.material?.color) {
-        crystalInstance.material.color.set(color);
-      }
-    } else {
-      console.error("CrystalObject is undefined; cannot update crystal color.");
-    }
-  });
-});
+      crystalColorPicker.addEventListener('change', () => {
         const color = crystalColorPicker.value;
         updateCrystalColor(color);
       });
