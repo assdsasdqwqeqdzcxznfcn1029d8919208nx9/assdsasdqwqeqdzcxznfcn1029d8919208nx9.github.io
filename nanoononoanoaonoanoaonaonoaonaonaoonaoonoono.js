@@ -26,7 +26,24 @@ function lowercaseInjector(sbCode) {
   #player input { text-transform: none !important; }
   
 <style>
+  <style>
   #mod-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10000; /* Increase z-index to ensure it's above other elements */
+    font-family: Arial, sans-serif;
+    user-select: none;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    opacity: 0.95;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto; /* Ensure clicks are registered */
+  }
+</style>
     position: fixed;
     top: 10px;
     left: 10px;
@@ -160,7 +177,24 @@ function fovInjector(sbCode) {
 
   const controlStyles = `
   <style>
+  <style>
   #mod-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10000; /* Increase z-index to ensure it's above other elements */
+    font-family: Arial, sans-serif;
+    user-select: none;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    opacity: 0.95;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto; /* Ensure clicks are registered */
+  }
+</style>
   position: fixed;
   top: 10px;
   left: 10px;
@@ -247,7 +281,24 @@ function fovInjector(sbCode) {
   }
   
 <style>
+  <style>
   #mod-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10000; /* Increase z-index to ensure it's above other elements */
+    font-family: Arial, sans-serif;
+    user-select: none;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    opacity: 0.95;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto; /* Ensure clicks are registered */
+  }
+</style>
     position: fixed;
     top: 10px;
     left: 10px;
