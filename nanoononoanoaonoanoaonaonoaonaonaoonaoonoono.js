@@ -217,54 +217,99 @@ function fovInjector(sbCode) {
   `;
 
   // Add blank ECP mod
-  const blankECPMod = `
-  /*
-  Show blank ECPs on leaderboard
-  */
+  // Add blank ECP mod
+const blankECPMod = `
+/*
+* Show blank ECPs on leaderboard
+*/
 
-  // The pattern to match the "blank" badge check in the function string
-  let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
-
-  Search: for (let i in window) {
-    try {
-      let val = window[i]?.prototype;
-      if (!val) continue;
-      for (let j in val) {
-        let func = val[j];
-
-        // Check if the function string matches the pattern
-        if (typeof func === "function" && func.toString().match(pattern)) {
-
-          // Replace the function with the modified version
-          val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-          found = true;
-
-          // Modify the drawIcon function to respect the "blank" badge setting
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-
-          // Find and modify the function that deals with the leaderboard table
-          let gl = window[i];
-          for (let k in gl) {
-            if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-              let oldF = gl[k];
-              gl[k] = function () {
-                let current = window.module.exports.settings.check('show_blank_badge');
-                if (this.showBlank !== current) {
-                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                  this.showBlank = current;
+// Initialize settings module if it doesn't exist
+if (!window.module) {
+  window.module = {};
+}
+if (!window.module.exports) {
+  window.module.exports = {};
+}
+if (!window.module.exports.settings) {
+  window.module.exports.settings = {
+    _values: new Map(),
+    check: function(key) {
+      return this._values.get(key) || false;
+    },
+    set: function(key, value) {
+      this._values.set(key, value);
+      // Trigger update for the leaderboard if needed
+      if (key === 'show_blank_badge') {
+        this.updateLeaderboard(value);
+      }
+    },
+    updateLeaderboard: function(showBlank) {
+      // This will be called when the setting changes
+      try {
+        for (let i in window) {
+          let val = window[i]?.prototype;
+          if (!val) continue;
+          
+          // Look for the leaderboard class
+          for (let j in val) {
+            if (val[j] && typeof val[j] === "function" && val[j].toString().includes(".table")) {
+              let instance = window[i];
+              // Clear the table cache if needed
+              for (let k in instance.table) {
+                if (k.startsWith("blank")) {
+                  delete instance.table[k];
                 }
-                return oldF.apply(this, arguments);
-              };
-              break Search;
+              }
+              break;
             }
           }
         }
+      } catch (e) {
+        console.error('Error updating leaderboard:', e);
       }
-    } catch (e) {
-      console.error(e);
     }
+  };
+}
+
+// The pattern to match the "blank" badge check in the function string
+let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
+let found = false;
+
+Search: for (let i in window) {
+  try {
+    let val = window[i]?.prototype;
+    if (!val) continue;
+    for (let j in val) {
+      let func = val[j];
+
+      // Check if the function string matches the pattern
+      if (typeof func === "function" && func.toString().match(pattern)) {
+        // Replace the function with the modified version
+        val[j] = Function("return " + func.toString().replace(
+          pattern, 
+          ", window.module.exports.settings.check('show_blank_badge') || $1"
+        ))();
+        found = true;
+
+        // Modify the drawIcon function to respect the "blank" badge setting
+        if (val.drawIcon) {
+          val.drawIcon = Function("return " + val.drawIcon.toString().replace(
+            /}\\s*else\\s*{/, 
+            '} else if (this.icon !== "blank" || window.module.exports.settings.check("show_blank_badge")) {'
+          ))();
+        }
+
+        break Search;
+      }
+    }
+  } catch (e) {
+    console.error('Error in blank ECP mod:', e);
   }
-  `;
+}
+
+// Initialize the setting
+window.module.exports.settings.set('show_blank_badge', window.modSettings.showBlankECP || false);
+`;
 
   // Add crystal color mod
   const crystalColorMod = `
