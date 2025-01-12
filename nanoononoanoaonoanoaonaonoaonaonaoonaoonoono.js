@@ -572,7 +572,19 @@ CrystalObject.prototype.getModelInstance = function () {
         }
       });
 
-      blankECPToggle.addEventListener('change', () => {
+      document.addEventListener('DOMContentLoaded', () => {
+  const blankECPToggle = document.getElementById('blank-ecp-toggle');
+
+  blankECPToggle.addEventListener('change', () => {
+    const settings = window.module?.exports?.settings;
+    if (settings) {
+      settings.set('show_blank_badge', blankECPToggle.checked);
+      localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
+    } else {
+      console.error("Settings object is undefined; cannot update 'show_blank_badge'.");
+    }
+  });
+});
         window.modSettings.showBlankECP = blankECPToggle.checked;
         localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
         if (window.module && window.module.exports) {
@@ -585,7 +597,22 @@ CrystalObject.prototype.getModelInstance = function () {
         window.module.exports.settings.set('show_blank_badge', true);
       }
 
-      crystalColorPicker.addEventListener('change', () => {
+      document.addEventListener('DOMContentLoaded', () => {
+  const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+  crystalColorPicker.addEventListener('change', () => {
+    const color = crystalColorPicker.value;
+    localStorage.setItem('crystal-color', color);
+    if (window.CrystalObject) {
+      const crystalInstance = CrystalObject.prototype.getModelInstance();
+      if (crystalInstance?.material?.color) {
+        crystalInstance.material.color.set(color);
+      }
+    } else {
+      console.error("CrystalObject is undefined; cannot update crystal color.");
+    }
+  });
+});
         const color = crystalColorPicker.value;
         updateCrystalColor(color);
       });
