@@ -277,30 +277,81 @@ function fovInjector(sbCode) {
       let val = window[i];
       if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
         CrystalObject = val;
+        console.log('Found CrystalObject:', CrystalObject);
         break;
       }
     } catch (e) {}
   }
-
+  
   let oldModel = CrystalObject.prototype.getModelInstance,
-    getCustomCrystalColor = function () {
-      return localStorage.getItem("crystal-color") || "#ffffff";
-    };
-
+  getCustomCrystalColor = function () {
+    const color = localStorage.getItem("crystal-color") || "#ffffff";
+    console.log('Getting custom color from storage:', color);
+    return color;
+  };
+  
   CrystalObject.prototype.getModelInstance = function () {
     let res = oldModel.apply(this, arguments);
     let color = getCustomCrystalColor();
-    if (color) this.material.color.set(color);
+    if (color) {
+      console.log('Setting material color to:', color);
+      this.material.color.set(color);
+    }
     return res;
   };
-
+  
   // Function to update the crystal color immediately
   function updateCrystalColor(color) {
-    localStorage.setItem("crystal-color", color);
-    if (window.CrystalObject) {
-      CrystalObject.prototype.getModelInstance().material.color.set(color);
+    console.log('updateCrystalColor called with:', color);
+    try {
+      localStorage.setItem("crystal-color", color);
+      console.log('Color saved to localStorage:', localStorage.getItem("crystal-color"));
+      
+      if (window.CrystalObject) {
+        const instance = CrystalObject.prototype.getModelInstance();
+        if (instance && instance.material) {
+          instance.material.color.set(color);
+          console.log('Updated crystal material color');
+        } else {
+          console.log('Could not find material on model instance');
+        }
+      } else {
+        console.log('CrystalObject not found in window');
+      }
+    } catch (e) {
+      console.error('Error updating crystal color:', e);
     }
   }
+  
+  // Add event listener after DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded - Setting up color picker');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+    
+    if (crystalColorPicker) {
+      console.log('Found color picker element');
+      
+      // Initialize with saved color if it exists
+      const savedColor = localStorage.getItem('crystal-color');
+      if (savedColor) {
+        console.log('Setting initial color picker value:', savedColor);
+        crystalColorPicker.value = savedColor;
+      }
+      
+      crystalColorPicker.addEventListener('change', (event) => {
+        console.log('Color picker changed:', event.target.value);
+        updateCrystalColor(event.target.value);
+      });
+      
+      // Also listen for input events to catch all changes
+      crystalColorPicker.addEventListener('input', (event) => {
+        console.log('Color picker input:', event.target.value);
+        updateCrystalColor(event.target.value);
+      });
+    } else {
+      console.log('Could not find crystal-color-picker element');
+    }
+  });
   `;
 
   src = src.replace('</body>', `
