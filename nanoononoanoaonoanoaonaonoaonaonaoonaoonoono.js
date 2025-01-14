@@ -426,64 +426,75 @@ function injectLoader() {
   var xhr = new XMLHttpRequest();
   log("Fetching custom source...");
   xhr.open("GET", url);
-
   xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        var starSRC = xhr.responseText;
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var starSRC = xhr.responseText;
 
-        if (starSRC !== undefined) {
-          log("Source fetched successfully");
-          const start_time = performance.now();
-          log("Applying mods...");
+      if (starSRC !== undefined) {
+        log("Source fetched successfully");
+        const start_time = performance.now();
+        log("Applying mods...");
 
-          if (!window.sbCodeInjectors) {
-            log("No Starblast.io userscripts found to load");
-          } else {
-            let error_notified = false;
-            for (const injector of window.sbCodeInjectors) {
-              try {
-                if (typeof injector === "function") {
-                  starSRC = injector(starSRC);
-                } else {
-                  log("Injector was not a function");
-                  console.log(injector);
-                }
-              } catch (error) {
-                if (!error_notified) {
-                  alert("One of your Starblast.io userscripts failed to load");
-                  error_notified = true;
-                }
-                console.error(error);
+        if (!window.sbCodeInjectors) {
+          log("No Starblast.io userscripts found to load");
+        } else {
+          let error_notified = false;
+          for (const injector of window.sbCodeInjectors) {
+            try {
+              if (typeof injector === "function") starSRC = injector(starSRC);
+              else {
+                log("Injector was not a function");
+                console.log(injector);
               }
+            } catch (error) {
+              if (!error_notified) {
+                alert("One of your Starblast.io userscripts failed to load");
+                error_notified = true;
+              }
+              console.error(error);
             }
           }
-
-          const end_time = performance.now();
-          log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
-
-          document.open();
-          document.write(starSRC);
-          document.close();
-        } else {
-          log("Source fetch failed");
-          alert("An error occurred while fetching game code");
         }
+
+        const end_time = performance.now();
+        log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
+
+        // After modifying the starSRC, apply text shadow modification
+        changeTextShadowColor();
+
+        // Apply the modified source to the document
+        document.open();
+        document.write(starSRC);
+        document.close();
       } else {
-        log(`Failed to fetch source. Status: ${xhr.status}`);
-        alert("Failed to fetch the game code");
+        log("Source fetch failed");
+        alert("An error occurred while fetching game code");
       }
     }
-  };
-
-  xhr.onerror = function () {
-    log("Network error occurred during the request");
-    alert("There was a network error while fetching the game code");
   };
 
   xhr.send();
 }
 
+// Function to change all text-shadow properties to a specific color
+function changeTextShadowColor() {
+  const elements = document.querySelectorAll('*'); // Select all elements on the page
+  const targetShadow = '0 0 6px hsl(298.15deg 100% 50%)'; // Target text-shadow style
+
+  elements.forEach(element => {
+    const currentStyle = window.getComputedStyle(element);
+    const textShadow = currentStyle.getPropertyValue('text-shadow');
+    
+    // If the element has a text-shadow property, change it to the target color
+    if (textShadow && textShadow !== 'none') {
+      element.style.textShadow = targetShadow;
+    }
+  });
+
+  console.log('Text shadow color has been changed to:', targetShadow);
+}
+
 // Run the injectLoader function immediately
 injectLoader();
+
 
