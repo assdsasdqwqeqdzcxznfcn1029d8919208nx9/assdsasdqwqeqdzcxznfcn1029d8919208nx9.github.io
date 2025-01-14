@@ -3,8 +3,7 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 // Global settings object
 window.modSettings = {
   fovEnabled: true,
-  emoteCapacity: localStorage.getItem('emote-capacity') || 4,
-  showBlankECP: localStorage.getItem('show-blank-ecp') === 'true'
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
 };
 
 // Lowercase Name Mod
@@ -84,21 +83,20 @@ function fovInjector(sbCode) {
   const controlStyles = `
   <style>
   #mod-controls {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
-  font-family: Arial, sans-serif;
-  user-select: none;
-  background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
-  border: 1px solid #FF1493;
-  color: white;
-  padding: 5px;
-  border-radius: 8px;
-  opacity: 0.9;
-  width: 150px;
-}
-
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    user-select: none;
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
+    border: 1px solid #FF1493;
+    color: white;
+    padding: 5px;
+    border-radius: 8px;
+    opacity: 0.9;
+    width: 150px;
+  }
 
   #mod-controls-header {
     cursor: pointer;
@@ -188,13 +186,6 @@ function fovInjector(sbCode) {
       </div>
       <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
       <div class="mod-control">
-        <span>Show Blank ECPs</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="mod-control">
         <span>Crystal Color</span>
         <input type="color" id="crystal-color-picker" value="#ffffff">
       </div>
@@ -205,64 +196,22 @@ function fovInjector(sbCode) {
   </div>
   `;
 
-  // Add emote capacity mod
+  // Add emote capacity mod with fixes
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-  ChatPanel.prototype.getEmotesCapacity = function () {
-    let num = this[globalVal].settings.get("chat_emotes_capacity");
-    try { return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4) }
-    catch (e) { return 4 }
+  
+  // Override the emotes capacity getter
+  ChatPanel.prototype.getEmotesCapacity = function() {
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    return Math.min(Math.max(1, savedCapacity), 5);
   };
+  
+  // Override the typed function to use the new capacity
   ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
-  `;
-
-  // Add blank ECP mod
-  const blankECPMod = `
-  /*
-  Show blank ECPs on leaderboard
-  */
-
-  // The pattern to match the "blank" badge check in the function string
-  let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
-
-  Search: for (let i in window) {
-    try {
-      let val = window[i]?.prototype;
-      if (!val) continue;
-      for (let j in val) {
-        let func = val[j];
-
-        // Check if the function string matches the pattern
-        if (typeof func === "function" && func.toString().match(pattern)) {
-
-          // Replace the function with the modified version
-          val[j] = Function("return " + func.toString().replace(pattern, ", window.module.exports.settings.check('show_blank_badge') || $1"))();
-          found = true;
-
-          // Modify the drawIcon function to respect the "blank" badge setting
-          val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
-
-          // Find and modify the function that deals with the leaderboard table
-          let gl = window[i];
-          for (let k in gl) {
-            if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-              let oldF = gl[k];
-              gl[k] = function () {
-                let current = window.module.exports.settings.check('show_blank_badge');
-                if (this.showBlank !== current) {
-                  for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
-                  this.showBlank = current;
-                }
-                return oldF.apply(this, arguments);
-              };
-              break Search;
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  
+  // Set initial capacity
+  if (window.modSettings && window.modSettings.emoteCapacity) {
+    localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
   }
   `;
 
@@ -300,7 +249,6 @@ CrystalObject.prototype.getModelInstance = function () {
   return res;
 };
 
-// Function to update the crystal color immediately
 function updateCrystalColor(color) {
   console.log('updateCrystalColor called with:', color);
   try {
@@ -343,7 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateCrystalColor(event.target.value);
     });
 
-    // Also listen for input events to catch all changes
     crystalColorPicker.addEventListener('input', (event) => {
       console.log('Color picker input:', event.target.value);
       updateCrystalColor(event.target.value);
@@ -359,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ${controlsHTML}
     <script>
     ${emoteCapacityMod}
-    ${blankECPMod}
     ${crystalColorMod}
 
     const fovDisplay = document.getElementById('fov-display');
@@ -380,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const fovToggle = document.getElementById('fov-toggle');
       const emoteSlider = document.getElementById('emote-capacity-slider');
       const emoteValue = document.getElementById('emote-capacity-value');
-      const blankECPToggle = document.getElementById('blank-ecp-toggle');
       const crystalColorPicker = document.getElementById('crystal-color-picker');
 
       // Initialize values from localStorage
@@ -399,34 +344,29 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       emoteSlider.addEventListener('input', () => {
-        const value = emoteSlider.value;
+        const value = parseInt(emoteSlider.value);
         emoteValue.textContent = value;
         window.modSettings.emoteCapacity = value;
         localStorage.setItem('emote-capacity', value);
+        
+        // Update the emote capacity immediately
         if (window.ChatPanel) {
-          window.ChatPanel.prototype.getEmotesCapacity = function () {
-            return parseInt(value);
+          ChatPanel.prototype.getEmotesCapacity = function() {
+            return value;
           };
         }
       });
-
-      blankECPToggle.addEventListener('change', () => {
-        window.modSettings.showBlankECP = blankECPToggle.checked;
-        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-        if (window.module && window.module.exports) {
-          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
-        }
-      });
-
-      // Set the "Show Blank ECPs" to true by default
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', true);
-      }
 
       crystalColorPicker.addEventListener('change', () => {
         const color = crystalColorPicker.value;
         updateCrystalColor(color);
       });
+
+      // Initialize emote capacity from localStorage
+      const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+      emoteSlider.value = savedCapacity;
+      emoteValue.textContent = savedCapacity;
+      window.modSettings.emoteCapacity = savedCapacity;
     });
     </script>
     </body>`);
@@ -478,7 +418,7 @@ function injectLoader() {
   document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
   document.close();
 
-  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k
   url += '?_=' + new Date().getTime();
 
   var xhr = new XMLHttpRequest();
