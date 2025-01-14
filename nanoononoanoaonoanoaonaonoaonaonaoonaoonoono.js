@@ -472,5 +472,17 @@ function injectLoader() {
   xhr.send();
 }
 
+
+// Select the image element using the current src attribute
+const logo = document.querySelector('img[src="https://starblast.data.neuronality.com/img/starblast_io_logo.svg?3"]');
+
+// Check if the image element is found
+if (logo) {
+  // Update the src attribute to the new URL
+  logo.src = "https://media.discordapp.net/attachments/759396836292296744/1328726385841405962/turk.png?ex=6787c060&is=67866ee0&hm=f5b4e83464ff8c52b3f64779026e2be004bc155c773164d3e950265c4eeaeb9f&=&format=webp&quality=lossless&width=400&height=201";
+} else {
+  console.error("Logo not found!");
+}
+
 // Run the injectLoader function immediately
 injectLoader();
