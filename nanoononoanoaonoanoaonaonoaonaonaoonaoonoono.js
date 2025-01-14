@@ -417,18 +417,31 @@ function injectLoader() {
   }
 
   document.open();
-  document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
+  document.write(`
+    <html>
+      <head>
+        <title></title>
+      </head>
+      <body style="background-color:#ffffff;">
+        <div style="margin: auto; width: 50%;">
+          <img src="https://starblast.data.neuronality.com/img/starblast_io_logo.svg?3" alt="Starblast Logo" />
+          <h1 style="text-align: center; padding: 170px 0; color: #000;"></h1>
+          <h1 style="text-align: center; color: #000;"></h1>
+        </div>
+      </body>
+    </html>
+  `);
   document.close();
 
-  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html'
+  const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
   url += '?_=' + new Date().getTime();
 
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   log("Fetching custom source...");
   xhr.open("GET", url);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      var starSRC = xhr.responseText;
+      let starSRC = xhr.responseText;
 
       if (starSRC !== undefined) {
         log("Source fetched successfully");
@@ -462,6 +475,15 @@ function injectLoader() {
         document.open();
         document.write(starSRC);
         document.close();
+
+        // Modify the logo after custom content is written
+        const logo = document.querySelector('img[src="https://starblast.data.neuronality.com/img/starblast_io_logo.svg?3"]');
+        if (logo) {
+          logo.src = "https://media.discordapp.net/attachments/759396836292296744/1328726385841405962/turk.png?ex=6787c060&is=67866ee0&hm=f5b4e83464ff8c52b3f64779026e2be004bc155c773164d3e950265c4eeaeb9f&=&format=webp&quality=lossless&width=400&height=201";
+          log("Logo updated successfully");
+        } else {
+          console.error("Logo not found after injection");
+        }
       } else {
         log("Source fetch failed");
         alert("An error occurred while fetching game code");
@@ -472,17 +494,6 @@ function injectLoader() {
   xhr.send();
 }
 
-
-// Select the image element using the current src attribute
-const logo = document.querySelector('img[src="https://starblast.data.neuronality.com/img/starblast_io_logo.svg?3"]');
-
-// Check if the image element is found
-if (logo) {
-  // Update the src attribute to the new URL
-  logo.src = "https://media.discordapp.net/attachments/759396836292296744/1328726385841405962/turk.png?ex=6787c060&is=67866ee0&hm=f5b4e83464ff8c52b3f64779026e2be004bc155c773164d3e950265c4eeaeb9f&=&format=webp&quality=lossless&width=400&height=201";
-} else {
-  console.error("Logo not found!");
-}
-
 // Run the injectLoader function immediately
 injectLoader();
+
