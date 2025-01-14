@@ -90,7 +90,7 @@ function fovInjector(sbCode) {
     font-family: Arial, sans-serif;
     user-select: none;
     background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
-    border: 1px solid #FF1493;
+    border: 1px solid #FF00E6;
     box-shadow: 0 0 6px hsl(298.15deg 100% 50%);
     color: white;
     padding: 5px;
