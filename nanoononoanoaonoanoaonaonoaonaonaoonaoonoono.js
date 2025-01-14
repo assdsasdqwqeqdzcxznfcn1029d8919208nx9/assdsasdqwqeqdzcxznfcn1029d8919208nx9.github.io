@@ -408,7 +408,8 @@ window.sbCodeInjectors.push((sbCode) => {
 });
 
 // Main code injection logic
-const log = (msg) => console.log(%c[Mod injector] ${msg}, "color: #06c26d");
+const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
+
 
 function injectLoader() {
   if (window.location.pathname !== "/") {
