@@ -130,7 +130,7 @@ function fovInjector(sbCode) {
   #fov-display {
     padding: 5px;
     margin-top: 5px;
-    display: none;
+    display: block;
   }
 
   .toggle-switch {
