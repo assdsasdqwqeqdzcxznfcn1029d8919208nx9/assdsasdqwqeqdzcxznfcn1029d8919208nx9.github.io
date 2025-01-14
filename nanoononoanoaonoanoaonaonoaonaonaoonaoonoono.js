@@ -81,7 +81,7 @@ function fovInjector(sbCode) {
   checkSrcChange();
 
   const controlStyles = `
-  <style>
+<style>
   #mod-controls {
     position: fixed;
     top: 10px;
@@ -91,12 +91,14 @@ function fovInjector(sbCode) {
     user-select: none;
     background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
     border: 1px solid #FF1493;
+    box-shadow: 0 0 6px hsl(298.15deg 100% 50%);
     color: white;
     padding: 5px;
     border-radius: 8px;
     opacity: 0.9;
     width: 150px;
   }
+
 
   #mod-controls-header {
     cursor: pointer;
