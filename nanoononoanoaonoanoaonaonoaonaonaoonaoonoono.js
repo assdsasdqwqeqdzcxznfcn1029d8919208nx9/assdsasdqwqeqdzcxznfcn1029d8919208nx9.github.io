@@ -85,27 +85,30 @@ function fovInjector(sbCode) {
   #mod-controls {
     position: fixed;
     top: 10px;
-    right: 10px;
+    left: 10px;
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, #333, #555);
-    border: 1px solid #444;
-    box-shadow: 0 0 6px #000;
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
+    border: 1px solid #f600ff;
+    box-shadow: 0 0 6px hsl(298.15deg 100% 50%);
     color: white;
-    padding: 10px;
-    width: 200px;
+    padding: 5px;
+    border-radius: 8px;
+    opacity: 0.9;
+    width: 150px;
   }
+
 
   #mod-controls-header {
     cursor: pointer;
     text-align: center;
-    padding: 10px;
-    border-bottom: 1px solid #444;
+    padding: 5px;
+    border-bottom: 1px solid #f600ff;
   }
 
   #mod-controls-panel {
-    padding: 10px;
+    padding: 5px;
     display: none;
   }
 
@@ -113,30 +116,30 @@ function fovInjector(sbCode) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 10px 0;
+    margin: 5px 0;
   }
 
   .mod-control-slider {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 5px;
   }
 
   #crystal-color-picker {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 5px;
   }
 
   #fov-display {
-    padding: 10px;
-    margin-top: 10px;
+    padding: 5px;
+    margin-top: 5px;
     display: block;
   }
 
   .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 30px;
+    height: 17px;
   }
 
   .toggle-switch input {
@@ -161,9 +164,9 @@ function fovInjector(sbCode) {
   }
 
   .control-value {
-    font-size: 14px;
+    font-size: 12px;
     text-align: right;
-    min-width: 40px;
+    min-width: 30px;
   }
   </style>
   `;
