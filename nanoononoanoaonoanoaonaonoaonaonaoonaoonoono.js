@@ -4,6 +4,7 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 window.modSettings = {
   fovEnabled: true,
   emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
+   uiVisible: true
 };
 
 // Lowercase Name Mod
@@ -174,8 +175,8 @@ function fovInjector(sbCode) {
   </style>
   `;
 
-  const controlsHTML = `
-  <div id="mod-controls">
+const controlsHTML = `
+  <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
     <div id="mod-controls-header">Controls</div>
     <div id="mod-controls-panel">
       <div class="mod-control">
@@ -199,7 +200,7 @@ function fovInjector(sbCode) {
       FOV: <span id="fov-value">45</span>
     </div>
   </div>
-  `;
+`;
 
   // Add emote capacity mod with fixes
   const emoteCapacityMod = `
@@ -381,6 +382,17 @@ document.addEventListener('DOMContentLoaded', () => {
   logFOV("FOV injector applied");
   return src;
 }
+
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'F9') {
+      const controls = document.getElementById('mod-controls');
+      if (controls) {
+        window.modSettings.uiVisible = !window.modSettings.uiVisible;
+        controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+      }
+    }
+  });
 
 // Add all injectors
 window.sbCodeInjectors.push((sbCode) => {
