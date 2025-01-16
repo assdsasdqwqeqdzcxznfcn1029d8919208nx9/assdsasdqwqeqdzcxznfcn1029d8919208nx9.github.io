@@ -39,26 +39,29 @@ const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA
 function emoteInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-
+  
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
   }
 
   const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
-  const clownEmote = `,{
+  const emotes = `,{
     text: "orosbu cocu",
     icon: "🤡",
     key: "J"
+  },{
+    text: "sikerim",
+    icon: "⚠️",
+    key: "V"
   }`;
 
-  src = src.replace(vocabPattern, `$1${clownEmote}`);
+  src = src.replace(vocabPattern, `$1${emotes}`);
   checkSrcChange();
-
-  logEmote("Clown emote injected");
+  logEmote("Clown and warning emotes injected");
+  
   return src;
 }
-
 // FOV Editor Mod
 const fovModName = "FOV Editor";
 const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
