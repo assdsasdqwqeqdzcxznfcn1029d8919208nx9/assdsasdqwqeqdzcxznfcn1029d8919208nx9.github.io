@@ -89,22 +89,25 @@ const controlStyles = `
   #mod-controls {
     position: fixed;
     top: 10px;
-    right: 10px;  /* Changed to right */
+    right: 10px;
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
     background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 80%) 0, hsla(200, 50%, 50%, 0.5) 100%);
     box-shadow: 0 0 4px #387aff; /* Reduced shadow size */
     color: white;
-    padding: 4px; /* Smaller padding */
-    border-radius: 0px; /* Added slight rounding */
-    opacity: 1;  /* Set to fully opaque */
-    width: 120px; /* Reduced width */
+    padding: 8px; /* Slightly increased padding */
+    border-radius: 0; /* No rounding for box-like appearance */
+    opacity: 1;
+    width: auto; /* Automatically adjusts to fit content */
+    max-width: 300px; /* Optional: Prevents the box from growing too large */
+    word-wrap: break-word; /* Handles long text gracefully */
   }
   #mod-controls-header {
     cursor: pointer;
-    text-align: left;  /* Changed to left align like image */
+    text-align: left;
     padding: 4px;
+    font-weight: bold; /* Emphasize the header text */
   }
   #mod-controls-panel {
     padding: 4px;
@@ -137,37 +140,39 @@ const controlStyles = `
     cursor: pointer;
   }
   .control-value {
-    font-size: 11px; /* Slightly smaller font size */
+    font-size: 11px;
     text-align: right;
     min-width: 30px;
     color: #b8d4ff;
   }
 </style>
+
 `;
 
 const controlsHTML = `
-  <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
-    <div id="mod-controls-header">Controls</div>
-    <div id="mod-controls-panel">
-      <div class="mod-control">
-        <span>FOV</span>
-        <input type="checkbox" id="fov-toggle" checked>  <!-- Changed to simple checkbox -->
-      </div>
-      <div class="mod-control">
-        <span>Emote Capacity</span>
-        <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
-      </div>
-      <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
-      <div class="mod-control">
-        <span>Crystal Color</span>
-        <input type="color" id="crystal-color-picker" value="#ffffff">
-      </div>
+<div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
+  <div id="mod-controls-header">Eot Client V7.0.2</div>
+  <div id="mod-controls-panel">
+    <div class="mod-control">
+      <span>FOV</span>
+      <input type="checkbox" id="fov-toggle" checked>
     </div>
-    <div id="fov-display">
-      FOV: <span id="fov-value">45</span>
+    <div class="mod-control">
+      <span>Emote Capacity</span>
+      <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
+    </div>
+    <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
+    <div class="mod-control">
+      <span>Crystal Color</span>
+      <input type="color" id="crystal-color-picker" value="#ffffff">
     </div>
   </div>
+  <div id="fov-display">
+    FOV: <span id="fov-value">45</span>
+  </div>
+</div>
 `;
+
 
 
 
