@@ -86,29 +86,27 @@ function fovInjector(sbCode) {
 
 const controlStyles = `
 <style>
-#mod-controls {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  font-family: Arial, sans-serif;
-  user-select: none;
-  background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
-  box-shadow: 0 0 6px hsl(298.15deg 100% 50%);
-  color: #ffffff;
-  padding: 5px;
-  border-radius: 0;
-  opacity: 1;
-  width: 150px;
-}
-
-
+  #mod-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    user-select: none;
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 95%) 0, hsla(200, 50%, 50%, 0.85) 100%);
+    box-shadow: 0 0 6px hsl(298.15deg 100% 50%);
+    color: #ffffff;
+    padding: 5px;
+    border-radius: 0;
+    opacity: 1;
+    width: 150px;
+  }
 
   #mod-controls-header {
     cursor: pointer;
     text-align: left;
     padding: 5px;
-  border-bottom: 1px solid rgba(224, 69, 255, 0.8);
+    border-bottom: 1px solid rgba(224, 69, 255, 0.8);
     font-weight: bold;
     font-size: 14px;
   }
@@ -224,6 +222,7 @@ const controlStyles = `
   }
 </style>
 `;
+
 
 const controlsHTML = `
 <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
