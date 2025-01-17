@@ -97,7 +97,7 @@ const controlStyles = `
     box-shadow: 0 0 4px #387aff; /* Reduced shadow size */
     color: white;
     padding: 4px; /* Smaller padding */
-    border-radius: 4px; /* Added slight rounding */
+    border-radius: 0px; /* Added slight rounding */
     opacity: 1;  /* Set to fully opaque */
     width: 120px; /* Reduced width */
   }
