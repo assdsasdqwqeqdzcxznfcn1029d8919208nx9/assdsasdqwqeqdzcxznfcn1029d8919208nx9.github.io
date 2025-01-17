@@ -93,43 +93,42 @@ const controlStyles = `
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 80%) 0, hsla(200, 50%, 50%, .5) 100%); /* Adjusted transparency */
-    box-shadow: 0 0 6px #387aff;
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%); /* Simplified gradient */
+    box-shadow: 0 0 4px #387aff; /* Reduced shadow size */
     color: white;
-    padding: 5px;
-    border-radius: 0;  /* Removed rounding */
+    padding: 4px; /* Smaller padding */
+    border-radius: 4px; /* Added slight rounding */
     opacity: 1;  /* Set to fully opaque */
-    width: 150px;
+    width: 120px; /* Reduced width */
   }
   #mod-controls-header {
     cursor: pointer;
     text-align: left;  /* Changed to left align like image */
-    padding: 5px;
-    border-bottom: 1px solid #ff3838;
+    padding: 4px;
   }
   #mod-controls-panel {
-    padding: 5px;
+    padding: 4px;
     display: none;
   }
   .mod-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 5px 0;
+    margin: 4px 0;
     color: #b8d4ff;
   }
   .mod-control-slider {
     width: 100%;
-    margin-top: 5px;
+    margin-top: 4px;
     background: rgba(56, 122, 255, 0.2);
   }
   #crystal-color-picker {
     width: 100%;
-    margin-top: 5px;
+    margin-top: 4px;
   }
   #fov-display {
-    padding: 5px;
-    margin-top: 5px;
+    padding: 4px;
+    margin-top: 4px;
     display: block;
     color: #b8d4ff;
   }
@@ -138,7 +137,7 @@ const controlStyles = `
     cursor: pointer;
   }
   .control-value {
-    font-size: 12px;
+    font-size: 11px; /* Slightly smaller font size */
     text-align: right;
     min-width: 30px;
     color: #b8d4ff;
@@ -169,6 +168,7 @@ const controlsHTML = `
     </div>
   </div>
 `;
+
 
 
   // Add emote capacity mod with fixes
