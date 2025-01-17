@@ -93,69 +93,143 @@ const controlStyles = `
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 80%) 0, hsla(200, 50%, 50%, 0.5) 100%);
-    box-shadow: 0 0 4px #387aff; /* Reduced shadow size */
-    color: white;
-    padding: 8px; /* Slightly increased padding */
-    border-radius: 0; /* No rounding for box-like appearance */
+    background: linear-gradient(-45deg, hsla(294.98, 100%, 50%, 0.8) 0%, hsla(200, 50%, 50%, 0.5) 100%);
+    box-shadow: 0 0 4px rgba(56, 122, 255, 0.8);
+    color: #ffffff;
+    padding: 5px;
+    border-radius: 0;
     opacity: 1;
-    width: auto; /* Automatically adjusts to fit content */
-    max-width: 300px; /* Optional: Prevents the box from growing too large */
-    word-wrap: break-word; /* Handles long text gracefully */
+    width: 150px;
   }
+
   #mod-controls-header {
     cursor: pointer;
     text-align: left;
-    padding: 4px;
-    font-weight: bold; /* Emphasize the header text */
+    padding: 5px;
+    border-bottom: 1px solid rgba(56, 122, 255, 0.8);
+    font-weight: bold;
+    font-size: 14px;
   }
+
   #mod-controls-panel {
-    padding: 4px;
+    padding: 5px;
     display: none;
   }
+
   .mod-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 4px 0;
+    margin: 5px 0;
     color: #b8d4ff;
+    font-size: 12px;
   }
+
   .mod-control-slider {
     width: 100%;
-    margin-top: 4px;
+    margin-top: 5px;
     background: rgba(56, 122, 255, 0.2);
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    border: none;
   }
+
+  .mod-control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #b8d4ff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .mod-control-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #b8d4ff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .mod-control-slider::-webkit-slider-runnable-track {
+    background: rgba(56, 122, 255, 0.2);
+    height: 4px;
+    border: none;
+  }
+
+  .mod-control-slider::-moz-range-track {
+    background: rgba(56, 122, 255, 0.2);
+    height: 4px;
+    border: none;
+  }
+
   #crystal-color-picker {
     width: 100%;
-    margin-top: 4px;
+    margin-top: 5px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
   }
+
   #fov-display {
-    padding: 4px;
-    margin-top: 4px;
+    padding: 5px;
+    margin-top: 5px;
     display: block;
     color: #b8d4ff;
+    font-size: 12px;
   }
+
   input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
+    width: 16px;
+    height: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(56, 122, 255, 0.2);
+    border: 1px solid #b8d4ff;
+    border-radius: 3px;
   }
+
+  input[type="checkbox"]:checked {
+    background: #387aff;
+    position: relative;
+  }
+
+  input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
   .control-value {
-    font-size: 11px;
+    font-size: 12px;
     text-align: right;
     min-width: 30px;
     color: #b8d4ff;
   }
 </style>
-
 `;
 
 const controlsHTML = `
 <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
-  <div id="mod-controls-header">Eot Client V7.0.2</div>
+  <div id="mod-controls-header">EOT Client V7.0.2</div>
   <div id="mod-controls-panel">
     <div class="mod-control">
       <span>FOV</span>
-      <input type="checkbox" id="fov-toggle" checked>
+      <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
     </div>
     <div class="mod-control">
       <span>Emote Capacity</span>
