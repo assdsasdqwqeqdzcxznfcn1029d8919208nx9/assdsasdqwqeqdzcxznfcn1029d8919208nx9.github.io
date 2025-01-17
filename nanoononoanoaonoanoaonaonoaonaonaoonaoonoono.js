@@ -89,21 +89,22 @@ const controlStyles = `
   #mod-controls {
     position: fixed;
     top: 10px;
-    right: 10px;  /* Changed to right */
+    right: 10px;
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%); /* Simplified gradient */
-    box-shadow: 0 0 4px #387aff; /* Reduced shadow size */
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
+    box-shadow: 0 0 4px #387aff;
     color: white;
-    padding: 4px; /* Smaller padding */
-    border-radius: 4px; /* Added slight rounding */
-    opacity: 1;  /* Set to fully opaque */
-    width: 120px; /* Reduced width */
+    padding: 2px;
+    border-radius: 0; /* Removed rounding */
+    opacity: 1;
+    width: 100px; /* Made thinner */
+    height: 300px; /* Made longer */
   }
   #mod-controls-header {
     cursor: pointer;
-    text-align: left;  /* Changed to left align like image */
+    text-align: left;
     padding: 4px;
   }
   #mod-controls-panel {
@@ -137,7 +138,7 @@ const controlStyles = `
     cursor: pointer;
   }
   .control-value {
-    font-size: 11px; /* Slightly smaller font size */
+    font-size: 11px;
     text-align: right;
     min-width: 30px;
     color: #b8d4ff;
@@ -147,11 +148,11 @@ const controlStyles = `
 
 const controlsHTML = `
   <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
-    <div id="mod-controls-header">Controls</div>
+    <div id="mod-controls-header">Client v2.0.1</div>
     <div id="mod-controls-panel">
       <div class="mod-control">
         <span>FOV</span>
-        <input type="checkbox" id="fov-toggle" checked>  <!-- Changed to simple checkbox -->
+        <input type="checkbox" id="fov-toggle" checked>
       </div>
       <div class="mod-control">
         <span>Emote Capacity</span>
@@ -168,6 +169,7 @@ const controlsHTML = `
     </div>
   </div>
 `;
+
 
 
 
