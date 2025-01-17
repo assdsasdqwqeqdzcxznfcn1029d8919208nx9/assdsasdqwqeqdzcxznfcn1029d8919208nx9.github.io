@@ -181,7 +181,7 @@ const controlStyles = `
     padding: 5px;
     margin-top: 5px;
     display: block;
-    color: #b8d4ff;
+    color:rgb(255, 255, 255);
     font-size: 12px;
   }
 
