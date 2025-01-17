@@ -108,7 +108,7 @@ const controlStyles = `
     cursor: pointer;
     text-align: left;
     padding: 5px;
-    border-bottom: 1px solid rgba(56, 122, 255, 0.8);
+  border-bottom: 1px solid rgba(224, 69, 255, 0.8);
     font-weight: bold;
     font-size: 14px;
   }
