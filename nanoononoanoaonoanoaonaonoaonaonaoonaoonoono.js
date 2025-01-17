@@ -121,7 +121,7 @@ const controlStyles = `
     justify-content: space-between;
     align-items: center;
     margin: 5px 0;
-    color: #b8d4ff;
+    color:rgb(255, 255, 255);
     font-size: 12px;
   }
 
