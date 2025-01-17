@@ -105,6 +105,7 @@ const controlStyles = `
     cursor: pointer;
     text-align: left;  /* Changed to left align like image */
     padding: 5px;
+    border-bottom: 1px solid #ff3838;
   }
   #mod-controls-panel {
     padding: 5px;
@@ -168,6 +169,7 @@ const controlsHTML = `
     </div>
   </div>
 `;
+
 
   // Add emote capacity mod with fixes
   const emoteCapacityMod = `
