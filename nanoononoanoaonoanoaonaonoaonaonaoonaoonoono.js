@@ -99,8 +99,8 @@ const controlStyles = `
     padding: 2px;
     border-radius: 0; /* Removed rounding */
     opacity: 1;
-    width: 100px; /* Made thinner */
-    height: 300px; /* Made longer */
+    width: 300px; /* Made thinner */
+    height: 100px; /* Made longer */
   }
   #mod-controls-header {
     cursor: pointer;
@@ -169,7 +169,6 @@ const controlsHTML = `
     </div>
   </div>
 `;
-
 
 
 
