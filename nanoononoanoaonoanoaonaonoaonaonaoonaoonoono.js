@@ -93,20 +93,18 @@ const controlStyles = `
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);  /* Kept original */
-    border: 1px solid #387aff;
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 80%) 0, hsla(200, 50%, 50%, .5) 100%); /* Adjusted transparency */
     box-shadow: 0 0 6px #387aff;
     color: white;
     padding: 5px;
     border-radius: 0;  /* Removed rounding */
-    opacity: 0.95;
+    opacity: 1;  /* Set to fully opaque */
     width: 150px;
   }
   #mod-controls-header {
     cursor: pointer;
     text-align: left;  /* Changed to left align like image */
     padding: 5px;
-    border-bottom: 1px solid #387aff;
   }
   #mod-controls-panel {
     padding: 5px;
@@ -123,7 +121,6 @@ const controlStyles = `
     width: 100%;
     margin-top: 5px;
     background: rgba(56, 122, 255, 0.2);
-    border: 1px solid #387aff;
   }
   #crystal-color-picker {
     width: 100%;
@@ -135,7 +132,6 @@ const controlStyles = `
     display: block;
     color: #b8d4ff;
   }
-  /* Removed toggle switch styles and replaced with checkbox */
   input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
@@ -172,6 +168,7 @@ const controlsHTML = `
     </div>
   </div>
 `;
+
   // Add emote capacity mod with fixes
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
