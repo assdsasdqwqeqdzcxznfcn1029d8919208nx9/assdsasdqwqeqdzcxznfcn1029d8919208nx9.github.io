@@ -87,20 +87,21 @@ function fovInjector(sbCode) {
 const controlStyles = `
 <style>
   #mod-controls {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    font-family: Arial, sans-serif;
-    user-select: none;
-    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)
-    box-shadow: 0 0 4px rgba(56, 122, 255, 0.8);
-    color: #ffffff;
-    padding: 5px;
-    border-radius: 0;
-    opacity: 1;
-    width: 150px;
-  }
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+  user-select: none;
+  background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);
+  box-shadow: 0 0 4px rgba(56, 122, 255, 0.8);
+  color: #ffffff;
+  padding: 5px;
+  border-radius: 0;
+  opacity: 1;
+  width: 150px;
+}
+
 
   #mod-controls-header {
     cursor: pointer;
