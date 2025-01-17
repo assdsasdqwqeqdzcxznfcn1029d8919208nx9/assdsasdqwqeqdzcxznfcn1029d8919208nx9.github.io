@@ -93,7 +93,7 @@ const controlStyles = `
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, hsla(294.98, 100%, 50%, 0.8) 0%, hsla(200, 50%, 50%, 0.5) 100%);
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%)
     box-shadow: 0 0 4px rgba(56, 122, 255, 0.8);
     color: #ffffff;
     padding: 5px;
