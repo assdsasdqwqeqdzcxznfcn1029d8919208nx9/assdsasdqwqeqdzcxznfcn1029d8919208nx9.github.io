@@ -89,25 +89,24 @@ const controlStyles = `
   #mod-controls {
     position: fixed;
     top: 10px;
-    left: 10px;
+    right: 10px;  /* Changed to right */
     z-index: 1000;
     font-family: Arial, sans-serif;
     user-select: none;
-    background: linear-gradient(-45deg, rgba(20, 20, 35, 0.85) 0%, rgba(40, 40, 80, 0.85) 100%);
+    background: linear-gradient(-45deg, hsl(294.98deg 100% 50% / 50%) 0, hsla(200, 50%, 50%, .15) 100%);  /* Kept original */
     border: 1px solid #387aff;
-    box-shadow: 0 0 10px rgba(56, 122, 255, 0.5);
-    color: #ffffff;
+    box-shadow: 0 0 6px #387aff;
+    color: white;
     padding: 5px;
-    border-radius: 8px;
+    border-radius: 0;  /* Removed rounding */
     opacity: 0.95;
     width: 150px;
   }
   #mod-controls-header {
     cursor: pointer;
-    text-align: center;
+    text-align: left;  /* Changed to left align like image */
     padding: 5px;
     border-bottom: 1px solid #387aff;
-    text-shadow: 0 0 5px rgba(56, 122, 255, 0.5);
   }
   #mod-controls-panel {
     padding: 5px;
@@ -125,54 +124,27 @@ const controlStyles = `
     margin-top: 5px;
     background: rgba(56, 122, 255, 0.2);
     border: 1px solid #387aff;
-    border-radius: 4px;
   }
   #crystal-color-picker {
     width: 100%;
     margin-top: 5px;
-    background: transparent;
-    border: 1px solid #387aff;
   }
   #fov-display {
     padding: 5px;
     margin-top: 5px;
     display: block;
-    color: #00ff88;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+    color: #b8d4ff;
   }
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 30px;
-    height: 17px;
-  }
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .slider {
-    position: absolute;
+  /* Removed toggle switch styles and replaced with checkbox */
+  input[type="checkbox"] {
+    margin: 0;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(56, 122, 255, 0.2);
-    transition: .4s;
-    border: 1px solid #387aff;
-    border-radius: 17px;
-  }
-  input:checked + .slider {
-    background-color: #00ff88;
-    box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
   }
   .control-value {
     font-size: 12px;
     text-align: right;
     min-width: 30px;
-    color: #00ff88;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+    color: #b8d4ff;
   }
 </style>
 `;
@@ -183,10 +155,7 @@ const controlsHTML = `
     <div id="mod-controls-panel">
       <div class="mod-control">
         <span>FOV</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="fov-toggle" checked>
-          <span class="slider"></span>
-        </label>
+        <input type="checkbox" id="fov-toggle" checked>  <!-- Changed to simple checkbox -->
       </div>
       <div class="mod-control">
         <span>Emote Capacity</span>
@@ -203,7 +172,6 @@ const controlsHTML = `
     </div>
   </div>
 `;
-
   // Add emote capacity mod with fixes
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
