@@ -84,176 +84,154 @@ function fovInjector(sbCode) {
   src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
   checkSrcChange();
 
- const controlStyles = `
-  <style>
-    #mod-controls {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      user-select: none;
-      background: rgba(16, 18, 27, 0.95);
-      backdrop-filter: blur(12px);
-      border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      color: #ffffff;
-      padding: 0;
-      width: 240px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: transform 0.2s ease;
-    }
-  
-    #mod-controls:hover {
-      transform: translateY(-2px);
-    }
-  
-    #mod-controls-header {
-      cursor: pointer;
-      padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.05);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 600;
-      font-size: 15px;
-      transition: background 0.2s ease;
-    }
-  
-    #mod-controls-header:hover {
-      background: rgba(255, 255, 255, 0.08);
-    }
-  
-    #mod-controls-header::before {
-      content: '⚙️';
-      filter: drop-shadow(0 0 8px rgba(255, 65, 215, 0.4));
-    }
-  
-    #mod-controls-panel {
-      padding: 16px 20px;
-      display: none;
-    }
-  
-    .mod-control {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 12px 0;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-  
-    .mod-control-slider {
-      width: 100%;
-      margin: 12px 0;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      -webkit-appearance: none;
-      appearance: none;
-      outline: none;
-      transition: background 0.2s ease;
-    }
-  
-    .mod-control-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      background: #ff41d7;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(255, 65, 215, 0.3);
-      transition: transform 0.2s ease;
-    }
-  
-    .mod-control-slider::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
-    }
-  
-    .mod-control-slider::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      background: #ff41d7;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-  
-    #crystal-color-picker {
-      width: 32px;
-      height: 32px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 0;
-      cursor: pointer;
-      background: transparent;
-      overflow: hidden;
-    }
-  
-    #crystal-color-picker::-webkit-color-swatch {
-      border: none;
-      border-radius: 6px;
-    }
-  
-    #fov-display {
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.05);
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-    }
-  
-    input[type="checkbox"] {
-      position: relative;
-      width: 40px;
-      height: 24px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      transition: background 0.3s ease;
-      cursor: pointer;
-    }
-  
-    input[type="checkbox"]::before {
-      content: "";
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      top: 2px;
-      left: 2px;
-      transform: translateX(0);
-      transition: transform 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-  
-    input[type="checkbox"]:checked {
-      background: #ff41d7;
-    }
-  
-    input[type="checkbox"]:checked::before {
-      transform: translateX(16px);
-    }
-  
-    .control-value {
-      font-weight: 600;
-      color: #ff41d7;
-      min-width: 40px;
-      text-align: right;
-      font-feature-settings: "tnum";
-    }
-  
-    .section-title {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 16px 0 8px;
-    }
-  </style>
-  `;
+const controlStyles = `
+<style>
+  #mod-controls {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    user-select: none;
+    background: rgba(16, 18, 27, 0.97);
+    backdrop-filter: blur(8px);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    padding: 0;
+    width: 160px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  #mod-controls-header {
+    cursor: pointer;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  #mod-controls-header::before {
+    content: '⚙️';
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(255, 65, 215, 0.3));
+  }
+
+  #mod-controls-panel {
+    padding: 12px;
+    display: none;
+  }
+
+  .mod-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .mod-control-slider {
+    width: 100%;
+    margin: 8px 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    border-radius: 1px;
+  }
+
+  .mod-control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(255, 65, 215, 0.3);
+  }
+
+  .mod-control-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  #crystal-color-picker {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  #fov-display {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  input[type="checkbox"] {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    transition: background 0.2s ease;
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    top: 2px;
+    left: 2px;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+    border-radius: 2px;
+  }
+
+  input[type="checkbox"]:checked {
+    background: #ff41d7;
+  }
+
+  input[type="checkbox"]:checked::before {
+    transform: translateX(14px);
+  }
+
+  .control-value {
+    font-weight: 600;
+    color: #ff41d7;
+    min-width: 32px;
+    text-align: right;
+    font-size: 11px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 12px 0 6px;
+  }
+</style>
+`;
 
 
 const controlsHTML = `
