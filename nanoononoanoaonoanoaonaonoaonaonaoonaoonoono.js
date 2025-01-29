@@ -443,16 +443,37 @@ document.addEventListener('DOMContentLoaded', () => {
   return src;
 }
 
+// Global settings object
+window.modSettings = {
+  fovEnabled: true,
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+  uiVisible: true  // Make sure this is initialized
+};
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'F9') {
-      const controls = document.getElementById('mod-controls');
-      if (controls) {
-        window.modSettings.uiVisible = !window.modSettings.uiVisible;
-        controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+// Add event listener for F9 key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F9') {
+    const controls = document.getElementById('mod-controls');
+    if (controls) {
+      window.modSettings.uiVisible = !window.modSettings.uiVisible;
+      controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+      
+      // Also hide the controls panel when hiding the UI
+      const controlsPanel = document.getElementById('mod-controls-panel');
+      if (!window.modSettings.uiVisible && controlsPanel) {
+        controlsPanel.style.display = 'none';
       }
     }
-  });
+  }
+});
+
+// Make sure the initial state is set correctly when the DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  const controls = document.getElementById('mod-controls');
+  if (controls) {
+    controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+  }
+});
 
 // Add all injectors
 window.sbCodeInjectors.push((sbCode) => {
