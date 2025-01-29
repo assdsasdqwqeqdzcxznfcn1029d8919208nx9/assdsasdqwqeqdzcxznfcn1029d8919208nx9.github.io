@@ -569,6 +569,31 @@ function changeTextShadowColor() {
   console.log('Text shadow color has been changed to:', targetShadow);
 }
 
+
+
+// Append the styles and HTML to the document
+document.head.insertAdjacentHTML('beforeend', controlStyles);
+document.body.insertAdjacentHTML('beforeend', controlsHTML);
+
+// Add a listener for F9 to toggle the UI
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'F9') {
+    const modControls = document.getElementById('mod-controls');
+    if (modControls) {
+      modControls.style.display = modControls.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+});
+
+// Initialize visibility based on settings after the page loads
+window.addEventListener('load', () => {
+  const modControls = document.getElementById('mod-controls');
+  if (modControls) {
+    modControls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+  }
+});
+
+
 // Run the injectLoader function immediately
 injectLoader();
 
