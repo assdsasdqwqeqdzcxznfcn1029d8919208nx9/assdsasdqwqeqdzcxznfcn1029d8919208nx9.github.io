@@ -288,13 +288,13 @@ const crystalColorMod = `
  */
 let CrystalObject;
 
-// Better detection method for CrystalObject
+// Corrected detection to look for createModel
 const findCrystalObject = () => {
   for (let key in window) {
     try {
       const obj = window[key];
-      if (obj.prototype && obj.prototype.getModelInstance && 
-          obj.prototype.getModelInstance.toString().includes('Crystal')) {
+      if (obj.prototype && obj.prototype.createModel && 
+          obj.prototype.createModel.toString().includes('Crystal')) {
         return obj;
       }
     } catch (e) {}
@@ -313,17 +313,16 @@ if (CrystalObject) {
   CrystalObject.prototype.getModelInstance = function() {
     const instance = originalGetModelInstance.apply(this, arguments);
     
-    if (instance.material) {
-      materialInstances.add(instance.material);
-      // Initialize with saved color
+    // Corrected: Use this.material instead of instance.material
+    if (this.material) {
+      materialInstances.add(this.material);
       const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-      instance.material.color.set(savedColor);
+      this.material.color.set(savedColor);
       
-      // Fix animation by updating material uniforms
-      if (instance.material.uniforms?.color) {
-        instance.material.uniforms.color.value.set(instance.material.color);
+      if (this.material.uniforms?.color) {
+        this.material.uniforms.color.value.set(this.material.color);
       }
-      instance.material.needsUpdate = true;
+      this.material.needsUpdate = true;
     }
     
     return instance;
@@ -346,18 +345,15 @@ if (CrystalObject) {
   }
 } else {
   console.warn('CrystalObject not found!');
-  function updateCrystalColor() {} // No-op if not found
+  function updateCrystalColor() {}
 }
 
-// Add event listener after DOM is loaded
+// DOMContentLoaded listener remains the same
 document.addEventListener('DOMContentLoaded', () => {
   const crystalColorPicker = document.getElementById('crystal-color-picker');
-  
   if (crystalColorPicker) {
-    // Initialize with saved color
     const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
     crystalColorPicker.value = savedColor;
-
     crystalColorPicker.addEventListener('input', (event) => {
       updateCrystalColor(event.target.value);
     });
