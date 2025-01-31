@@ -244,7 +244,7 @@ const controlStyles = `
 
 const controlsHTML = `
 <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
-  <div id="mod-controls-header">EOT Client V3.0.2</div>
+  <div id="mod-controls-header">EOT Client V3.0.4</div>
   <div id="mod-controls-panel">
     <div class="mod-control">
       <span>FOV</span>
