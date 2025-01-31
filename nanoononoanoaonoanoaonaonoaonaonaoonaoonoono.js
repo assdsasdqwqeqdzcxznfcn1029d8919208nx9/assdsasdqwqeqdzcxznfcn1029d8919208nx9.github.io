@@ -650,7 +650,7 @@ function radarZoomInjector(sbCode) {
   src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
 
   // Add radar zoom modification script
-  const radarZoomScript = `
+const radarZoomScript = `
   // Radar Zoom Override Mechanism
   const radarZoomOverride = {
     originalValues: new WeakMap(),
@@ -715,13 +715,92 @@ function radarZoomInjector(sbCode) {
     
     return instance;
   };
-  `;
+
+  // Ensure that radar zoom is applied to all relevant instances
+  const applyRadarZoomToAllInstances = () => {
+    const allInstances = []; // Adjust this to actually find all relevant instances
+    allInstances.forEach(instance => {
+      if (instance.radarZoomOverride) {
+        instance.radarZoomOverride.enable();
+      }
+    });
+  };
 
   // Add event listener for radar zoom toggle
-  const radarZoomToggleScript = `
   document.addEventListener('DOMContentLoaded', () => {
     const radarZoomToggle = document.getElementById('radar-zoom-toggle');
     
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Apply radar zoom to all instances
+      applyRadarZoomToAllInstances();
+    });
+  });
+
+  // Initial application of radar zoom on page load
+  applyRadarZoomToAllInstances();
+`;
+
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${emoteCapacityMod}
+  ${crystalColorMod}
+  ${radarZoomScript}
+
+  const fovDisplay = document.getElementById('fov-display');
+
+  // Add wheel event listener for FOV change
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+    // Initialize values from localStorage
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+    if (savedCrystalColor) {
+      crystalColorPicker.value = savedCrystalColor;
+    }
+
+    controlsHeader.addEventListener('click', () => {
+      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', () => {
+      window.modSettings.fovEnabled = fovToggle.checked;
+      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+    });
+
+    emoteSlider.addEventListener('input', () => {
+      const value = parseInt(emoteSlider.value);
+      emoteValue.textContent = value;
+      window.modSettings.emoteCapacity = value;
+      localStorage.setItem('emote-capacity', value);
+      
+      // Update the emote capacity immediately
+      if (window.ChatPanel) {
+        ChatPanel.prototype.getEmotesCapacity = function() {
+          return value;
+        };
+      }
+    });
+
     radarZoomToggle.addEventListener('change', () => {
       // Update global setting
       window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
@@ -736,20 +815,25 @@ function radarZoomInjector(sbCode) {
         }
       });
     });
+
+    crystalColorPicker.addEventListener('change', () => {
+      const color = crystalColorPicker.value;
+      updateCrystalColor(color);
+    });
+
+    // Initialize emote capacity from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
   });
-  `;
+  </script>
+  </body>`);
 
-  // Insert the scripts before the closing body tag
-  src = src.replace('</body>', `
-    <script>
-    ${radarZoomScript}
-    ${radarZoomToggleScript}
-    </script>
-    </body>`);
+checkSrcChange();
 
-  checkSrcChange();
-  logRadarZoom("Radar Zoom injector applied");
-  return src;
+logFOV("FOV injector applied");
+return src;
 }
 
 // Add the radar zoom injector to the list of code injectors
