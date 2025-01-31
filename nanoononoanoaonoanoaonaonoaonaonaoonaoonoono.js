@@ -5,7 +5,7 @@ window.modSettings = {
   fovEnabled: true,
   emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
   uiVisible: true,  // Add comma here
-  radarZoomEnabled: true
+  radarZoomEnabled: false
 };
 
 // Lowercase Name Mod
