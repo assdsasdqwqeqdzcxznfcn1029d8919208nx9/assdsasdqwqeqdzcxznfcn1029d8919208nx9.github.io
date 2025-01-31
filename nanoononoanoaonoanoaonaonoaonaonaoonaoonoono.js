@@ -93,7 +93,7 @@ function fovInjector(sbCode) {
   src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
   checkSrcChange();
 
-  const controlStyles = `
+const controlStyles = `
 <style>
   #mod-controls {
     position: fixed;
@@ -242,7 +242,7 @@ function fovInjector(sbCode) {
 </style>
 `;
 
-  const controlsHTML = `
+const controlsHTML = `
 <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
   <div id="mod-controls-header">EOT Client V3.0.2</div>
   <div id="mod-controls-panel">
@@ -256,6 +256,10 @@ function fovInjector(sbCode) {
     </div>
     <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
     <div class="mod-control">
+      <span>Radar Zoom</span>
+      <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
       <span>Crystal Color</span>
       <input type="color" id="crystal-color-picker" value="#ffffff">
     </div>
@@ -266,25 +270,25 @@ function fovInjector(sbCode) {
 </div>
 `;
 
-  const emoteCapacityMod = `
-  let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-  
-  // Override the emotes capacity getter
-  ChatPanel.prototype.getEmotesCapacity = function() {
-    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-    return Math.min(Math.max(1, savedCapacity), 5);
-  };
-  
-  // Override the typed function to use the new capacity
-  ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
-  
-  // Set initial capacity
-  if (window.modSettings && window.modSettings.emoteCapacity) {
-    localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
-  }
-  `;
+const emoteCapacityMod = `
+let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
 
-  const crystalColorMod = `
+// Override the emotes capacity getter
+ChatPanel.prototype.getEmotesCapacity = function() {
+  const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+  return Math.min(Math.max(1, savedCapacity), 5);
+};
+
+// Override the typed function to use the new capacity
+ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+
+// Set initial capacity
+if (window.modSettings && window.modSettings.emoteCapacity) {
+  localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
+}
+`;
+
+const crystalColorMod = `
 /*
  * Change crystal color (integrated version)
  */
@@ -382,80 +386,96 @@ if (CrystalObject) {
 }
 `;
 
-  src = src.replace('</body>', `
-    ${controlStyles}
-    ${controlsHTML}
-    <script>
-    ${emoteCapacityMod}
-    ${crystalColorMod}
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${emoteCapacityMod}
+  ${crystalColorMod}
 
-    const fovDisplay = document.getElementById('fov-display');
+  const fovDisplay = document.getElementById('fov-display');
 
-    // Add wheel event listener for FOV change
-    document.addEventListener('wheel', (e) => {
-      if (!window.modSettings.fovEnabled) return;
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 1 : -1;
-      // Add bounds checking
-      window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
-      document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-    }, { passive: false });
+  // Add wheel event listener for FOV change
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const controlsHeader = document.getElementById('mod-controls-header');
-      const controlsPanel = document.getElementById('mod-controls-panel');
-      const fovToggle = document.getElementById('fov-toggle');
-      const emoteSlider = document.getElementById('emote-capacity-slider');
-      const emoteValue = document.getElementById('emote-capacity-value');
-      const crystalColorPicker = document.getElementById('crystal-color-picker');
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
 
-      // Initialize values from localStorage
-      const savedCrystalColor = localStorage.getItem('crystal-color');
-      if (savedCrystalColor) {
-        crystalColorPicker.value = savedCrystalColor;
+    // Initialize values from localStorage
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+    if (savedCrystalColor) {
+      crystalColorPicker.value = savedCrystalColor;
+    }
+
+    controlsHeader.addEventListener('click', () => {
+      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', () => {
+      window.modSettings.fovEnabled = fovToggle.checked;
+      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+    });
+
+    emoteSlider.addEventListener('input', () => {
+      const value = parseInt(emoteSlider.value);
+      emoteValue.textContent = value;
+      window.modSettings.emoteCapacity = value;
+      localStorage.setItem('emote-capacity', value);
+      
+      // Update the emote capacity immediately
+      if (window.ChatPanel) {
+        ChatPanel.prototype.getEmotesCapacity = function() {
+          return value;
+        };
       }
+    });
 
-      controlsHeader.addEventListener('click', () => {
-        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-      });
-
-      fovToggle.addEventListener('change', () => {
-        window.modSettings.fovEnabled = fovToggle.checked;
-        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-      });
-
-      emoteSlider.addEventListener('input', () => {
-        const value = parseInt(emoteSlider.value);
-        emoteValue.textContent = value;
-        window.modSettings.emoteCapacity = value;
-        localStorage.setItem('emote-capacity', value);
-        
-        // Update the emote capacity immediately
-        if (window.ChatPanel) {
-          ChatPanel.prototype.getEmotesCapacity = function() {
-            return value;
-          };
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Force radar zoom update on all relevant objects
+      const allInstances = []; // You might need to adjust this to actually find all relevant instances
+      allInstances.forEach(instance => {
+        if (instance.radarZoomOverride) {
+          // Trigger a re-evaluation of radar_zoom
+          const currentValue = instance.radar_zoom;
+          instance.radar_zoom = currentValue;
         }
       });
-
-      crystalColorPicker.addEventListener('change', () => {
-        const color = crystalColorPicker.value;
-        updateCrystalColor(color);
-      });
-
-      // Initialize emote capacity from localStorage
-      const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-      emoteSlider.value = savedCapacity;
-      emoteValue.textContent = savedCapacity;
-      window.modSettings.emoteCapacity = savedCapacity;
     });
-    </script>
-    </body>`);
 
-  checkSrcChange();
+    crystalColorPicker.addEventListener('change', () => {
+      const color = crystalColorPicker.value;
+      updateCrystalColor(color);
+    });
 
-  logFOV("FOV injector applied");
-  return src;
+    // Initialize emote capacity from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
+  });
+  </script>
+  </body>`);
+
+checkSrcChange();
+
+logFOV("FOV injector applied");
+return src;
 }
 
 // Global settings object
