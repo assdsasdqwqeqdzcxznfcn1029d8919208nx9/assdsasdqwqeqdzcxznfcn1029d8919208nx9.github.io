@@ -284,7 +284,7 @@ const controlsHTML = `
 // Add crystal color mod
 const crystalColorMod = `
 /*
- * Change crystal color (fixed version)
+ * Change crystal color (integrated version)
  */
 let CrystalObject;
 
@@ -379,7 +379,6 @@ if (CrystalObject) {
   const updateCrystalColor = () => {};
 }
 `;
-console.log('Crystal color mod injected:', crystalColorMod);
 
 
   src = src.replace('</body>', `
