@@ -85,12 +85,12 @@ function fovInjector(sbCode) {
     prevSrc = src;
   }
 
-  const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+  const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
   if (!fovPattern.test(src)) {
     console.error("Pattern not found in source code:", fovPattern);
     throw new Error("Pattern not found in source code");
   }
-  src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+  src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
   checkSrcChange();
 
   const controlStyles = `
