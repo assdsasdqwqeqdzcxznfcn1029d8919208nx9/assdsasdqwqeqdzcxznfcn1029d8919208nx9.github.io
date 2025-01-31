@@ -78,15 +78,22 @@ function fovInjector(sbCode) {
   let prevSrc = src;
 
   function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
+    if (src === prevSrc) {
+      console.error("Replace did not work. Previous source and current source are identical.");
+      throw new Error("replace did not work");
+    }
     prevSrc = src;
   }
 
   const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+  if (!fovPattern.test(src)) {
+    console.error("Pattern not found in source code:", fovPattern);
+    throw new Error("Pattern not found in source code");
+  }
   src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
   checkSrcChange();
 
-const controlStyles = `
+  const controlStyles = `
 <style>
   #mod-controls {
     position: fixed;
@@ -235,18 +242,13 @@ const controlStyles = `
 </style>
 `;
 
-
-const controlsHTML = `
+  const controlsHTML = `
 <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
   <div id="mod-controls-header">EOT Client V3.0.2</div>
   <div id="mod-controls-panel">
     <div class="mod-control">
       <span>FOV</span>
       <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
-    </div>
-    <div class="mod-control">
-      <span>Radar Zoom</span>
-      <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
     </div>
     <div class="mod-control">
       <span>Emote Capacity</span>
@@ -264,10 +266,6 @@ const controlsHTML = `
 </div>
 `;
 
-
-
-
-  // Add emote capacity mod with fixes
   const emoteCapacityMod = `
   let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
   
@@ -286,8 +284,7 @@ const controlsHTML = `
   }
   `;
 
-// Add crystal color mod
-const crystalColorMod = `
+  const crystalColorMod = `
 /*
  * Change crystal color (integrated version)
  */
@@ -384,7 +381,6 @@ if (CrystalObject) {
   const updateCrystalColor = () => {};
 }
 `;
-
 
   src = src.replace('</body>', `
     ${controlStyles}
