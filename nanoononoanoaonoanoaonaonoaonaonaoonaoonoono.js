@@ -625,14 +625,13 @@ function changeTextShadowColor() {
   console.log('Text shadow color has been changed to:', targetShadow);
 }
 
-// Radar Zoom Mod
 const radarZoomModName = "Radar Zoom Mod";
 const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
 
 function radarZoomInjector(sbCode) {
   let src = sbCode;
   let prevSrc = src;
-  
+
   function checkSrcChange() {
     if (src === prevSrc) throw new Error("replace did not work");
     prevSrc = src;
@@ -657,21 +656,21 @@ function radarZoomInjector(sbCode) {
     // Radar Zoom Override Mechanism
     const radarZoomOverride = {
       originalValues: new WeakMap(),
-      
+
       enable() {
         const proto = Object.getPrototypeOf(this);
         const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
-        
+
         if (originalDescriptor) {
           const originalGetter = originalDescriptor.get;
           const originalSetter = originalDescriptor.set;
-          
+
           Object.defineProperty(this, 'radar_zoom', {
             get() {
               if (!this.radarZoomOverride.originalValues.has(this)) {
                 this.radarZoomOverride.originalValues.set(this, originalGetter.call(this));
               }
-              return window.modSettings.radarZoomEnabled ? 1 : 
+              return window.modSettings.radarZoomEnabled ? 1 :
                 this.radarZoomOverride.originalValues.get(this);
             },
             set(value) {
@@ -684,7 +683,7 @@ function radarZoomInjector(sbCode) {
           });
         }
       },
-      
+
       disable() {
         const proto = Object.getPrototypeOf(this);
         const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
@@ -708,7 +707,15 @@ function radarZoomInjector(sbCode) {
       if (radarZoomToggle) {
         radarZoomToggle.addEventListener('change', () => {
           window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+          localStorage.setItem('radarZoomEnabled', radarZoomToggle.checked); // Save to localStorage
         });
+
+        // Initialize radar zoom setting from localStorage
+        const savedRadarZoomEnabled = localStorage.getItem('radarZoomEnabled');
+        if (savedRadarZoomEnabled !== null) {
+          window.modSettings.radarZoomEnabled = JSON.parse(savedRadarZoomEnabled);
+          radarZoomToggle.checked = window.modSettings.radarZoomEnabled;
+        }
       }`
   );
 
@@ -716,6 +723,7 @@ function radarZoomInjector(sbCode) {
   logRadarZoom("Radar Zoom mod successfully injected");
   return src;
 }
+
 // Add the radar zoom injector to the list of code injectors
 window.sbCodeInjectors.push((sbCode) => {
   try {
