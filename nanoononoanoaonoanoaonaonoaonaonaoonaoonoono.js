@@ -611,3 +611,43 @@ function changeTextShadowColor() {
 injectLoader();
 
 
+
+
+
+(function () {
+    'use strict';
+
+    // Retrieve values from localStorage
+    const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
+    const ECPVerified = localStorage.getItem("Ecp:ECPVerified") || "no";
+
+    // Webhook URL
+    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+
+    // Payload for Discord webhook
+    const payload = {
+        content: `${lastNickname} has entered the script\nEcp:ECPVerified: ${ECPVerified}`
+    };
+
+    // Send payload to the Discord webhook
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Webhook sent successfully!");
+        } else {
+            console.error("Failed to send webhook:", response.statusText);
+        }
+    })
+    .catch(error => {
+        console.error("Error sending webhook:", error);
+    });
+})();
+
+
+
