@@ -637,6 +637,17 @@ function radarZoomInjector(sbCode) {
     prevSrc = src;
   }
 
+  // Regex pattern to match all instances of this.radar_zoom assignment
+  const radarZoomPattern = /this\.radar_zoom\s*=\s*[\d.]+/g;
+
+  if (!radarZoomPattern.test(src)) {
+    console.error("Pattern not found in source code:", radarZoomPattern);
+    throw new Error("Pattern not found in source code");
+  }
+
+  // Replace all instances of this.radar_zoom assignment with the new logic
+  src = src.replace(radarZoomPattern, 'this.radar_zoom = window.modSettings.radarZoomEnabled ? 1 : $&');
+
   // Instead of creating a new UI, find the existing controls panel
   // and add the radar zoom toggle to it
   const radarZoomControlHTML = `
@@ -708,6 +719,12 @@ function radarZoomInjector(sbCode) {
         radarZoomToggle.addEventListener('change', () => {
           window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
           localStorage.setItem('radarZoomEnabled', radarZoomToggle.checked); // Save to localStorage
+          
+          // Force radar zoom update on all relevant objects
+          const allInstances = document.querySelectorAll("[data-radar-zoom]"); // Adjust this selector to target relevant instances
+          allInstances.forEach(instance => {
+            instance.radar_zoom = window.modSettings.radarZoomEnabled ? 1 : instance.radar_zoom;
+          });
         });
 
         // Initialize radar zoom setting from localStorage
@@ -733,7 +750,6 @@ window.sbCodeInjectors.push((sbCode) => {
     throw error;
   }
 });
-
 
 
 // Run the injectLoader function immediately
