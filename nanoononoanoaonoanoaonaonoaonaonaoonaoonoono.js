@@ -4,8 +4,8 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 window.modSettings = {
   fovEnabled: true,
   emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
-   uiVisible: true
-   radarZoomEnabled: false
+  uiVisible: true,  // Add comma here
+  radarZoomEnabled: false
 };
 
 // Lowercase Name Mod
