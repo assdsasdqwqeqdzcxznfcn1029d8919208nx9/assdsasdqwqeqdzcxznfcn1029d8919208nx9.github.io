@@ -245,6 +245,10 @@ const controlsHTML = `
       <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
     </div>
     <div class="mod-control">
+      <span>Radar Zoom</span>
+      <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
       <span>Emote Capacity</span>
       <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
     </div>
@@ -259,7 +263,6 @@ const controlsHTML = `
   </div>
 </div>
 `;
-
 
 
 
