@@ -281,57 +281,69 @@ const controlsHTML = `
   }
   `;
 
-  // Add crystal color mod
+// Add crystal color mod
 const crystalColorMod = `
 /*
  * Change crystal color (fixed version)
  */
 let CrystalObject;
 
-// Corrected detection to look for createModel
+// Function to find CrystalObject
 const findCrystalObject = () => {
   for (let key in window) {
     try {
       const obj = window[key];
-      if (obj.prototype && obj.prototype.createModel && 
-          obj.prototype.createModel.toString().includes('Crystal')) {
+      if (
+        obj?.prototype?.createModel &&
+        obj.prototype.createModel.toString().includes('Crystal')
+      ) {
         return obj;
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors during object inspection
+    }
   }
   return null;
 };
 
+// Detect and set CrystalObject
 CrystalObject = findCrystalObject();
 
 if (CrystalObject) {
   console.log('Found CrystalObject:', CrystalObject.name);
-  
+
   const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
   let materialInstances = new Set();
 
-  CrystalObject.prototype.getModelInstance = function() {
+  // Override getModelInstance to update crystal material color
+  CrystalObject.prototype.getModelInstance = function () {
     const instance = originalGetModelInstance.apply(this, arguments);
-    
-    // Corrected: Use this.material instead of instance.material
+
     if (this.material) {
       materialInstances.add(this.material);
       const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+
+      // Apply saved color to material
       this.material.color.set(savedColor);
-      
+
+      // If the material has uniforms, update them as well
       if (this.material.uniforms?.color) {
         this.material.uniforms.color.value.set(this.material.color);
       }
+
       this.material.needsUpdate = true;
+    } else {
+      console.warn('Material not found for crystal instance.');
     }
-    
+
     return instance;
   };
 
+  // Function to update crystal colors dynamically
   function updateCrystalColor(color) {
     try {
       localStorage.setItem('crystal-color', color);
-      materialInstances.forEach(material => {
+      materialInstances.forEach((material) => {
         material.color.set(color);
         if (material.uniforms?.color) {
           material.uniforms.color.value.set(material.color);
@@ -343,23 +355,33 @@ if (CrystalObject) {
       console.error('Error updating crystal color:', e);
     }
   }
+
+  // Add color picker event listener after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+    if (crystalColorPicker) {
+      const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+      crystalColorPicker.value = savedColor;
+
+      crystalColorPicker.addEventListener('input', (event) => {
+        updateCrystalColor(event.target.value);
+      });
+
+      console.log('Crystal color picker initialized with color:', savedColor);
+    } else {
+      console.warn('Crystal color picker element not found.');
+    }
+  });
 } else {
   console.warn('CrystalObject not found!');
+
+  // Define a placeholder function to avoid errors
   function updateCrystalColor() {}
 }
-
-// DOMContentLoaded listener remains the same
-document.addEventListener('DOMContentLoaded', () => {
-  const crystalColorPicker = document.getElementById('crystal-color-picker');
-  if (crystalColorPicker) {
-    const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-    crystalColorPicker.value = savedColor;
-    crystalColorPicker.addEventListener('input', (event) => {
-      updateCrystalColor(event.target.value);
-    });
-  }
-});
 `;
+
+console.log('Crystal color mod injected:', crystalColorMod);
+
 
   src = src.replace('</body>', `
     ${controlStyles}
