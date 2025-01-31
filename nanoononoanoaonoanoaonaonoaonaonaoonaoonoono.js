@@ -290,7 +290,7 @@ let CrystalObject;
 
 // Function to find CrystalObject
 const findCrystalObject = () => {
-  for (let key in window) {
+  for (const key in window) {
     try {
       const obj = window[key];
       if (
@@ -313,7 +313,7 @@ if (CrystalObject) {
   console.log('Found CrystalObject:', CrystalObject.name);
 
   const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
-  let materialInstances = new Set();
+  const materialInstances = new Set();
 
   // Override getModelInstance to update crystal material color
   CrystalObject.prototype.getModelInstance = function () {
@@ -340,7 +340,7 @@ if (CrystalObject) {
   };
 
   // Function to update crystal colors dynamically
-  function updateCrystalColor(color) {
+  const updateCrystalColor = (color) => {
     try {
       localStorage.setItem('crystal-color', color);
       materialInstances.forEach((material) => {
@@ -354,7 +354,7 @@ if (CrystalObject) {
     } catch (e) {
       console.error('Error updating crystal color:', e);
     }
-  }
+  };
 
   // Add color picker event listener after DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
@@ -376,10 +376,9 @@ if (CrystalObject) {
   console.warn('CrystalObject not found!');
 
   // Define a placeholder function to avoid errors
-  function updateCrystalColor() {}
+  const updateCrystalColor = () => {};
 }
 `;
-
 console.log('Crystal color mod injected:', crystalColorMod);
 
 
