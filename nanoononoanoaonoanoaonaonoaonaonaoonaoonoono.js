@@ -65,6 +65,80 @@ function emoteInjector(sbCode) {
   return src;
 }
 
+/*
+  Show blank ECPs on leaderboard (Integrated into UI and Code Injectors)
+*/
+
+if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
+
+// Add the blank ECP setting to modSettings
+window.modSettings = {
+  ...window.modSettings,
+  show_blank_badge: localStorage.getItem('show_blank_badge') === 'true' // Persist setting
+};
+
+// Function to toggle blank ECP setting
+function toggleBlankECP(event) {
+  window.modSettings.show_blank_badge = event.target.checked;
+  localStorage.setItem('show_blank_badge', event.target.checked);
+}
+
+// Modify leaderboard code to respect the new setting
+let pattern = /,\s*("blank")\s*!={1,2}\s*this\.custom\.badge/;
+
+Search: for (let i in window) try {
+  let val = window[i].prototype;
+  for (let j in val) {
+    let func = val[j];
+    if (typeof func === "function" && func.toString().match(pattern)) {
+      val[j] = Function("return " + func.toString().replace(pattern, ", window.modSettings.show_blank_badge || $1"))();
+      val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+      let gl = window[i];
+      for (let k in gl) {
+        if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
+          let oldF = gl[k];
+          gl[k] = function () {
+            let current = window.modSettings.show_blank_badge;
+            if (this.showBlank !== current) {
+              for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+              this.showBlank = current;
+            }
+            return oldF.apply(this, arguments);
+          };
+          break Search;
+        }
+      }
+    }
+  }
+} catch (e) {}
+
+// Add checkbox to UI settings panel
+const blankECPControlHTML = `
+  <div class="mod-control">
+    <span>Show Blank ECP</span>
+    <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.show_blank_badge ? 'checked' : ''}>
+  </div>`;
+
+// Insert control into the settings panel
+setTimeout(() => {
+  const controlsPanel = document.getElementById('mod-controls-panel');
+  if (controlsPanel) {
+    controlsPanel.insertAdjacentHTML('beforeend', blankECPControlHTML);
+    document.getElementById('blank-ecp-toggle').addEventListener('change', toggleBlankECP);
+  }
+}, 1000);
+
+// Add to code injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return sbCode.replace(pattern, ", window.modSettings.show_blank_badge || $1");
+  } catch (error) {
+    console.error("Blank ECP Injector failed:", error);
+    throw error;
+  }
+});
+
+
 // FOV Editor Mod
 const fovModName = "FOV Editor";
 const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
