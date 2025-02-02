@@ -91,8 +91,21 @@ Search: for (let i in window) try {
   for (let j in val) {
     let func = val[j];
     if (typeof func === "function" && func.toString().match(pattern)) {
+      // Modify the function that checks for a blank icon
       val[j] = Function("return " + func.toString().replace(pattern, ", window.modSettings.show_blank_badge || $1"))();
-      val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+      
+      // Instead of using regex on drawIcon, override it directly.
+      if (typeof val.drawIcon === "function") {
+        const originalDrawIcon = val.drawIcon;
+        val.drawIcon = function () {
+          if (window.modSettings.show_blank_badge) {
+            // Force the icon type to "blank" so the drawing logic goes the blank route.
+            this.icon = "blank";
+          }
+          return originalDrawIcon.apply(this, arguments);
+        };
+      }
+      
       let gl = window[i];
       for (let k in gl) {
         if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
@@ -110,7 +123,10 @@ Search: for (let i in window) try {
       }
     }
   }
-} catch (e) {}
+} catch (e) {
+  // If something goes wrong, log it.
+  console.error("Error modifying leaderboard code:", e);
+}
 
 // Add checkbox to UI settings panel
 const blankECPControlHTML = `
@@ -119,7 +135,7 @@ const blankECPControlHTML = `
     <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.show_blank_badge ? 'checked' : ''}>
   </div>`;
 
-// Insert control into the settings panel
+// Insert control into the settings panel after a short delay
 setTimeout(() => {
   const controlsPanel = document.getElementById('mod-controls-panel');
   if (controlsPanel) {
@@ -137,6 +153,7 @@ window.sbCodeInjectors.push((sbCode) => {
     throw error;
   }
 });
+
 
 // FOV Editor Mod
 const fovModName = "FOV Editor";
