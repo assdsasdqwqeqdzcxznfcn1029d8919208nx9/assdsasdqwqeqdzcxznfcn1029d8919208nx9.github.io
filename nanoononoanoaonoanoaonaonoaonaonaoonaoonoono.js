@@ -138,7 +138,6 @@ window.sbCodeInjectors.push((sbCode) => {
   }
 });
 
-
 // FOV Editor Mod
 const fovModName = "FOV Editor";
 const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
