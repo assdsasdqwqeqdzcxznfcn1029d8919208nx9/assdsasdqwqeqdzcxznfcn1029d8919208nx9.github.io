@@ -13280,7 +13280,7 @@
 						var e, i, s, l, n, a, o, r, h;
 						if(null != t.team_start_page)
 							for(o = t.team_start_page.children, s = 0, n = o.length; s < n; s++) h = o[s], h.O1OOI.push(I0l0I.I1I1I);
-						for(t.lII11.display.screen.O1II0.showTooltips(), t.teamboards = [], r = t.teams, i = l = 0, a = r.length; l < a; i = ++l) h = r[i], e = new TeamBoard(h, t, t.lII11), t.teamboards.push(e), t.lII11.display.screen.O1II0.add(e, [.8, 0, .2, .52]), e.num_players = 8, e.start = !1, e.force_ratio = void 0, e.enabled = !1, e.IlII0 = !0, e.displayed = !1, h === t.team ? (null != t.team_start_page && t.team_start_page.animate(e, 1), t.scoreboard_index = i, e.displayed = !0) : e.O1OOI.init({
+						for(t.lII11.display.screen.O1II0.showTooltips(), t.teamboards = [], r = t.teams, i = l = 0, a = r.length; l < a; i = ++l) h = r[i], e = new TeamBoard(h, t, t.lII11), t.teamboards.push(e), t.lII11.display.screen.O1II0.add(e, [.8, 0, .2, .52]), e.num_players = 8, e.start = !1, e.force_ratio = void 0, e.enabled = true, e.IlII0 = !0, e.displayed = !1, h === t.team ? (null != t.team_start_page && t.team_start_page.animate(e, 1), t.scoreboard_index = i, e.displayed = !0) : e.O1OOI.init({
 							IO11I: 1.1
 						});
 						return t.lII11.display.screen.O1II0.II0O0(), t.lII11.addKeyListener(9, {
@@ -13362,7 +13362,7 @@
 			}, i.prototype.updateStations = function(t) {
 				var e, i, s, l, n, a, o, r, h, u, d, c, I, p, O;
 				for(i = 1, u = this.teams, s = 0, a = u.length; s < a; s++)
-					for(p = u[s], I = p.station_model, p.open = t.getUint8(i) > 0, i += 1, I.setLevel(t.getUint8(i), this.lII11), i += 1, I.lO1OO = t.getUint32(i, !0), i += 4, I.crystals_max = this.options.crystal_capacity[I.level], i += 1, d = I.modules, l = 0, o = d.length; l < o; l++) h = d[l], O = t.getUint8(i), i += 1, h.setAlive(O > 0, this.lII11), h.setShield(Math.max(0, O - 1) / 254, this.lII11);
+					for(p = u[s], I = p.station_model, p.open = true, i += 1, I.setLevel(t.getUint8(i), this.lII11), i += 1, I.lO1OO = t.getUint32(i, !0), i += 4, I.crystals_max = this.options.crystal_capacity[I.level], i += 1, d = I.modules, l = 0, o = d.length; l < o; l++) h = d[l], O = t.getUint8(i), i += 1, h.setAlive(O > 0, this.lII11), h.setShield(Math.max(0, O - 1) / 254, this.lII11);
 				if(null != this.team && this.teams.length > 1) {
 					for(e = 0, c = this.teams, n = 0, r = c.length; n < r; n++)(p = c[n]) !== this.team && p.station_model.alive && e++;
 					0 !== e || this.gameover || (this.gameover = !0, this.killed(-1, !0, 1))
