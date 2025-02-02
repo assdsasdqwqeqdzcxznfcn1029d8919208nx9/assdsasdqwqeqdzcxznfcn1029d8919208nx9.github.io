@@ -5,8 +5,7 @@ window.modSettings = {
   fovEnabled: true,
   emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
   uiVisible: true,  // Add comma here
-  radarZoomEnabled: false,
-  showBlankECP: localStorage.getItem('show-blank-ecp') === 'true' || false // Add this line
+  radarZoomEnabled: false
 };
 
 // Lowercase Name Mod
@@ -66,91 +65,7 @@ function emoteInjector(sbCode) {
   return src;
 }
 
-// Create blank ECP injector
-const blankECPModName = "Blank ECP";
-const logBlankECP = (msg) => console.log(`%c[${blankECPModName}] ${msg}`, "color: #FFD700");
 
-function blankECPInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-  
-  function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
-    prevSrc = src;
-  }
-
-  // Replace the blank ECP check
-  const blankPattern = /("blank"\s*!==?\s*this\.custom\.badge)/g;
-  src = src.replace(blankPattern, 'window.modSettings.showBlankECP || $1');
-  checkSrcChange();
-
-  // Modify the drawIcon function
-  const drawIconPattern = /}\s*else\s*{/;
-  src = src.replace(drawIconPattern, '} else if (this.icon !== "blank") {');
-  checkSrcChange();
-
-  // Add blank ECP toggle to UI controls
-  const blankECPControl = `
-    <div class="mod-control">
-      <span>Show Blank ECP</span>
-      <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.showBlankECP ? 'checked' : ''}>
-    </div>
-  `;
-
-  // Insert the control before the crystal color picker
-  src = src.replace(
-    '<div class="mod-control"><span>Crystal Color</span>',
-    `${blankECPControl}<div class="mod-control"><span>Crystal Color</span>`
-  );
-
-  // Add event listener for blank ECP toggle
-  const blankECPScript = `
-    // Initialize blank ECP toggle
-    const blankECPToggle = document.getElementById('blank-ecp-toggle');
-    if (blankECPToggle) {
-      blankECPToggle.addEventListener('change', () => {
-        window.modSettings.showBlankECP = blankECPToggle.checked;
-        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-        
-        // Force refresh of badge display
-        if (window.game && window.game.players) {
-          for (let player of Object.values(window.game.players)) {
-            if (player.updateBadgeDisplay) {
-              player.updateBadgeDisplay();
-            }
-          }
-        }
-      });
-
-      // Initialize from localStorage
-      const savedBlankECP = localStorage.getItem('show-blank-ecp');
-      if (savedBlankECP !== null) {
-        window.modSettings.showBlankECP = savedBlankECP === 'true';
-        blankECPToggle.checked = window.modSettings.showBlankECP;
-      }
-    }
-  `;
-
-  // Add the blank ECP script to the DOMContentLoaded event
-  src = src.replace(
-    'document.addEventListener(\'DOMContentLoaded\', () => {',
-    `document.addEventListener('DOMContentLoaded', () => {
-      ${blankECPScript}`
-  );
-
-  logBlankECP("Blank ECP mod successfully injected");
-  return src;
-}
-
-// Add the blank ECP injector to the code injectors
-window.sbCodeInjectors.push((sbCode) => {
-  try {
-    return blankECPInjector(sbCode);
-  } catch (error) {
-    alert(`${blankECPModName} failed to load; error: ${error}`);
-    throw error;
-  }
-});
 
 // FOV Editor Mod
 const fovModName = "FOV Editor";
