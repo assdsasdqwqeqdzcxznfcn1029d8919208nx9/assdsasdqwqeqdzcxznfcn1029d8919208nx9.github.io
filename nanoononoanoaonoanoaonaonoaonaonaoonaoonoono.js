@@ -68,7 +68,6 @@ function emoteInjector(sbCode) {
 /*
   Show blank ECPs on leaderboard (Integrated into UI and Code Injectors)
 */
-
 if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
 // Add the blank ECP setting to modSettings
@@ -85,24 +84,34 @@ function toggleBlankECP(event) {
 
 // Modify leaderboard code to respect the new setting
 let pattern = /,\s*("blank")\s*!={1,2}\s*this\.custom\.badge/;
-
 Search: for (let i in window) try {
   let val = window[i].prototype;
   for (let j in val) {
     let func = val[j];
     if (typeof func === "function" && func.toString().match(pattern)) {
       // Modify the function that checks for a blank icon
-      val[j] = Function("return " + func.toString().replace(pattern, ", window.modSettings.show_blank_badge || $1"))();
+      val[j] = Function("return " + func.toString().replace(pattern, 
+        `, (window.modSettings.show_blank_badge || $1) && this.icon === "blank"`))();
       
-      // Instead of using regex on drawIcon, override it directly.
+      // Override drawIcon with proper blank icon handling
       if (typeof val.drawIcon === "function") {
         const originalDrawIcon = val.drawIcon;
         val.drawIcon = function () {
+          // Store the original icon value
+          const originalIcon = this.icon;
+          
           if (window.modSettings.show_blank_badge) {
-            // Force the icon type to "blank" so the drawing logic goes the blank route.
+            // Only override if we're supposed to show blank badge
             this.icon = "blank";
           }
-          return originalDrawIcon.apply(this, arguments);
+          
+          // Call original function with potentially modified state
+          const result = originalDrawIcon.apply(this, arguments);
+          
+          // Restore the original icon value to prevent side effects
+          this.icon = originalIcon;
+          
+          return result;
         };
       }
       
@@ -147,13 +156,12 @@ setTimeout(() => {
 // Add to code injectors
 window.sbCodeInjectors.push((sbCode) => {
   try {
-    return sbCode.replace(pattern, ", window.modSettings.show_blank_badge || $1");
+    return sbCode.replace(pattern, `, (window.modSettings.show_blank_badge || $1) && this.icon === "blank"`);
   } catch (error) {
     console.error("Blank ECP Injector failed:", error);
     throw error;
   }
 });
-
 
 // FOV Editor Mod
 const fovModName = "FOV Editor";
