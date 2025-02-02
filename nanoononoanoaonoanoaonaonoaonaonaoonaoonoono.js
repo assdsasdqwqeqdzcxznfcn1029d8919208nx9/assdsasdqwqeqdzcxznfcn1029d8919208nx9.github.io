@@ -5,7 +5,8 @@ window.modSettings = {
   fovEnabled: true,
   emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
   uiVisible: true,  // Add comma here
-  radarZoomEnabled: false
+  radarZoomEnabled: false,
+  showBlankBadge: JSON.parse(localStorage.getItem('showBlankBadge')) || false
 };
 
 // Lowercase Name Mod
@@ -33,6 +34,40 @@ function lowercaseInjector(sbCode) {
   logLowercase("Mod injected");
   return src;
 }
+
+// Blank Badge Mod
+/*
+  Show blank ECPs on leaderboard
+*/
+let pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
+
+Search: for (let i in window) try {
+  let val = window[i].prototype;
+  for (let j in val) {
+    let func = val[j];
+    if ("function" == typeof func && func.toString().match(pattern)) {
+      val[j] = Function("return " + func.toString().replace(pattern, ", window.modSettings.showBlankBadge || $1"))();
+      found = true;
+      val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\s*else\s*{/, '} else if (this.icon !== "blank") {'))();
+      let gl = window[i];
+      for (let k in gl) {
+        if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
+          let oldF = gl[k];
+          gl[k] = function () {
+            let current = window.modSettings.showBlankBadge;
+            if (this.showBlank !== current) {
+              for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+              this.showBlank = current;
+            }
+            return oldF.apply(this, arguments)
+          };
+          break Search;
+        }
+      }
+    }
+  }
+}
+catch (e) {}
 
 // Custom Emote Mod
 const emoteModName = "Custom Emote";
@@ -64,8 +99,6 @@ function emoteInjector(sbCode) {
   
   return src;
 }
-
-
 
 // FOV Editor Mod
 const fovModName = "FOV Editor";
@@ -260,6 +293,10 @@ const controlsHTML = `
     <div class="mod-control">
       <span>Radar Zoom</span>
       <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
+      <span>Show Blank Badge</span>
+      <input type="checkbox" id="show-blank-badge-toggle" ${window.modSettings.showBlankBadge ? 'checked' : ''}>
     </div>
     <div class="mod-control">
       <span>Crystal Color</span>
@@ -465,11 +502,27 @@ src = src.replace('</body>', `
       updateCrystalColor(color);
     });
 
-    // Initialize emote capacity from localStorage
+    // Initialize emote capacity and blank badge from localStorage
     const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
     emoteSlider.value = savedCapacity;
     emoteValue.textContent = savedCapacity;
     window.modSettings.emoteCapacity = savedCapacity;
+
+    // Initialize blank badge toggle
+    const showBlankBadgeToggle = document.getElementById('show-blank-badge-toggle');
+    if (showBlankBadgeToggle) {
+      showBlankBadgeToggle.addEventListener('change', () => {
+        window.modSettings.showBlankBadge = showBlankBadgeToggle.checked;
+        localStorage.setItem('showBlankBadge', JSON.stringify(showBlankBadgeToggle.checked));
+      });
+
+      // Initialize from localStorage
+      const savedShowBlankBadge = localStorage.getItem('showBlankBadge');
+      if (savedShowBlankBadge !== null) {
+        window.modSettings.showBlankBadge = JSON.parse(savedShowBlankBadge);
+        showBlankBadgeToggle.checked = window.modSettings.showBlankBadge;
+      }
+    }
   });
   </script>
   </body>`);
