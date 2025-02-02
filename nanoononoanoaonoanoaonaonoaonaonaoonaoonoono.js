@@ -65,6 +65,99 @@ function emoteInjector(sbCode) {
   return src;
 }
 
+// Blank ECP Mod
+const blankECPModName = "Blank ECP";
+const logBlankECP = (msg) => console.log(`%c[${blankECPModName}] ${msg}`, "color: #00FF88");
+
+// Add to global settings
+window.modSettings.blankECPEnabled = localStorage.getItem('blank-ecp-enabled') === 'true';
+
+function blankECPInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  // Add UI control
+  const blankECPControl = `
+    <div class="mod-control">
+      <span>Show Blank ECP</span>
+      <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.blankECPEnabled ? 'checked' : ''}>
+    </div>`;
+
+  // Insert control after radar zoom
+  src = src.replace(
+    '<div class="mod-control"><span>Radar Zoom</span>',
+    `<div class="mod-control"><span>Radar Zoom</span>${blankECPControl}`
+  );
+
+  // Add the code modification
+  const pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
+  const replacement = ',window.modSettings.blankECPEnabled || $1';
+
+  src = src.replace(
+    /function \w+\(\)\{[^}]+badge_table[^}]+}/g,
+    match => match.replace(pattern, replacement)
+  );
+
+  // Modify drawIcon function
+  src = src.replace(
+    /}\s*else\s*{/g,
+    '} else if (this.icon !== "blank") {'
+  );
+
+  // Add table refresh handler
+  src = src.replace(
+    /function \w+\(\)\{[^}]+\.table[^}]+}/g,
+    match => match.replace(
+      /function (\w+)\(\)\{/,
+      `function $1(){ 
+        if (window.modSettings.blankECPEnabled !== this.showBlank) {
+          for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+          this.showBlank = window.modSettings.blankECPEnabled;
+        }`
+    )
+  );
+
+  checkSrcChange();
+  logBlankECP("Mod injected");
+  return src;
+}
+
+// Add event listener for the toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const blankECPToggle = document.getElementById('blank-ecp-toggle');
+  if (blankECPToggle) {
+    blankECPToggle.addEventListener('change', () => {
+      window.modSettings.blankECPEnabled = blankECPToggle.checked;
+      localStorage.setItem('blank-ecp-enabled', blankECPToggle.checked);
+      
+      // Force refresh of badge tables
+      if (window.BadgeTable) {
+        const tables = Object.values(window.BadgeTable.instances || {});
+        tables.forEach(table => {
+          for (let i in table.table) if (i.startsWith("blank")) delete table.table[i];
+          table.showBlank = window.modSettings.blankECPEnabled;
+          table.needsUpdate = true;
+        });
+      }
+    });
+  }
+});
+
+// Add to injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return blankECPInjector(sbCode);
+  } catch (error) {
+    alert(`${blankECPModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
 // FOV Editor Mod
 const fovModName = "FOV Editor";
 const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
