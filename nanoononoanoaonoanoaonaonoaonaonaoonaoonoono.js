@@ -502,33 +502,28 @@ src = src.replace('</body>', `
       updateCrystalColor(color);
     });
 
-// Initialize blank badge toggle
-const showBlankBadgeToggle = document.getElementById('show-blank-badge-toggle');
-if (showBlankBadgeToggle) {
-  showBlankBadgeToggle.addEventListener('change', () => {
-    window.modSettings.showBlankBadge = showBlankBadgeToggle.checked;
-    localStorage.setItem('showBlankBadge', JSON.stringify(showBlankBadgeToggle.checked));
-    // Add code to update the UI or perform actions based on the toggle state
-    updateBlankBadgeDisplay(showBlankBadgeToggle.checked);
-  });
+    // Initialize emote capacity and blank badge from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
 
-  // Initialize from localStorage
-  const savedShowBlankBadge = localStorage.getItem('showBlankBadge');
-  if (savedShowBlankBadge !== null) {
-    window.modSettings.showBlankBadge = JSON.parse(savedShowBlankBadge);
-    showBlankBadgeToggle.checked = window.modSettings.showBlankBadge;
-    // Ensure the UI reflects the saved state
-    updateBlankBadgeDisplay(window.modSettings.showBlankBadge);
-  }
-}
+    // Initialize blank badge toggle
+    const showBlankBadgeToggle = document.getElementById('show-blank-badge-toggle');
+    if (showBlankBadgeToggle) {
+      showBlankBadgeToggle.addEventListener('change', () => {
+        window.modSettings.showBlankBadge = showBlankBadgeToggle.checked;
+        localStorage.setItem('showBlankBadge', JSON.stringify(showBlankBadgeToggle.checked));
+      });
 
-// Function to update the UI or perform actions based on the toggle state
-function updateBlankBadgeDisplay(isEnabled) {
-  const blankBadgeElements = document.querySelectorAll('.blank-badge');
-  blankBadgeElements.forEach(element => {
-    element.style.display = isEnabled ? 'block' : 'none';
+      // Initialize from localStorage
+      const savedShowBlankBadge = localStorage.getItem('showBlankBadge');
+      if (savedShowBlankBadge !== null) {
+        window.modSettings.showBlankBadge = JSON.parse(savedShowBlankBadge);
+        showBlankBadgeToggle.checked = window.modSettings.showBlankBadge;
+      }
+    }
   });
-}
   </script>
   </body>`);
 
