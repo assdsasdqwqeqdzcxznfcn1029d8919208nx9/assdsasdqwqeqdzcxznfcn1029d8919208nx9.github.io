@@ -372,16 +372,17 @@ if (CrystalObject) {
       materialInstances.add(this.material);
       const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
       console.log('Applying color to crystal material:', savedColor);
-      this.material.color.set(savedColor);
-      if (this.material.uniforms?.color) {
-        console.log('Updating material uniforms color');
-        this.material.uniforms.color.value.set(this.material.color);
+      // Use a new THREE.Color so that the color is parsed correctly.
+      const newColor = new THREE.Color(savedColor);
+      this.material.color.copy(newColor);
+      if (this.material.uniforms && this.material.uniforms.color) {
+        console.log('Updating material uniform color');
+        this.material.uniforms.color.value.copy(newColor);
       }
       this.material.needsUpdate = true;
     } else {
       console.warn('Material not found for crystal instance:', this);
     }
-
     return instance;
   };
 
@@ -389,14 +390,29 @@ if (CrystalObject) {
     try {
       console.log('updateCrystalColor called with:', color);
       localStorage.setItem('crystal-color', color);
+      const newColor = new THREE.Color(color);
       materialInstances.forEach((material) => {
         console.log('Updating material to color:', color);
-        material.color.set(color);
-        if (material.uniforms?.color) {
-          material.uniforms.color.value.set(material.color);
+        material.color.copy(newColor);
+        if (material.uniforms && material.uniforms.color) {
+          material.uniforms.color.value.copy(newColor);
         }
         material.needsUpdate = true;
       });
+      // Optionally, update any existing crystals in the scene:
+      if (window.game && window.game.scene && typeof window.game.scene.traverse === 'function') {
+        window.game.scene.traverse((obj) => {
+          // Adjust this condition as needed to target crystal objects.
+          if (obj.material && obj.userData && obj.userData.isCrystal) {
+            console.log('Updating scene crystal material to:', color);
+            obj.material.color.copy(newColor);
+            if (obj.material.uniforms && obj.material.uniforms.color) {
+              obj.material.uniforms.color.value.copy(newColor);
+            }
+            obj.material.needsUpdate = true;
+          }
+        });
+      }
       console.log('Crystal color updated successfully to:', color);
     } catch (e) {
       console.error('Error updating crystal color:', e);
@@ -406,6 +422,7 @@ if (CrystalObject) {
   console.warn('CrystalObject not found! Crystal color mod will not function.');
 }
 `;
+
   
   src = src.replace('</body>', `
   ${controlStyles}
