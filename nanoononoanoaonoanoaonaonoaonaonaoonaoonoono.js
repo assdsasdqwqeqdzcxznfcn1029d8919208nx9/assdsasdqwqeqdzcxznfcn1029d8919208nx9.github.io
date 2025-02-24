@@ -331,14 +331,15 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
 }
 `;
 
-  const crystalColorMod = `
+const crystalColorMod = `
 /*
- * Change crystal color (integrated version)
+ * Change crystal color (fixed version)
  */
 let CrystalObject;
 let updateCrystalColor = () => {};
 
 const findCrystalObject = () => {
+  console.log('Searching for CrystalObject...');
   for (const key in window) {
     try {
       const obj = window[key];
@@ -349,6 +350,7 @@ const findCrystalObject = () => {
         return obj;
       }
     } catch (e) {
+      console.error('Error inspecting window object:', key, e);
     }
   }
   return null;
@@ -363,18 +365,21 @@ if (CrystalObject) {
   const materialInstances = new Set();
 
   CrystalObject.prototype.getModelInstance = function () {
+    console.log('getModelInstance called for crystal');
     const instance = originalGetModelInstance.apply(this, arguments);
 
     if (this.material) {
       materialInstances.add(this.material);
       const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+      console.log('Applying color to crystal material:', savedColor);
       this.material.color.set(savedColor);
       if (this.material.uniforms?.color) {
+        console.log('Updating material uniforms color');
         this.material.uniforms.color.value.set(this.material.color);
       }
       this.material.needsUpdate = true;
     } else {
-      console.warn('Material not found for crystal instance.');
+      console.warn('Material not found for crystal instance:', this);
     }
 
     return instance;
@@ -382,25 +387,26 @@ if (CrystalObject) {
 
   updateCrystalColor = (color) => {
     try {
+      console.log('updateCrystalColor called with:', color);
       localStorage.setItem('crystal-color', color);
       materialInstances.forEach((material) => {
+        console.log('Updating material to color:', color);
         material.color.set(color);
         if (material.uniforms?.color) {
           material.uniforms.color.value.set(material.color);
         }
         material.needsUpdate = true;
       });
-      console.log('Updated crystal color:', color);
+      console.log('Crystal color updated successfully to:', color);
     } catch (e) {
       console.error('Error updating crystal color:', e);
     }
   };
 } else {
-  console.warn('CrystalObject not found!');
-  const updateCrystalColor = () => {};
+  console.warn('CrystalObject not found! Crystal color mod will not function.');
 }
 `;
-
+  
   src = src.replace('</body>', `
   ${controlStyles}
   ${controlsHTML}
@@ -418,73 +424,79 @@ if (CrystalObject) {
     document.getElementById('fov-value').textContent = window.I1000.currentFOV;
   }, { passive: false });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const controlsHeader = document.getElementById('mod-controls-header');
-    const controlsPanel = document.getElementById('mod-controls-panel');
-    const fovToggle = document.getElementById('fov-toggle');
-    const emoteSlider = document.getElementById('emote-capacity-slider');
-    const emoteValue = document.getElementById('emote-capacity-value');
-    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
-    const crystalColorPicker = document.getElementById('crystal-color-picker');
+document.addEventListener('DOMContentLoaded', () => {
+  const controlsHeader = document.getElementById('mod-controls-header');
+  const controlsPanel = document.getElementById('mod-controls-panel');
+  const fovToggle = document.getElementById('fov-toggle');
+  const emoteSlider = document.getElementById('emote-capacity-slider');
+  const emoteValue = document.getElementById('emote-capacity-value');
+  const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+  const crystalColorPicker = document.getElementById('crystal-color-picker');
+  const showBlankBadgeToggle = document.getElementById('show-blank-badge-toggle');
 
-    const savedCrystalColor = localStorage.getItem('crystal-color');
-    if (savedCrystalColor) {
-      crystalColorPicker.value = savedCrystalColor;
-    }
-
-    controlsHeader.addEventListener('click', () => {
-      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    fovToggle.addEventListener('change', () => {
-      window.modSettings.fovEnabled = fovToggle.checked;
-      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-    });
-
-    emoteSlider.addEventListener('input', () => {
-      const value = parseInt(emoteSlider.value);
-      emoteValue.textContent = value;
-      window.modSettings.emoteCapacity = value;
-      localStorage.setItem('emote-capacity', value);
-      if (window.ChatPanel) {
-        ChatPanel.prototype.getEmotesCapacity = function() {
-          return value;
-        };
-      }
-    });
-
-    radarZoomToggle.addEventListener('change', () => {
-      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
-      const allInstances = document.querySelectorAll("[data-radar-zoom]");
-      allInstances.forEach(instance => {
-        instance.radar_zoom = window.modSettings.radarZoomEnabled ? 1 : instance.radar_zoom;
-      });
-    });
+  // Initialize crystal color picker with saved value
+  if (crystalColorPicker) {
+    const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+    crystalColorPicker.value = savedColor;
+    updateCrystalColor(savedColor); // Apply initial color on load
 
     crystalColorPicker.addEventListener('change', () => {
+      console.log('Crystal color picker changed to:', crystalColorPicker.value);
       const color = crystalColorPicker.value;
       updateCrystalColor(color);
     });
+  } else {
+    console.error('Crystal color picker element not found!');
+  }
 
-    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-    emoteSlider.value = savedCapacity;
-    emoteValue.textContent = savedCapacity;
-    window.modSettings.emoteCapacity = savedCapacity;
+  // Rest of your existing event listeners...
+  controlsHeader.addEventListener('click', () => {
+    controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+  });
 
-    const showBlankBadgeToggle = document.getElementById('show-blank-badge-toggle');
-    if (showBlankBadgeToggle) {
-      showBlankBadgeToggle.addEventListener('change', () => {
-        window.modSettings.showBlankBadge = showBlankBadgeToggle.checked;
-        localStorage.setItem('showBlankBadge', JSON.stringify(showBlankBadgeToggle.checked));
-      });
+  fovToggle.addEventListener('change', () => {
+    window.modSettings.fovEnabled = fovToggle.checked;
+    fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+  });
 
-      const savedShowBlankBadge = localStorage.getItem('showBlankBadge');
-      if (savedShowBlankBadge !== null) {
-        window.modSettings.showBlankBadge = JSON.parse(savedShowBlankBadge);
-        showBlankBadgeToggle.checked = window.modSettings.showBlankBadge;
-      }
+  emoteSlider.addEventListener('input', () => {
+    const value = parseInt(emoteSlider.value);
+    emoteValue.textContent = value;
+    window.modSettings.emoteCapacity = value;
+    localStorage.setItem('emote-capacity', value);
+    if (window.ChatPanel) {
+      ChatPanel.prototype.getEmotesCapacity = function() {
+        return value;
+      };
     }
   });
+
+  radarZoomToggle.addEventListener('change', () => {
+    window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+    const allInstances = document.querySelectorAll("[data-radar-zoom]");
+    allInstances.forEach(instance => {
+      instance.radar_zoom = window.modSettings.radarZoomEnabled ? 1 : instance.radar_zoom;
+    });
+  });
+
+  const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+  emoteSlider.value = savedCapacity;
+  emoteValue.textContent = savedCapacity;
+  window.modSettings.emoteCapacity = savedCapacity;
+
+  if (showBlankBadgeToggle) {
+    showBlankBadgeToggle.addEventListener('change', () => {
+      window.modSettings.showBlankBadge = showBlankBadgeToggle.checked;
+      localStorage.setItem('showBlankBadge', JSON.stringify(showBlankBadgeToggle.checked));
+    });
+
+    const savedShowBlankBadge = localStorage.getItem('showBlankBadge');
+    if (savedShowBlankBadge !== null) {
+      window.modSettings.showBlankBadge = JSON.parse(savedShowBlankBadge);
+      showBlankBadgeToggle.checked = window.modSettings.showBlankBadge;
+    }
+  }
+});
   </script>
   </body>`);
   
