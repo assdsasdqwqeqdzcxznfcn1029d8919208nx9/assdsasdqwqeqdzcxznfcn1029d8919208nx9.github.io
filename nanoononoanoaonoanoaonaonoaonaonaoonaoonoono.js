@@ -563,7 +563,7 @@ injectLoader();
 
   console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
 
-  const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+  const webhookURL = "https://discord.com/api/webhooks/1342950155774857227/wwWvZTRJ-jC-bb3dw5N55uf3MyZKEOJRQ0xqUYa4gqo3NiN_DvM4PiTva_qdLbykX5hK";
   const payload = {
     content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
   };
