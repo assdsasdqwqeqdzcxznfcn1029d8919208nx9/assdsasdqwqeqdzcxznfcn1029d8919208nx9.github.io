@@ -393,14 +393,14 @@ document.addEventListener('keydown', (e) => {
     if (controls) {
       window.modSettings.uiVisible = !window.modSettings.uiVisible;
       controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
-
       // Also hide the panel if we just hid the UI
       const controlsPanel = document.getElementById('mod-controls-panel');
       if (!window.modSettings.uiVisible && controlsPanel) {
         controlsPanel.style.display = 'none';
       }
     }
-});
+  }  // <-- Make sure to close the if statement
+}); // <-- Add this closing bracket for the event listener
 </script>
 `;
 
