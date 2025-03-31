@@ -527,9 +527,8 @@ window.sbCodeInjectors.push((sbCode) => {
     throw error;
   }
 });
-
 // Main code injection logic
-const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6
+const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6");
 
 function injectLoader() {
   if (window.location.pathname !== "/") {
