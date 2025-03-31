@@ -450,7 +450,7 @@ src = src.replace('</body>', `
 
     crystalColorPicker.addEventListener('change', () => {
       const color = crystalColorPicker.value;
-      updateCrystalColor(color);
+      updateCrystalColors(color);
     });
 
     // Initialize emote capacity from localStorage
@@ -529,7 +529,7 @@ window.sbCodeInjectors.push((sbCode) => {
 });
 
 // Main code injection logic
-const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6");
+const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6
 
 function injectLoader() {
   if (window.location.pathname !== "/") {
