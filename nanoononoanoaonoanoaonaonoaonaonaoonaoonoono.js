@@ -376,12 +376,130 @@ const updateCrystalColors = (color) => {
 };
 `;
 
-src = src.replace('</body>', `
+const radarZoomModName = "Radar Zoom Mod";
+const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
+
+function radarZoomInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  // Modify the HTML to add radar zoom toggle to the existing controls
+  const radarZoomControlHTML = `
+  <div class="mod-control">
+    <span>Radar Zoom</span>
+    <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+  </div>
+  `;
+
+  // Insert the radar zoom control HTML before the crystal color picker
+  src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
+
+  // Add radar zoom modification script
+  const radarZoomScript = `
+  // Radar Zoom Override Mechanism
+  const radarZoomOverride = {
+    originalValues: new WeakMap(),
+    
+    enable() {
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        const originalGetter = originalDescriptor.get;
+        const originalSetter = originalDescriptor.set;
+        
+        Object.defineProperty(this, 'radar_zoom', {
+          get() {
+            // Store original value if not already stored
+            if (!this.radarZoomOverride.originalValues.has(this)) {
+              this.radarZoomOverride.originalValues.set(this, originalGetter.call(this));
+            }
+            
+            // Return 1 if enabled, otherwise original value
+            return window.modSettings.radarZoomEnabled ? 1 : 
+              this.radarZoomOverride.originalValues.get(this);
+          },
+          set(value) {
+            // Always allow setting the original value
+            if (originalSetter) {
+              originalSetter.call(this, value);
+            }
+            
+            // Update our stored original value
+            this.radarZoomOverride.originalValues.set(this, value);
+          },
+          configurable: true
+        });
+      }
+    },
+    
+    disable() {
+      // Restore original descriptor if possible
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        Object.defineProperty(this, 'radar_zoom', originalDescriptor);
+      }
+    }
+  };
+
+  // Override all existing instances
+  const originalConstructor = this.constructor;
+  this.constructor = function(...args) {
+    const instance = originalConstructor.apply(this, args);
+    
+    // Apply radar zoom override to the instance
+    Object.defineProperty(instance, 'radarZoomOverride', {
+      value: radarZoomOverride,
+      writable: false,
+      configurable: false
+    });
+    
+    instance.radarZoomOverride.enable();
+    
+    return instance;
+  };
+
+  // Ensure that radar zoom is applied to all relevant instances
+  const applyRadarZoomToAllInstances = () => {
+    const allInstances = []; // Adjust this to actually find all relevant instances
+    allInstances.forEach(instance => {
+      if (instance.radarZoomOverride) {
+        instance.radarZoomOverride.enable();
+      }
+    });
+  };
+
+  // Add event listener for radar zoom toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Apply radar zoom to all instances
+      applyRadarZoomToAllInstances();
+    });
+  });
+
+  // Initial application of radar zoom on page load
+  applyRadarZoomToAllInstances();
+  `;
+
+  src = src.replace('</body>', `
   ${controlStyles}
   ${controlsHTML}
   <script>
   ${emoteCapacityMod}
   ${crystalColorMod}
+  ${radarZoomScript}
 
   const fovDisplay = document.getElementById('fov-display');
 
