@@ -650,7 +650,7 @@
             }
           }
           const end_time = performance.now();
-          log(\`Mods applied successfully (\${(end_time - start_time).toFixed(0)}ms)\`);
+          log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
           document.open();
           document.write(starSRC);
           document.close();
@@ -663,43 +663,43 @@
     xhr.send();
   }
 
-  // ---------------- Register Injector Functions ----------------
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return lowercaseInjector(sbCode);
-    } catch (error) {
-      alert(\`\${modName} failed to load; error: \${error}\`);
-      throw error;
-    }
-  });
+// ---------------- Register Injector Functions ----------------
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return lowercaseInjector(sbCode);
+  } catch (error) {
+    alert(`${modName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
 
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return emoteInjector(sbCode);
-    } catch (error) {
-      alert(\`\${emoteModName} failed to load; error: \${error}\`);
-      throw error;
-    }
-  });
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return emoteInjector(sbCode);
+  } catch (error) {
+    alert(`${emoteModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
 
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return fovInjector(sbCode);
-    } catch (error) {
-      alert(\`\${fovModName} failed to load; error: \${error}\`);
-      throw error;
-    }
-  });
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return fovInjector(sbCode);
+  } catch (error) {
+    alert(`${fovModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
 
-  window.sbCodeInjectors.push((sbCode) => {
-    try {
-      return radarZoomInjector(sbCode);
-    } catch (error) {
-      alert(\`\${radarZoomModName} failed to load; error: \${error}\`);
-      throw error;
-    }
-  });
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return radarZoomInjector(sbCode);
+  } catch (error) {
+    alert(`${radarZoomModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
 
-  // ---------------- Start the Injection ----------------
-  injectLoader();
+// ---------------- Start the Injection ----------------
+injectLoader();
 })();
