@@ -565,7 +565,7 @@ injectLoader();
 
   const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
   const payload = {
-    content: \`${lastNickname} has entered the script\\nECPVerified: \${ECPVerifiedContent}\`
+    content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
   };
 
   fetch(webhookURL, {
@@ -584,4 +584,3 @@ injectLoader();
     console.error("[Discord] Error sending webhook:", error);
   });
 })();
-</script>
