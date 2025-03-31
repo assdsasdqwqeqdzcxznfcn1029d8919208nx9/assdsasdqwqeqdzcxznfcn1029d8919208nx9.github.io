@@ -288,6 +288,7 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
 }
 `;
 
+const crystalColorMod = `
 let CrystalObject;
 
 // Function to find CrystalObject
@@ -373,6 +374,7 @@ const updateCrystalColors = (color) => {
     console.log('Updated crystal color:', color);
   }
 };
+`;
 
 src = src.replace('</body>', `
   ${controlStyles}
