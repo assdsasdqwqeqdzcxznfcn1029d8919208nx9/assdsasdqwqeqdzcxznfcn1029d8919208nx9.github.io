@@ -393,7 +393,6 @@
       <script>
       ${emoteCapacityMod}
       ${crystalColorMod}
-      ${fixedECPScript}
 
       const fovDisplay = document.getElementById('fov-display');
 
