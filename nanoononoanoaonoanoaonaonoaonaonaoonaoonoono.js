@@ -375,8 +375,6 @@ const updateCrystalColors = (color) => {
   }
 };
 `;
-
-const radarZoomModName = "Radar Zoom Mod";
 const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
 
 function radarZoomInjector(sbCode) {
