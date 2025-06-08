@@ -698,9 +698,10 @@ function injectLoader() {
         changeTextShadowColor();
 
         // Apply the modified source to the document
-        document.open();
-        document.write(starSRC);
-        document.close();
+const script = document.createElement('script');
+script.textContent = starSRC;
+document.head.appendChild(script);
+
       } else {
         log("Source fetch failed");
         alert("An error occurred while fetching game code");
