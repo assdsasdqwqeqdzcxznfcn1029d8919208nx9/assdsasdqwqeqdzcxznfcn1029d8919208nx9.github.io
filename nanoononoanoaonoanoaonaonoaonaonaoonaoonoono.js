@@ -638,6 +638,29 @@ function radarZoomInjector(sbCode) {
     prevSrc = src;
   }
 
+  // Modify the HTML to add radar zoom toggle to the existing controls
+  const radarZoomControlHTML = `
+  <div class="mod-control">
+    <span>Radar Zoom</span>
+    <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+  </div>
+  `;
+
+  // Insert the radar zoom control HTML before the crystal color picker
+  src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
+
+const radarZoomModName = "Radar Zoom Mod";
+const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
+
+function radarZoomInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
   // Initialize mod settings if not exists
   if (!window.modSettings) {
     window.modSettings = {};
@@ -658,149 +681,162 @@ function radarZoomInjector(sbCode) {
   src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
   checkSrcChange();
 
-  // Add radar zoom modification script
+  // Add radar zoom modification script - embedded as inline script
   const radarZoomScript = `
   <script>
   (function() {
-    'use strict';
-    
-    // Global radar zoom state
-    window.radarZoomState = {
-      enabled: window.modSettings.radarZoomEnabled || false,
-      trackedObjects: new Set(),
-      originalValues: new WeakMap()
-    };
-
-    // Function to apply radar zoom to an object
-    function applyRadarZoomToObject(obj) {
-      if (!obj || window.radarZoomState.trackedObjects.has(obj)) {
-        return;
-      }
-
-      // Store original radar_zoom value if it exists
-      if (obj.hasOwnProperty('radar_zoom') || 'radar_zoom' in obj) {
-        const currentValue = obj.radar_zoom;
-        if (!window.radarZoomState.originalValues.has(obj)) {
-          window.radarZoomState.originalValues.set(obj, currentValue);
-        }
-      }
-
-      // Override the radar_zoom property
-      try {
-        Object.defineProperty(obj, 'radar_zoom', {
-          get: function() {
-            const originalValue = window.radarZoomState.originalValues.get(this) || 0;
-            return window.radarZoomState.enabled ? 1 : originalValue;
-          },
-          set: function(value) {
-            // Store the original value being set
-            window.radarZoomState.originalValues.set(this, value);
-          },
-          configurable: true
-        });
-
-        window.radarZoomState.trackedObjects.add(obj);
-        console.log('%c[Radar Zoom] Applied to object', 'color: #00FF00');
-      } catch (error) {
-        console.warn('%c[Radar Zoom] Could not override radar_zoom for object:', 'color: #FFA500', error);
-      }
-    }
-
-    // Function to find and apply radar zoom to all relevant objects
-    function applyRadarZoomToAllObjects() {
-      // Try to find objects that might have radar_zoom property
-      if (typeof window.game !== 'undefined' && window.game) {
-        // Check if game has ships array or similar
-        if (window.game.ships && Array.isArray(window.game.ships)) {
-          window.game.ships.forEach(ship => {
-            if (ship && typeof ship === 'object') {
-              applyRadarZoomToObject(ship);
-            }
-          });
-        }
-
-        // Check if game has players array
-        if (window.game.players && Array.isArray(window.game.players)) {
-          window.game.players.forEach(player => {
-            if (player && typeof player === 'object') {
-              applyRadarZoomToObject(player);
-            }
-          });
-        }
-
-        // Apply to the game object itself
-        applyRadarZoomToObject(window.game);
-      }
-
-      // Try to find objects in global scope that might have radar_zoom
-      for (let key in window) {
-        try {
-          const obj = window[key];
-          if (obj && typeof obj === 'object' && 'radar_zoom' in obj) {
-            applyRadarZoomToObject(obj);
-          }
-        } catch (e) {
-          // Skip objects that throw errors when accessed
-        }
-      }
-    }
-
-    // Setup radar zoom toggle event listener
-    function setupRadarZoomToggle() {
-      const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    try {
+      console.log('%c[Radar Zoom] Starting initialization', 'color: #00FF00');
       
-      if (radarZoomToggle) {
-        radarZoomToggle.addEventListener('change', function() {
-          window.modSettings.radarZoomEnabled = this.checked;
-          window.radarZoomState.enabled = this.checked;
-          
-          console.log('%c[Radar Zoom] Toggle changed to:', 'color: #00FF00', this.checked);
-          
-          // Re-apply to all objects to update their state
-          applyRadarZoomToAllObjects();
-        });
-        
-        console.log('%c[Radar Zoom] Toggle event listener attached', 'color: #00FF00');
-      } else {
-        console.warn('%c[Radar Zoom] Toggle element not found', 'color: #FFA500');
+      // Global radar zoom state
+      window.radarZoomState = {
+        enabled: window.modSettings ? window.modSettings.radarZoomEnabled : false,
+        trackedObjects: new Set(),
+        originalValues: new WeakMap()
+      };
+
+      // Function to apply radar zoom to an object
+      function applyRadarZoomToObject(obj) {
+        if (!obj || window.radarZoomState.trackedObjects.has(obj)) {
+          return;
+        }
+
+        try {
+          // Store original radar_zoom value if it exists
+          if (obj.hasOwnProperty('radar_zoom') || 'radar_zoom' in obj) {
+            const currentValue = obj.radar_zoom;
+            if (!window.radarZoomState.originalValues.has(obj)) {
+              window.radarZoomState.originalValues.set(obj, currentValue);
+            }
+          }
+
+          // Override the radar_zoom property
+          Object.defineProperty(obj, 'radar_zoom', {
+            get: function() {
+              const originalValue = window.radarZoomState.originalValues.get(this) || 0;
+              return window.radarZoomState.enabled ? 1 : originalValue;
+            },
+            set: function(value) {
+              window.radarZoomState.originalValues.set(this, value);
+            },
+            configurable: true
+          });
+
+          window.radarZoomState.trackedObjects.add(obj);
+          console.log('%c[Radar Zoom] Applied to object', 'color: #00FF00');
+        } catch (error) {
+          console.warn('%c[Radar Zoom] Could not override radar_zoom for object:', 'color: #FFA500', error);
+        }
       }
-    }
 
-    // Monitor for new objects being created
-    let originalSetInterval = window.setInterval;
-    let radarZoomInterval = originalSetInterval(function() {
-      applyRadarZoomToAllObjects();
-    }, 1000); // Check every second for new objects
+      // Function to find and apply radar zoom to all relevant objects
+      function applyRadarZoomToAllObjects() {
+        try {
+          // Try to find objects that might have radar_zoom property
+          if (typeof window.game !== 'undefined' && window.game) {
+            // Check if game has ships array or similar
+            if (window.game.ships && Array.isArray(window.game.ships)) {
+              window.game.ships.forEach(ship => {
+                if (ship && typeof ship === 'object') {
+                  applyRadarZoomToObject(ship);
+                }
+              });
+            }
 
-    // Initial setup
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
+            // Check if game has players array
+            if (window.game.players && Array.isArray(window.game.players)) {
+              window.game.players.forEach(player => {
+                if (player && typeof player === 'object') {
+                  applyRadarZoomToObject(player);
+                }
+              });
+            }
+
+            // Apply to the game object itself
+            applyRadarZoomToObject(window.game);
+          }
+
+          // Try to find objects in global scope that might have radar_zoom
+          for (let key in window) {
+            try {
+              const obj = window[key];
+              if (obj && typeof obj === 'object' && obj !== window && 'radar_zoom' in obj) {
+                applyRadarZoomToObject(obj);
+              }
+            } catch (e) {
+              // Skip objects that throw errors when accessed
+            }
+          }
+        } catch (error) {
+          console.warn('%c[Radar Zoom] Error in applyRadarZoomToAllObjects:', 'color: #FFA500', error);
+        }
+      }
+
+      // Setup radar zoom toggle event listener
+      function setupRadarZoomToggle() {
+        const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+        
+        if (radarZoomToggle) {
+          radarZoomToggle.addEventListener('change', function() {
+            if (window.modSettings) {
+              window.modSettings.radarZoomEnabled = this.checked;
+            }
+            window.radarZoomState.enabled = this.checked;
+            
+            console.log('%c[Radar Zoom] Toggle changed to:', 'color: #00FF00', this.checked);
+            
+            // Re-apply to all objects to update their state
+            applyRadarZoomToAllObjects();
+          });
+          
+          console.log('%c[Radar Zoom] Toggle event listener attached', 'color: #00FF00');
+        } else {
+          console.warn('%c[Radar Zoom] Toggle element not found, will retry', 'color: #FFA500');
+          // Retry after a short delay
+          setTimeout(setupRadarZoomToggle, 1000);
+        }
+      }
+
+      // Monitor for new objects being created
+      let radarZoomInterval = setInterval(function() {
+        applyRadarZoomToAllObjects();
+      }, 2000); // Check every 2 seconds for new objects
+
+      // Initialize based on document state
+      function initialize() {
+        console.log('%c[Radar Zoom] Initializing...', 'color: #00FF00');
+        setupRadarZoomToggle();
+        applyRadarZoomToAllObjects();
+      }
+
+      // Multiple initialization points to ensure it works
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+      } else {
+        setTimeout(initialize, 100);
+      }
+
+      // Also try after window load
+      window.addEventListener('load', function() {
         setTimeout(function() {
           setupRadarZoomToggle();
           applyRadarZoomToAllObjects();
-        }, 100);
+        }, 500);
       });
-    } else {
-      setTimeout(function() {
-        setupRadarZoomToggle();
-        applyRadarZoomToAllObjects();
-      }, 100);
+
+      // Try immediate initialization as well
+      setTimeout(initialize, 50);
+
+      console.log('%c[Radar Zoom] Script loaded successfully', 'color: #00FF00');
+      
+    } catch (error) {
+      console.error('%c[Radar Zoom] Critical error during initialization:', 'color: #FF0000', error);
     }
-
-    // Apply radar zoom when the page is fully loaded
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        applyRadarZoomToAllObjects();
-      }, 500);
-    });
-
-    console.log('%c[Radar Zoom] Injector script loaded', 'color: #00FF00');
   })();
-  </script>
-  `;
+  </script>`;
 
   // Insert the script before the closing body tag
-  src = src.replace('</body>', `${radarZoomScript}</body>`);
+  src = src.replace('</body>', radarZoomScript + '</body>');
   checkSrcChange();
 
   logRadarZoom("Radar zoom injector applied successfully");
