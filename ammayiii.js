@@ -1,12 +1,3 @@
-// ==UserScript==
-// @name         Clean Starblast.io Mod
-// @namespace    http://tampermonkey.net/
-// @version      1.0.0
-// @description  Clean and modern Starblast.io modifications
-// @author       You
-// @match        https://starblast.io/*
-// @grant        none
-// ==/UserScript==
 
 (function() {
     'use strict';
