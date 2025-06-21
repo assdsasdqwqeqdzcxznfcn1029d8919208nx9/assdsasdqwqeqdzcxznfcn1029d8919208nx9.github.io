@@ -123,6 +123,11 @@
     
     // Create the UI
     function createUI() {
+        // Check if UI already exists
+        if (document.getElementById('starblast-enhancer')) {
+            return;
+        }
+        
         const ui = document.createElement('div');
         ui.id = 'starblast-enhancer';
         ui.innerHTML = `
@@ -442,11 +447,13 @@
     
     function showFOVDisplay(value) {
         const display = document.getElementById('sb-fov-display');
-        display.textContent = value + '°';
-        display.style.display = 'block';
-        setTimeout(() => {
-            display.style.display = 'none';
-        }, 2000);
+        if (display) {
+            display.textContent = value + '°';
+            display.style.display = 'block';
+            setTimeout(() => {
+                display.style.display = 'none';
+            }, 2000);
+        }
     }
     
     // Background functions
@@ -511,16 +518,17 @@
     
     // Hook into Starblast's code loading system
     function hookIntoStarblast() {
-        // Try to hook into script loading
-        const originalAppendChild = Node.prototype.appendChild;
-        Node.prototype.appendChild = function(child) {
-            if (child.tagName === 'SCRIPT' && child.src && child.src.includes('starblast')) {
-                // Intercept script loading to inject FOV code
-                const originalOnload = child.onload;
-                child.onload = function() {
-                    if (originalOnload) originalOnload.call(this);
+        // Try to hook into script loading without affecting the document
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tagName) {
+            const element = originalCreateElement.call(this, tagName);
+            
+            if (tagName.toLowerCase() === 'script') {
+                const originalOnLoad = element.onload;
+                element.onload = function() {
+                    if (originalOnLoad) originalOnLoad.call(this);
                     
-                    // Try to find and modify the game code
+                    // Try to find and modify the game code after scripts load
                     setTimeout(() => {
                         try {
                             // Look for game objects that might contain the FOV code
@@ -531,8 +539,7 @@
                                         // Try to apply FOV injection
                                         const modifiedCode = fovInjector(obj.toString());
                                         if (modifiedCode !== obj.toString()) {
-                                            // Code was modified, try to replace
-                                            eval(`window.${key} = ${modifiedCode}`);
+                                            logFOV("Found FOV code to modify");
                                         }
                                     }
                                 } catch (e) {
@@ -546,7 +553,7 @@
                 };
             }
             
-            return originalAppendChild.call(this, child);
+            return element;
         };
     }
     
@@ -558,18 +565,22 @@
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    createUI();
+                    applyBackground();
+                    updateLowercase();
+                    setupCrystalColorMod();
+                    updateFOV();
+                }, 100);
+            });
+        } else {
+            setTimeout(() => {
                 createUI();
                 applyBackground();
                 updateLowercase();
                 setupCrystalColorMod();
                 updateFOV();
-            });
-        } else {
-            createUI();
-            applyBackground();
-            updateLowercase();
-            setupCrystalColorMod();
-            updateFOV();
+            }, 100);
         }
         
         console.log('Starblast Enhancer loaded! Press Alt+E to toggle panel.');
