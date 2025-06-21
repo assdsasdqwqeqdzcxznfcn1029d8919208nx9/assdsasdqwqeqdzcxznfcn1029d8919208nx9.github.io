@@ -293,8 +293,6 @@
         document.addEventListener('wheel', (e) => {
             if (!config.fovWheelEnabled) return;
             
-            e.preventDefault();
-            
             if (e.deltaY < 0) {
                 config.fov = Math.max(10, config.fov - 1);
             } else {
@@ -306,7 +304,7 @@
             updateFOV();
             showFOVDisplay(config.fov);
             saveSettings();
-        });
+        }, { passive: false });
     }
     
     // FOV functions
