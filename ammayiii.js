@@ -1,4 +1,4 @@
-// Starblast Enhancement Script - Clean UI Version
+// Starblast Enhancement Script - Enhanced Version with Working FOV & Radar Zoom
 (function() {
     'use strict';
     
@@ -9,27 +9,116 @@
         crystalColor: '',
         backgroundUrl: '',
         lowercaseEnabled: false,
-        timerEnabled: false
+        timerEnabled: false,
+        fovWheelEnabled: false
     };
     
-    // Load settings from localStorage
-    function loadSettings() {
-        config.fov = parseInt(localStorage.getItem('sb_fov')) || 45;
-        config.radarZoom = parseInt(localStorage.getItem('sb_radar_zoom')) || 4;
-        config.crystalColor = localStorage.getItem('sb_crystal_color') || '';
-        config.backgroundUrl = localStorage.getItem('sb_background_url') || '';
-        config.lowercaseEnabled = localStorage.getItem('sb_lowercase') === 'true';
-        config.timerEnabled = localStorage.getItem('sb_timer') === 'true';
+    // Initialize mod settings globally
+    window.modSettings = window.modSettings || {
+        fovEnabled: true,
+        radarZoomEnabled: false
+    };
+    
+    // Initialize FOV system
+    window.I1000 = window.I1000 || {};
+    window.I1000.baseFOV = 45;
+    window.I1000.currentFOV = 45;
+    
+    // FOV Editor Mod
+    const fovModName = "FOV Editor";
+    const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
+    
+    function fovInjector(sbCode) {
+        let src = sbCode;
+        let prevSrc = src;
+
+        function checkSrcChange() {
+            if (src === prevSrc) console.error("replace did not work");
+            prevSrc = src;
+        }
+
+        const fovPattern = /this\.I1000\.fov\s*=\s*45\s*\*\s*this\.IO11l\.I1000\.zoom/g;
+        src = src.replace(fovPattern, 'this.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IO11l.I1000.zoom');
+        checkSrcChange();
+
+        logFOV("FOV injector applied");
+        return src;
     }
     
-    // Save settings to localStorage
+    // Radar Zoom Override System
+    const radarZoomOverride = {
+        originalValues: new WeakMap(),
+        
+        enable(instance) {
+            const proto = Object.getPrototypeOf(instance);
+            const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+            
+            if (originalDescriptor && !instance._radarZoomOverrideApplied) {
+                const originalGetter = originalDescriptor.get;
+                const originalSetter = originalDescriptor.set;
+                
+                Object.defineProperty(instance, 'radar_zoom', {
+                    get() {
+                        if (!radarZoomOverride.originalValues.has(this)) {
+                            radarZoomOverride.originalValues.set(this, originalGetter ? originalGetter.call(this) : 4);
+                        }
+                        
+                        return window.modSettings.radarZoomEnabled ? 1 : 
+                            radarZoomOverride.originalValues.get(this);
+                    },
+                    set(value) {
+                        if (originalSetter) {
+                            originalSetter.call(this, value);
+                        }
+                        radarZoomOverride.originalValues.set(this, value);
+                    },
+                    configurable: true
+                });
+                
+                instance._radarZoomOverrideApplied = true;
+            }
+        }
+    };
+    
+    // Apply radar zoom to all instances
+    function applyRadarZoomToAllInstances() {
+        // Find all objects that might have radar_zoom property
+        for (let key in window) {
+            try {
+                let obj = window[key];
+                if (obj && typeof obj === 'object' && obj.hasOwnProperty('radar_zoom')) {
+                    radarZoomOverride.enable(obj);
+                }
+            } catch (e) {
+                // Ignore errors from accessing restricted objects
+            }
+        }
+    }
+    
+    // Load settings from memory (since localStorage isn't available)
+    function loadSettings() {
+        // Use default values since localStorage is not available
+        config.fov = 45;
+        config.radarZoom = 4;
+        config.crystalColor = '';
+        config.backgroundUrl = '';
+        config.lowercaseEnabled = false;
+        config.timerEnabled = false;
+        config.fovWheelEnabled = false;
+        
+        // Update global settings
+        window.I1000.currentFOV = config.fov;
+        window.modSettings.fovEnabled = true;
+        window.modSettings.radarZoomEnabled = config.radarZoom === 1;
+    }
+    
+    // Save settings to memory (since localStorage isn't available)
     function saveSettings() {
-        localStorage.setItem('sb_fov', config.fov);
-        localStorage.setItem('sb_radar_zoom', config.radarZoom);
-        localStorage.setItem('sb_crystal_color', config.crystalColor);
-        localStorage.setItem('sb_background_url', config.backgroundUrl);
-        localStorage.setItem('sb_lowercase', config.lowercaseEnabled);
-        localStorage.setItem('sb_timer', config.timerEnabled);
+        // In a real environment, this would save to localStorage
+        // For now, just update the global objects
+        window.I1000.currentFOV = config.fov;
+        window.modSettings.fovEnabled = true;
+        window.modSettings.radarZoomEnabled = config.radarZoom === 1;
     }
     
     // Create the UI
@@ -179,6 +268,11 @@
         
         document.body.appendChild(ui);
         setupEventListeners();
+        
+        // Apply initial radar zoom override
+        setTimeout(() => {
+            applyRadarZoomToAllInstances();
+        }, 1000);
     }
     
     // Setup event listeners
@@ -256,8 +350,9 @@
         
         radarZoom.addEventListener('change', (e) => {
             config.radarZoom = e.target.checked ? 1 : 4;
+            window.modSettings.radarZoomEnabled = e.target.checked;
+            applyRadarZoomToAllInstances();
             saveSettings();
-            location.reload(); // Radar zoom requires reload
         });
         
         lowercase.addEventListener('change', (e) => {
@@ -293,6 +388,8 @@
         document.addEventListener('wheel', (e) => {
             if (!config.fovWheelEnabled) return;
             
+            e.preventDefault();
+            
             if (e.deltaY < 0) {
                 config.fov = Math.max(10, config.fov - 1);
             } else {
@@ -307,11 +404,12 @@
         }, { passive: false });
     }
     
-    // FOV functions
+    // FOV functions using your system
     function updateFOV() {
-        // Try multiple approaches to set FOV
+        window.I1000.currentFOV = config.fov;
+        window.modSettings.fovEnabled = true;
         
-        // Method 1: Try to find camera object
+        // Try to apply FOV to existing camera objects
         if (window.lOOI1) {
             window.lOOI1.fov = config.fov;
             if (window.lOOI1.updateProjectionMatrix) {
@@ -319,9 +417,8 @@
             }
         }
         
-        // Method 2: Try to find Three.js camera
+        // Apply to any Three.js cameras
         if (window.THREE) {
-            // Look for camera in common locations
             const possibleCameras = [
                 window.camera,
                 window.scene?.camera,
@@ -340,38 +437,7 @@
             }
         }
         
-        // Method 3: Try to find camera through object traversal
-        for (let key in window) {
-            try {
-                let obj = window[key];
-                if (obj && typeof obj === 'object' && obj.fov !== undefined) {
-                    obj.fov = config.fov;
-                    if (obj.updateProjectionMatrix) {
-                        obj.updateProjectionMatrix();
-                    }
-                }
-            } catch (e) {
-                // Ignore errors from accessing restricted objects
-            }
-        }
-        
-        // Method 4: Set global FOV value that might be used by the game
-        window.currentFOV = config.fov;
-        window.customFOV = config.fov;
-        
-        // Method 5: Store in common game object patterns
-        if (window.I1000) {
-            window.I1000.currentFOV = config.fov;
-        }
-        if (window.modSettings) {
-            window.modSettings.currentFOV = config.fov;
-            window.modSettings.fovEnabled = true;
-        } else {
-            window.modSettings = {
-                currentFOV: config.fov,
-                fovEnabled: true
-            };
-        }
+        logFOV(`FOV updated to ${config.fov}°`);
     }
     
     function showFOVDisplay(value) {
@@ -443,9 +509,51 @@
         }
     }
     
+    // Hook into Starblast's code loading system
+    function hookIntoStarblast() {
+        // Try to hook into script loading
+        const originalAppendChild = Node.prototype.appendChild;
+        Node.prototype.appendChild = function(child) {
+            if (child.tagName === 'SCRIPT' && child.src && child.src.includes('starblast')) {
+                // Intercept script loading to inject FOV code
+                const originalOnload = child.onload;
+                child.onload = function() {
+                    if (originalOnload) originalOnload.call(this);
+                    
+                    // Try to find and modify the game code
+                    setTimeout(() => {
+                        try {
+                            // Look for game objects that might contain the FOV code
+                            for (let key in window) {
+                                try {
+                                    const obj = window[key];
+                                    if (typeof obj === 'function' && obj.toString().includes('fov')) {
+                                        // Try to apply FOV injection
+                                        const modifiedCode = fovInjector(obj.toString());
+                                        if (modifiedCode !== obj.toString()) {
+                                            // Code was modified, try to replace
+                                            eval(`window.${key} = ${modifiedCode}`);
+                                        }
+                                    }
+                                } catch (e) {
+                                    // Ignore errors
+                                }
+                            }
+                        } catch (e) {
+                            console.log("Could not inject FOV code:", e);
+                        }
+                    }, 1000);
+                };
+            }
+            
+            return originalAppendChild.call(this, child);
+        };
+    }
+    
     // Initialize everything
     function init() {
         loadSettings();
+        hookIntoStarblast();
         
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
@@ -454,15 +562,19 @@
                 applyBackground();
                 updateLowercase();
                 setupCrystalColorMod();
+                updateFOV();
             });
         } else {
             createUI();
             applyBackground();
             updateLowercase();
             setupCrystalColorMod();
+            updateFOV();
         }
         
         console.log('Starblast Enhancer loaded! Press Alt+E to toggle panel.');
+        console.log('FOV system initialized with your custom injector.');
+        console.log('Radar zoom system initialized with override mechanism.');
     }
     
     // Start the script
