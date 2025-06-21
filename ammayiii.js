@@ -181,7 +181,40 @@
         setupEventListeners();
     }
     
-    // Setup event listeners
+    // Setup FOV hook
+    function setupFOVHook() {
+        // Try to hook into the game's animation/render loop
+        const originalRequestAnimationFrame = window.requestAnimationFrame;
+        
+        window.requestAnimationFrame = function(callback) {
+            return originalRequestAnimationFrame.call(this, function(timestamp) {
+                // Apply FOV before each frame render
+                updateFOV();
+                return callback(timestamp);
+            });
+        };
+        
+        // Also try to hook into common Three.js render methods
+        if (window.THREE && window.THREE.WebGLRenderer) {
+            const originalRender = window.THREE.WebGLRenderer.prototype.render;
+            window.THREE.WebGLRenderer.prototype.render = function(scene, camera) {
+                if (camera && camera.fov !== undefined && config.fov !== 45) {
+                    camera.fov = config.fov;
+                    if (camera.updateProjectionMatrix) {
+                        camera.updateProjectionMatrix();
+                    }
+                }
+                return originalRender.call(this, scene, camera);
+            };
+        }
+        
+        // Set up periodic FOV updates
+        setInterval(() => {
+            if (config.fov !== 45) {
+                updateFOV();
+            }
+        }, 100);
+    }
     function setupEventListeners() {
         const panel = document.getElementById('sb-panel');
         const toggle = document.getElementById('sb-toggle');
@@ -309,8 +342,68 @@
     
     // FOV functions
     function updateFOV() {
+        // Try multiple approaches to set FOV
+        
+        // Method 1: Try to find camera object
         if (window.lOOI1) {
             window.lOOI1.fov = config.fov;
+            if (window.lOOI1.updateProjectionMatrix) {
+                window.lOOI1.updateProjectionMatrix();
+            }
+        }
+        
+        // Method 2: Try to find Three.js camera
+        if (window.THREE) {
+            // Look for camera in common locations
+            const possibleCameras = [
+                window.camera,
+                window.scene?.camera,
+                window.game?.camera,
+                window.renderer?.camera
+            ];
+            
+            for (let cam of possibleCameras) {
+                if (cam && cam.fov !== undefined) {
+                    cam.fov = config.fov;
+                    if (cam.updateProjectionMatrix) {
+                        cam.updateProjectionMatrix();
+                    }
+                    break;
+                }
+            }
+        }
+        
+        // Method 3: Try to find camera through object traversal
+        for (let key in window) {
+            try {
+                let obj = window[key];
+                if (obj && typeof obj === 'object' && obj.fov !== undefined) {
+                    obj.fov = config.fov;
+                    if (obj.updateProjectionMatrix) {
+                        obj.updateProjectionMatrix();
+                    }
+                }
+            } catch (e) {
+                // Ignore errors from accessing restricted objects
+            }
+        }
+        
+        // Method 4: Set global FOV value that might be used by the game
+        window.currentFOV = config.fov;
+        window.customFOV = config.fov;
+        
+        // Method 5: Store in common game object patterns
+        if (window.I1000) {
+            window.I1000.currentFOV = config.fov;
+        }
+        if (window.modSettings) {
+            window.modSettings.currentFOV = config.fov;
+            window.modSettings.fovEnabled = true;
+        } else {
+            window.modSettings = {
+                currentFOV: config.fov,
+                fovEnabled: true
+            };
         }
     }
     
@@ -394,12 +487,14 @@
                 applyBackground();
                 updateLowercase();
                 setupCrystalColorMod();
+                setupFOVHook();
             });
         } else {
             createUI();
             applyBackground();
             updateLowercase();
             setupCrystalColorMod();
+            setupFOVHook();
         }
         
         console.log('Starblast Enhancer loaded! Press Alt+E to toggle panel.');
