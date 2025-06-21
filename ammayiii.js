@@ -35,156 +35,140 @@
         }
     }
 
-    // Wait for DOM to be ready
-    function waitForDOM(callback) {
-        if (document.body) {
-            callback();
-        } else {
-            setTimeout(() => waitForDOM(callback), 100);
-        }
+    // Create UI Panel - AFTER game loads
+    function createUI() {
+        // Wait for game to fully load first
+        const checkGameLoaded = () => {
+            if (!document.body || !document.body.children.length || document.body.innerHTML.includes('Loading')) {
+                setTimeout(checkGameLoaded, 500);
+                return;
+            }
+            
+            // Remove existing panel if it exists
+            const existingPanel = document.getElementById('starblast-mod-panel');
+            if (existingPanel) {
+                existingPanel.remove();
+            }
+
+            const panel = document.createElement('div');
+            panel.id = 'starblast-mod-panel';
+            panel.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                width: 300px;
+                background: rgba(20, 20, 20, 0.95);
+                border: 2px solid #06c26d;
+                border-radius: 10px;
+                padding: 15px;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                color: #ffffff;
+                z-index: 10000;
+                box-shadow: 0 0 20px rgba(6, 194, 109, 0.3);
+                backdrop-filter: blur(5px);
+                display: ${settings.uiVisible ? 'block' : 'none'};
+            `;
+
+            // Build HTML content
+            panel.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #06c26d;">Starblast Enhanced</h3>
+                    <button id="minimize-btn" style="background: #06c26d; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">−</button>
+                </div>
+                
+                <div id="panel-content">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Crystal Color:</label>
+                        <input type="color" id="crystal-color" value="${settings.crystalColor}" style="width: 100%; height: 35px; border: none; border-radius: 5px; cursor: pointer;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Emote Capacity: <span id="emote-value">${settings.emoteCapacity}</span></label>
+                        <input type="range" id="emote-capacity" min="1" max="10" value="${settings.emoteCapacity}" 
+                               style="width: 100%; background: #333; outline: none; cursor: pointer;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="show-blank-badge" ${settings.showBlankBadge ? 'checked' : ''}
+                                   style="margin-right: 10px; transform: scale(1.2);">
+                            Show Blank Badges
+                        </label>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                        <small style="color: #888;">Lowercase names enabled by default</small>
+                    </div>
+                </div>
+            `;
+
+            try {
+                document.body.appendChild(panel);
+                log("UI panel created successfully");
+                
+                // Add event listeners
+                setupEventListeners();
+                // Make panel draggable
+                makePanelDraggable(panel);
+                
+            } catch (e) {
+                log("Failed to append panel to body: " + e.message);
+            }
+        };
+        
+        checkGameLoaded();
     }
 
-    // Create UI Panel
-    function createUI() {
-        // Ensure body exists before creating UI
-        if (!document.body) {
-            log("Document body not ready, retrying...");
-            setTimeout(createUI, 100);
-            return;
-        }
-
-        // Remove existing panel if it exists
-        const existingPanel = document.getElementById('starblast-mod-panel');
-        if (existingPanel) {
-            existingPanel.remove();
-        }
-
-        const panel = document.createElement('div');
-        panel.id = 'starblast-mod-panel';
-        panel.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 300px;
-            background: rgba(20, 20, 20, 0.95);
-            border: 2px solid #06c26d;
-            border-radius: 10px;
-            padding: 15px;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: #ffffff;
-            z-index: 10000;
-            box-shadow: 0 0 20px rgba(6, 194, 109, 0.3);
-            backdrop-filter: blur(5px);
-            display: ${settings.uiVisible ? 'block' : 'none'};
-        `;
-
-        // Build HTML content without template literals in innerHTML
-        const headerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: #06c26d;">Starblast Enhanced</h3>
-                <button id="minimize-btn" style="background: #06c26d; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">−</button>
-            </div>
-        `;
-
-        const contentHTML = `
-            <div id="panel-content">
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">Crystal Color:</label>
-                    <input type="color" id="crystal-color" style="width: 100%; height: 35px; border: none; border-radius: 5px; cursor: pointer;">
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">Emote Capacity: <span id="emote-value">${settings.emoteCapacity}</span></label>
-                    <input type="range" id="emote-capacity" min="1" max="10" 
-                           style="width: 100%; background: #333; outline: none; cursor: pointer;">
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="show-blank-badge" 
-                               style="margin-right: 10px; transform: scale(1.2);">
-                        Show Blank Badges
-                    </label>
-                </div>
-                
-                <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                    <small style="color: #888;">Lowercase names enabled by default</small>
-                </div>
-            </div>
-        `;
-
-        panel.innerHTML = headerHTML + contentHTML;
-
-        try {
-            document.body.appendChild(panel);
-            log("UI panel created successfully");
-        } catch (e) {
-            log("Failed to append panel to body: " + e.message);
-            return;
-        }
-
-        // Set initial values after DOM elements are created
+    function setupEventListeners() {
+        const minimizeBtn = document.getElementById('minimize-btn');
         const colorInput = document.getElementById('crystal-color');
         const rangeInput = document.getElementById('emote-capacity');
         const checkboxInput = document.getElementById('show-blank-badge');
 
-        if (colorInput) colorInput.value = settings.crystalColor;
-        if (rangeInput) rangeInput.value = settings.emoteCapacity;
-        if (checkboxInput) checkboxInput.checked = settings.showBlankBadge;
-
-        // Add event listeners with error handling
-        try {
-            const minimizeBtn = document.getElementById('minimize-btn');
-            if (minimizeBtn) {
-                minimizeBtn.addEventListener('click', () => {
-                    const content = document.getElementById('panel-content');
-                    if (content) {
-                        if (content.style.display === 'none') {
-                            content.style.display = 'block';
-                            minimizeBtn.textContent = '−';
-                            settings.uiVisible = true;
-                        } else {
-                            content.style.display = 'none';
-                            minimizeBtn.textContent = '+';
-                            settings.uiVisible = false;
-                        }
-                        saveSettings();
+        if (minimizeBtn) {
+            minimizeBtn.addEventListener('click', () => {
+                const content = document.getElementById('panel-content');
+                if (content) {
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        minimizeBtn.textContent = '−';
+                        settings.uiVisible = true;
+                    } else {
+                        content.style.display = 'none';
+                        minimizeBtn.textContent = '+';
+                        settings.uiVisible = false;
                     }
-                });
-            }
-
-            if (colorInput) {
-                colorInput.addEventListener('change', (e) => {
-                    settings.crystalColor = e.target.value;
                     saveSettings();
-                    log(`Crystal color changed to ${settings.crystalColor}`);
-                });
-            }
-
-            if (rangeInput) {
-                rangeInput.addEventListener('input', (e) => {
-                    settings.emoteCapacity = parseInt(e.target.value);
-                    const valueSpan = document.getElementById('emote-value');
-                    if (valueSpan) valueSpan.textContent = settings.emoteCapacity;
-                    saveSettings();
-                    log(`Emote capacity changed to ${settings.emoteCapacity}`);
-                });
-            }
-
-            if (checkboxInput) {
-                checkboxInput.addEventListener('change', (e) => {
-                    settings.showBlankBadge = e.target.checked;
-                    saveSettings();
-                    log(`Show blank badges: ${settings.showBlankBadge}`);
-                });
-            }
-        } catch (e) {
-            log("Failed to attach event listeners: " + e.message);
+                }
+            });
         }
 
-        // Make panel draggable
-        makePanelDraggable(panel);
+        if (colorInput) {
+            colorInput.addEventListener('change', (e) => {
+                settings.crystalColor = e.target.value;
+                saveSettings();
+                log(`Crystal color changed to ${settings.crystalColor}`);
+            });
+        }
+
+        if (rangeInput) {
+            rangeInput.addEventListener('input', (e) => {
+                settings.emoteCapacity = parseInt(e.target.value);
+                const valueSpan = document.getElementById('emote-value');
+                if (valueSpan) valueSpan.textContent = settings.emoteCapacity;
+                saveSettings();
+                log(`Emote capacity changed to ${settings.emoteCapacity}`);
+            });
+        }
+
+        if (checkboxInput) {
+            checkboxInput.addEventListener('change', (e) => {
+                settings.showBlankBadge = e.target.checked;
+                saveSettings();
+                log(`Show blank badges: ${settings.showBlankBadge}`);
+            });
+        }
     }
 
     function makePanelDraggable(panel) {
@@ -215,7 +199,7 @@
         });
     }
 
-    // Code injection functions (unchanged)
+    // Code injection functions
     function injectCrystalColorChanger(src) {
         const crystalCode = `
             let CrystalObject;
@@ -370,27 +354,6 @@
         return src;
     }
 
-    // Initialize the mod system
-    function initializeMod() {
-        log("Initializing enhanced mod...");
-        
-        // Load settings first
-        loadSettings();
-        
-        // Initialize the code injectors array if it doesn't exist
-        if (!window.sbCodeInjectors) {
-            window.sbCodeInjectors = [];
-        }
-        
-        // Add our code injector
-        window.sbCodeInjectors.push(codeInjector);
-        
-        // Create UI when DOM is ready
-        waitForDOM(createUI);
-        
-        log("Enhanced mod initialized");
-    }
-
     // Main code injection logic
     function injectLoader() {
         if (window.location.pathname !== "/") {
@@ -399,15 +362,6 @@
         }
 
         log("Starting game injection process...");
-
-        // Clear the document safely
-        try {
-            document.open();
-            document.write('<html><head><title>Loading...</title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;">Loading Starblast Enhanced...</h1></div></body></html>');
-            document.close();
-        } catch (e) {
-            log("Failed to clear document: " + e.message);
-        }
 
         const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sısm1sösm2k1.html';
         const xhr = new XMLHttpRequest();
@@ -425,9 +379,8 @@
                         const start_time = performance.now();
                         log("Applying mods...");
 
-                        if (!window.sbCodeInjectors || window.sbCodeInjectors.length === 0) {
-                            log("No Starblast.io userscripts found to load");
-                        } else {
+                        // Apply code injections
+                        if (window.sbCodeInjectors && window.sbCodeInjectors.length > 0) {
                             let error_notified = false;
                             for (const injector of window.sbCodeInjectors) {
                                 try {
@@ -435,7 +388,6 @@
                                         starSRC = injector(starSRC);
                                     } else {
                                         log("Injector was not a function");
-                                        console.log(injector);
                                     }
                                 } catch (error) {
                                     if (!error_notified) {
@@ -445,17 +397,23 @@
                                     console.error("Injector error:", error);
                                 }
                             }
+                        } else {
+                            log("No code injectors found");
                         }
 
                         const end_time = performance.now();
                         log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
 
-                        // Apply the modified source to the document
+                        // Replace document content with the modified game
                         try {
                             document.open();
                             document.write(starSRC);
                             document.close();
                             log("Game loaded successfully");
+                            
+                            // Create UI after game loads
+                            setTimeout(createUI, 2000);
+                            
                         } catch (e) {
                             log("Failed to write modified source: " + e.message);
                         }
@@ -478,11 +436,29 @@
         xhr.send();
     }
 
-    // Start the mod with proper error handling
+    // Initialize the mod system
+    function initialize() {
+        log("Initializing Starblast Enhanced...");
+        
+        // Load settings
+        loadSettings();
+        
+        // Initialize the code injectors array if it doesn't exist
+        if (!window.sbCodeInjectors) {
+            window.sbCodeInjectors = [];
+        }
+        
+        // Add our code injector
+        window.sbCodeInjectors.push(codeInjector);
+        
+        log("Enhanced mod initialized");
+    }
+
+    // Start the mod
     try {
-        initializeMod();
-        // Delay injection to ensure everything is properly initialized
-        setTimeout(injectLoader, 100);
+        initialize();
+        // Start injection immediately
+        injectLoader();
     } catch (e) {
         console.error("Failed to start Starblast Enhanced mod:", e);
     }
