@@ -1,12 +1,3 @@
-// ==UserScript==
-// @name         Starblast.io Enhanced Mod
-// @namespace    starblast-enhanced-mod
-// @version      1.0
-// @description  Enhanced Starblast.io mod with UI controls
-// @author       You
-// @match        https://starblast.io/*
-// @grant        none
-// ==/UserScript==
 
 (function() {
     'use strict';
