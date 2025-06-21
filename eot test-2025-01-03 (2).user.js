@@ -1,743 +1,505 @@
-if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
-
-// Global settings object
-window.modSettings = {
-  fovEnabled: true,
-  emoteCapacity: localStorage.getItem('emote-capacity') || 4,
-  showBlankECP: localStorage.getItem('show-blank-ecp') === 'true'
-};
-
-// Lowercase Name Mod
-const modName = "Lowercase Name";
-const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
-
-function lowercaseInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-  
-  function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
-    prevSrc = src;
-  }
-
-  src = src.replace(/\.toUpperCase\(\)/g, "");
-  const styleBlock = `
-  <style>
-  #player input { text-transform: none !important; }
-  </style>
-  `;
-  src = src.replace('</head>', `${styleBlock}</head>`);
-  checkSrcChange();
-  logLowercase("Mod injected");
-  window.modifiedSrc = src; // Store in window instead of returning
-}
-
-// Custom Emote Mod
-const emoteModName = "Custom Emote";
-const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA500");
-
-function emoteInjector(sbCode) {
-  let src = sbCode;
-  let prevSrc = src;
-
-  function checkSrcChange() {
-    if (src === prevSrc) throw new Error("replace did not work");
-    prevSrc = src;
-  }
-
-  const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
-  const clownEmote = `,{
-    text: "orosbu cocu",
-    icon: "🤡",
-    key: "J"
-  }`;
-
-  src = src.replace(vocabPattern, `$1${clownEmote}`);
-  checkSrcChange();
-
-  logEmote("Clown emote injected");
-  return src;
-}
-
-// FOV Editor Mod
-const fovModName = "FOV Editor";
-const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
-
-// Initialize FOV settings
-window.I1000 = window.I1000 || {};
-window.I1000.baseFOV = 45;
-window.I1000.currentFOV = 45;
-
-function initializeFOVControls() {
-    // Only initialize if not already done
-    if (document.getElementById('mod-controls')) return;
-
-    // Add styles
-    const controlStyles = `
-    <style>
-    #mod-controls {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-        user-select: none;
-        background: linear-gradient(45deg, #8B008B, #FF1493);
-        border: 1px solid #FF1493;
-        color: white;
-        padding: 5px;
-        border-radius: 8px;
-        opacity: 0.9;
-        width: 150px;
-    }
-
-    #mod-controls-header {
-        cursor: pointer;
-        text-align: center;
-        padding: 5px;
-        border-bottom: 1px solid #FF1493;
-    }
-
-    #mod-controls-panel {
-        padding: 5px;
-        display: none;
-    }
-
-    .mod-control {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 5px 0;
-    }
-
-    #fov-display {
-        padding: 5px;
-        margin-top: 5px;
-        display: none;
-    }
-
-    .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 30px;
-        height: 17px;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: .4s;
-    }
-
-    input:checked + .slider {
-        background-color: #FF1493;
-    }
-    </style>
-    `;
-
-    // Add HTML
-    const controlsHTML = `
-<div id="mod-controls">
-    <div id="mod-controls-header">Game Controls</div>
-    <div id="mod-controls-panel">
-        <div class="mod-control">
-            <span>FOV</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="fov-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
-        <div class="mod-control">
-            <span>Blank ECP</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="blank-ecp-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
-    <div id="fov-display">
-        FOV: <span id="fov-value">45</span>
-    </div>
-</div>
-`;
-
-    // Add elements to document
-    document.head.insertAdjacentHTML('beforeend', controlStyles);
-    document.body.insertAdjacentHTML('beforeend', controlsHTML);
-
-    // Get elements
-    const controlsPanel = document.getElementById('mod-controls-panel');
-    const controlsHeader = document.getElementById('mod-controls-header');
-    const fovToggle = document.getElementById('fov-toggle');
-    const fovDisplay = document.getElementById('fov-display');
-    const fovValue = document.getElementById('fov-value');
-
-    // Set initial states
-    const savedFOVEnabled = localStorage.getItem('fov-enabled') === 'true';
-    window.modSettings.fovEnabled = savedFOVEnabled;
-    fovToggle.checked = savedFOVEnabled;
-    fovDisplay.style.display = savedFOVEnabled ? 'block' : 'none';
-
-    // Add event listeners
-    controlsHeader.addEventListener('click', () => {
-        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    fovToggle.addEventListener('change', (e) => {
-        window.modSettings.fovEnabled = e.target.checked;
-        localStorage.setItem('fov-enabled', e.target.checked);
-        fovDisplay.style.display = e.target.checked ? 'block' : 'none';
-    });
-
-
-function fovInjector(sbCode) {
-    let src = sbCode;
-    let prevSrc = src;
-
-    function checkSrcChange() {
-        if (src === prevSrc) throw new Error("replace did not work");
-        prevSrc = src;
-    }
-    // Replace FOV calculation with a more robust pattern
-    const fovPattern = /(\w+)\.I1000\.fov\s*=\s*45\s*\*\s*(\w+)\.IO11l\.I1000\.zoom/g;
-    src = src.replace(fovPattern, (match, obj1, obj2) => 
-        `${obj1}.I1000.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * ${obj2}.IO11l.I1000.zoom`
-    );
-    checkSrcChange();
-
-    // Add FOV control styles to head
-    const controlStyles = 
-        '.mod-controls{position:fixed;top:10px;left:10px;z-index:1000;font-family:Arial,sans-serif;user-select:none;background:linear-gradient(45deg,#8B008B,#FF1493);border:1px solid #FF1493;color:white;padding:5px;border-radius:8px;opacity:0.9;width:150px}' +
-        '.mod-control{display:flex;justify-content:space-between;align-items:center;margin:5px 0}' +
-        '#fov-display{padding:5px;margin-top:5px}' +
-        '.toggle-switch{position:relative;display:inline-block;width:30px;height:17px}' +
-        '.toggle-switch input{opacity:0;width:0;height:0}' +
-        '.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s}' +
-        'input:checked + .slider{background-color:#FF1493}';
-
-    // Add FOV control HTML to body
-    const controlsHTML = 
-        '<div id="mod-controls">' +
-        '  <div class="mod-control">' +
-        '    <span>FOV</span>' +
-        '    <label class="toggle-switch">' +
-        '      <input type="checkbox" id="fov-toggle">' +
-        '      <span class="slider"></span>' +
-        '    </label>' +
-        '  </div>' +
-        '  <div id="fov-display">FOV: <span id="fov-value">45</span></div>' +
-        '</div>';
-
-    // Inject styles and HTML
-    src = src.replace('</head>', `<style>${controlStyles}</style></head>`);
-    src = src.replace('</body>', `${controlsHTML}</body>`);
+// Starblast Enhancement Script - Clean UI Version
+(function() {
+    'use strict';
     
-    checkSrcChange();
-
-    // Initialize controls when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeFOVControls);
-    } else {
-        initializeFOVControls();
-    }
-
-    logFOV("FOV injector applied successfully");
-    return src;
-}
-// Add emote capacity mod
-  const emoteCapacityMod = `
-  var globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-  ChatPanel.prototype.getEmotesCapacity = function () {
-    var num = this[globalVal].settings.get("chat_emotes_capacity");
-    var result = 4; // Default value
-    try {
-      if (!(num == null || isNaN(num))) {
-        result = Math.trunc(Math.min(Math.max(1, num), 5)) || 4;
-      }
-    } catch (e) {
-      // Keep default value
-    }
-    return result;
-  };
-  ChatPanel.prototype.typed = new Function(ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"));
-`;
-
-// First ensure required objects exist
-if (!window.module) window.module = {};
-if (!window.module.exports) window.module.exports = {};
-if (!window.module.exports.settings) {
-    window.module.exports.settings = {
-        set: function(key, value) {
-            this[key] = value;
-        },
-        check: function(key) {
-            return this[key];
-        }
+    // Configuration object to store all settings
+    const config = {
+        fov: 45,
+        radarZoom: 4,
+        crystalColor: '',
+        backgroundUrl: '',
+        lowercaseEnabled: false,
+        timerEnabled: false
     };
-}
-
-// Ensure required objects exist
-if (!window.module) window.module = {};
-if (!window.module.exports) window.module.exports = {};
-if (!window.module.exports.settings) {
-    window.module.exports.settings = {
-        set: function(key, value) {
-            console.log(`Setting ${key} to ${value}`);
-            this[key] = value;
-        },
-        check: function(key) {
-            console.log(`Checking value of ${key}`);
-            return this[key];
-        }
-    };
-}
-
-// Initialize the blank ECP functionality
-// Initialize the blank ECP functionality
-function initializeBlankECP() {
-    try {
-        console.log("Initializing blank ECP...");
-        // Load saved preference
-        const savedBlankECP = localStorage.getItem('show-blank-ecp') === 'true';
-        console.log(`Loaded savedBlankECP: ${savedBlankECP}`);
+    
+    // Load settings from localStorage
+    function loadSettings() {
+        config.fov = parseInt(localStorage.getItem('sb_fov')) || 45;
+        config.radarZoom = parseInt(localStorage.getItem('sb_radar_zoom')) || 4;
+        config.crystalColor = localStorage.getItem('sb_crystal_color') || '';
+        config.backgroundUrl = localStorage.getItem('sb_background_url') || '';
+        config.lowercaseEnabled = localStorage.getItem('sb_lowercase') === 'true';
+        config.timerEnabled = localStorage.getItem('sb_timer') === 'true';
+    }
+    
+    // Save settings to localStorage
+    function saveSettings() {
+        localStorage.setItem('sb_fov', config.fov);
+        localStorage.setItem('sb_radar_zoom', config.radarZoom);
+        localStorage.setItem('sb_crystal_color', config.crystalColor);
+        localStorage.setItem('sb_background_url', config.backgroundUrl);
+        localStorage.setItem('sb_lowercase', config.lowercaseEnabled);
+        localStorage.setItem('sb_timer', config.timerEnabled);
+    }
+    
+    // Create the UI
+    function createUI() {
+        const ui = document.createElement('div');
+        ui.id = 'starblast-enhancer';
+        ui.innerHTML = `
+            <div id="sb-panel" style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.9);
+                border: 2px solid #00ffff;
+                border-radius: 10px;
+                padding: 15px;
+                color: #ffffff;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                z-index: 10000;
+                min-width: 250px;
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+                backdrop-filter: blur(5px);
+                display: none;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #00ffff; text-shadow: 0 0 10px #00ffff;">Starblast Enhancer</h3>
+                    <button id="sb-close" style="
+                        background: #ff4444;
+                        border: none;
+                        color: white;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        font-size: 12px;
+                    ">×</button>
+                </div>
+                
+                <div class="sb-section">
+                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">FOV Control:</label>
+                    <input type="range" id="sb-fov-slider" min="10" max="190" value="${config.fov}" style="width: 100%; margin-bottom: 5px;">
+                    <span id="sb-fov-value" style="color: #ffffff;">${config.fov}°</span>
+                    <div style="margin-top: 5px;">
+                        <input type="checkbox" id="sb-fov-wheel" ${config.fovWheelEnabled ? 'checked' : ''}>
+                        <label for="sb-fov-wheel" style="margin-left: 5px;">Scroll wheel control</label>
+                    </div>
+                </div>
+                
+                <div class="sb-section" style="margin-top: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">Crystal Color:</label>
+                    <input type="color" id="sb-crystal-color" value="${config.crystalColor || '#ffffff'}" style="width: 100%; height: 30px; border: none; border-radius: 5px;">
+                    <button id="sb-crystal-reset" style="
+                        width: 100%;
+                        margin-top: 5px;
+                        background: #444;
+                        color: white;
+                        border: 1px solid #666;
+                        padding: 5px;
+                        border-radius: 3px;
+                        cursor: pointer;
+                    ">Reset to Default</button>
+                </div>
+                
+                <div class="sb-section" style="margin-top: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #00ffff;">Background Image:</label>
+                    <input type="url" id="sb-background-url" placeholder="Image URL (.png, .jpg, .gif)" value="${config.backgroundUrl}" style="
+                        width: 100%;
+                        padding: 5px;
+                        border: 1px solid #666;
+                        border-radius: 3px;
+                        background: #333;
+                        color: white;
+                        margin-bottom: 5px;
+                    ">
+                    <div style="display: flex; gap: 5px;">
+                        <button id="sb-bg-apply" style="
+                            flex: 1;
+                            background: #00aa00;
+                            color: white;
+                            border: none;
+                            padding: 5px;
+                            border-radius: 3px;
+                            cursor: pointer;
+                        ">Apply</button>
+                        <button id="sb-bg-remove" style="
+                            flex: 1;
+                            background: #aa0000;
+                            color: white;
+                            border: none;
+                            padding: 5px;
+                            border-radius: 3px;
+                            cursor: pointer;
+                        ">Remove</button>
+                    </div>
+                </div>
+                
+                <div class="sb-section" style="margin-top: 15px;">
+                    <label style="display: block; margin-bottom: 10px; color: #00ffff;">Options:</label>
+                    <div style="margin-bottom: 8px;">
+                        <input type="checkbox" id="sb-radar-zoom" ${config.radarZoom === 1 ? 'checked' : ''}>
+                        <label for="sb-radar-zoom" style="margin-left: 5px;">Enhanced Radar Zoom</label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <input type="checkbox" id="sb-lowercase" ${config.lowercaseEnabled ? 'checked' : ''}>
+                        <label for="sb-lowercase" style="margin-left: 5px;">Lowercase Names</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="sb-timer" ${config.timerEnabled ? 'checked' : ''}>
+                        <label for="sb-timer" style="margin-left: 5px;">Show Timer Widget</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="sb-toggle" style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 255, 255, 0.8);
+                border: 2px solid #00ffff;
+                color: #000;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+                z-index: 10001;
+                font-size: 12px;
+                box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            ">SB+</button>
+            
+            <div id="sb-fov-display" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: #00ffff;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 24px;
+                font-weight: bold;
+                z-index: 10000;
+                display: none;
+                border: 2px solid #00ffff;
+                text-shadow: 0 0 10px #00ffff;
+            "></div>
+        `;
         
-        // Initialize settings
-        window.modSettings.showBlankECP = savedBlankECP;
-        if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
-            window.module.exports.settings.set('show_blank_badge', savedBlankECP);
-        }
-
-        // Wait for DOM to be ready
-        const initializeToggle = () => {
-            const blankECPToggle = document.getElementById('blank-ecp-toggle');
-            if (!blankECPToggle) {
-                console.log('Waiting for blank-ecp-toggle element...');
-                setTimeout(initializeToggle, 100); // Try again in 100ms
-                return;
-            }
-            
-            console.log("blank-ecp-toggle element found");
-            // Set initial state
-            blankECPToggle.checked = savedBlankECP;
-            
-            // Add change listener
-            blankECPToggle.addEventListener('change', () => {
-                const isChecked = blankECPToggle.checked;
-                console.log(`blankECPToggle changed to: ${isChecked}`);
-                
-                // Update settings
-                window.modSettings.showBlankECP = isChecked;
-                localStorage.setItem('show-blank-ecp', isChecked);
-                
-                // Update module settings
-                if (window.module && window.module.exports && window.module.exports.settings && window.module.exports.settings.set) {
-                    try {
-                        window.module.exports.settings.set('show_blank_badge', isChecked);
-                    } catch (error) {
-                        console.error('Error updating blank badge setting:', error);
-                    }
-                }
+        document.body.appendChild(ui);
+        setupEventListeners();
+    }
+    
+    // Setup FOV hook
+    function setupFOVHook() {
+        // Try to hook into the game's animation/render loop
+        const originalRequestAnimationFrame = window.requestAnimationFrame;
+        
+        window.requestAnimationFrame = function(callback) {
+            return originalRequestAnimationFrame.call(this, function(timestamp) {
+                // Apply FOV before each frame render
+                updateFOV();
+                return callback(timestamp);
             });
         };
-
-        initializeToggle();
-    
-    // Apply the blank ECP modifications directly instead of using eval
-    console.log("Starting blank ECP mod...");
-    
-    // Pattern for finding blank badge check
-    const pattern = /,(\s*"blank"\s*!={1,2}\s*this\.custom\.badge)/;
-
-    // Search through window properties
-    for (let i in window) {
-        try {
-            let val = window[i]?.prototype;
-            if (!val) continue;
-            
-            for (let j in val) {
-                let func = val[j];
-                
-                // Check if the function matches our pattern
-                if (typeof func === "function" && func.toString().match(pattern)) {
-                    console.log(`Found matching function: ${j}`);
-                    
-                    // Replace the function with our modified version
-                    val[j] = function(...args) {
-                        // Get the original result
-                        const origResult = func.apply(this, args);
-                        // Override with our setting check
-                        return window.module.exports.settings.check('show_blank_badge') || origResult;
-                    };
-
-                    // Modify drawIcon if it exists
-                    if (val.drawIcon) {
-                        console.log("Modifying drawIcon function");
-                        const originalDrawIcon = val.drawIcon;
-                        val.drawIcon = function(...args) {
-                            if (this.icon === "blank") {
-                                return originalDrawIcon.apply(this, args);
-                            }
-                            if (this.icon !== "blank") {
-                                return originalDrawIcon.apply(this, args);
-                            }
-                            return originalDrawIcon.apply(this, args); // Default case
-                        };
-                    }
-
-                    // Find and modify the leaderboard table function
-                    let gl = window[i];
-                    for (let k in gl) {
-                        if (typeof gl[k] === "function" && gl[k].toString().includes(".table")) {
-                            console.log("Modifying leaderboard table function:", k);
-                            const oldF = gl[k];
-                            gl[k] = function(...args) {
-                                const current = window.module.exports.settings.check('show_blank_badge');
-                                if (this.showBlank !== current) {
-                                    for (let i in this.table) {
-                                        if (i.startsWith("blank")) {
-                                            delete this.table[i];
-                                        }
-                                    }
-                                    this.showBlank = current;
-                                }
-                                return oldF.apply(this, args);
-                            };
-                            // Break the outer loop since we found what we needed
-                            i = undefined;
-                            break;
-                        }
+        
+        // Also try to hook into common Three.js render methods
+        if (window.THREE && window.THREE.WebGLRenderer) {
+            const originalRender = window.THREE.WebGLRenderer.prototype.render;
+            window.THREE.WebGLRenderer.prototype.render = function(scene, camera) {
+                if (camera && camera.fov !== undefined && config.fov !== 45) {
+                    camera.fov = config.fov;
+                    if (camera.updateProjectionMatrix) {
+                        camera.updateProjectionMatrix();
                     }
                 }
+                return originalRender.call(this, scene, camera);
+            };
+        }
+        
+        // Set up periodic FOV updates
+        setInterval(() => {
+            if (config.fov !== 45) {
+                updateFOV();
             }
-        } catch (e) {
-            console.error('Error while processing window property:', e);
-        }
+        }, 100);
     }
-    
-    console.log("Blank ECP mod applied successfully");
-    
-    } catch (e) {
-        console.error('Error in initializeBlankECP:', e);
-    }
-}
-
-// And ensure the required objects exist first:
-if (!window.module) window.module = {};
-if (!window.module.exports) window.module.exports = {};
-if (!window.module.exports.settings) {
-    window.module.exports.settings = {
-        set: function(key, value) {
-            console.log(`Setting ${key} to ${value}`);
-            this[key] = value;
-        },
-        check: function(key) {
-            console.log(`Checking value of ${key}`);
-            return this[key];
-        }
-    };
-}
-const blankECPMod = `
-/*
- Show blank ECPs on leaderboard
-*/
-
-let pattern = /,(\s*"blank"\s*!={1,2}\s*this\\.custom\\.badge)/;
-
-console.log("Starting blank ECP mod...");
-
-Search: for (let i in window) {
-  try {
-    let val = window[i]?.prototype;
-    if (!val) continue;
-    for (let j in val) {
-      let func = val[j];
-      
-      if (typeof func === "function" && func.toString().match(pattern)) {
-        // Use a regular function instead of Function constructor
-        val[j] = function(...args) {
-          const origResult = func.apply(this, args);
-          return window.module.exports.settings.check('show_blank_badge') || origResult;
-        };
-
-        if (val.drawIcon) {
-          const originalDrawIcon = val.drawIcon;
-         val.drawIcon = function(...args) {
-  if (this.icon === "blank") {
-    return originalDrawIcon.apply(this, args);
-  }
-  if (this.icon !== "blank") {
-    return originalDrawIcon.apply(this, args);
-  }
-  return originalDrawIcon.apply(this, args); // Default case
-};
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Error in blank ECP mod:', e);
-  }
-}
-console.log("Finished blank ECP mod");
-`;
-  // Add crystal color mod
-const crystalColorMod = `
-  let CrystalObject;
-  
-  // Wait for Crystal object to be available
-  const findCrystalObject = () => {
-    for (let i in window) {
-      try {
-        let val = window[i];
-        if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-          CrystalObject = val;
-          // Attach to window for global access
-          window.CrystalObject = CrystalObject;
-          initializeCrystalModifications();
-          break;
-        }
-      } catch (e) {}
-    }
-  };
-
-  const initializeCrystalModifications = () => {
-    let oldModel = CrystalObject.prototype.getModelInstance;
-    
-    const getCustomCrystalColor = function () {
-      return localStorage.getItem("crystal-color") || "#ffffff";
-    };
-
-// Fix 1: Modify the Crystal Color implementation
-CrystalObject.prototype.getModelInstance = (function() {
-    const originalMethod = CrystalObject.prototype.getModelInstance;
-    return function() {
-        const result = originalMethod.apply(this, arguments);
-        const color = getCustomCrystalColor();
-        if (this.material && this.material.color && color) {
-            this.material.color.set(color);
-            this.material.needsUpdate = true;
-        }
-        return result;
-    };
-})();
-    // Extend the CrystalObject to track instances
-    CrystalObject.instances = new Set();
-
-    // Override the constructor to track instances
-    const originalConstructor = CrystalObject.prototype.constructor;
-    CrystalObject.prototype.constructor = function (...args) {
-      originalConstructor.apply(this, args);
-      CrystalObject.instances.add(this);
-    };
-
-    // Override destroy method
-    const originalDestroy = CrystalObject.prototype.destroy;
-    CrystalObject.prototype.destroy = function (...args) {
-      CrystalObject.instances.delete(this);
-      if (originalDestroy) originalDestroy.apply(this, args);
-    };
-  };
-
-  // Function to update the crystal color immediately
-  window.updateCrystalColor = function(color) {
-    localStorage.setItem("crystal-color", color);
-    
-    if (window.CrystalObject && window.CrystalObject.instances) {
-      requestAnimationFrame(() => {
-        for (const instance of window.CrystalObject.instances) {
-          if (instance.material && instance.material.color) {
-            instance.material.color.set(color);
-            // Force material update
-            instance.material.needsUpdate = true;
-          }
-        }
-      });
-    }
-  };
-
-  // Start looking for Crystal object
-  findCrystalObject();
-`;
-
-      src = src.replace('</body>', `
-        ${controlStyles}
-        ${controlsHTML}
-        <script>
-        ${emoteCapacityMod}
-        ${blankECPMod}
-        ${crystalColorMod}
-        // ... rest of your script ...
-        </script>
-        </body>`);
-
-    checkSrcChange();
-    logFOV("FOV injector applied");
-    return src;
-}
-    const fovDisplay = document.getElementById('fov-display');
-
-document.addEventListener('wheel', (e) => {
-    if (!window.modSettings.fovEnabled) {
-        return; // This is OK in event listener context
-    }
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 1 : -1;
-    window.I1000.currentFOV = Math.max(30, Math.min(120, window.I1000.currentFOV + delta));
-    if (fovValue) {
-        fovValue.textContent = window.I1000.currentFOV;
-    }
-}, { passive: false });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const controlsHeader = document.getElementById('mod-controls-header');
-      const controlsPanel = document.getElementById('mod-controls-panel');
-      const fovToggle = document.getElementById('fov-toggle');
-      const emoteSlider = document.getElementById('emote-capacity-slider');
-      const emoteValue = document.getElementById('emote-capacity-value');
-      const blankECPToggle = document.getElementById('blank-ecp-toggle');
-      const crystalColorHex = document.getElementById('crystal-color-hex');
-
-      // Initialize values from localStorage
-      const savedCrystalColor = localStorage.getItem('crystal-color');
-      if (savedCrystalColor) {
-        crystalColorHex.value = savedCrystalColor;
-      }
-
-      controlsHeader.addEventListener('click', () => {
-        controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-      });
-
-      fovToggle.addEventListener('change', () => {
-        window.modSettings.fovEnabled = fovToggle.checked;
-        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
-      });
-
-      emoteSlider.addEventListener('input', () => {
-        const value = emoteSlider.value;
-        emoteValue.textContent = value;
-        window.modSettings.emoteCapacity = value;
-        localStorage.setItem('emote-capacity', value);
-        if (window.ChatPanel) {
-          window.ChatPanel.prototype.getEmotesCapacity = function () {
-            return parseInt(value);
-          };
-        }
-      });
-
-      blankECPToggle.addEventListener('change', () => {
-        window.modSettings.showBlankECP = blankECPToggle.checked;
-        localStorage.setItem('show-blank-ecp', blankECPToggle.checked);
-        if (window.module && window.module.exports) {
-          window.module.exports.settings.set('show_blank_badge', blankECPToggle.checked);
-        }
-      });
-
-      // Set the "Show Blank ECPs" to true by default
-      if (window.module && window.module.exports) {
-        window.module.exports.settings.set('show_blank_badge', true);
-      }
-
-      crystalColorHex.addEventListener('input', () => {
-        const color = crystalColorHex.value;
-        updateCrystalColor(color); // Update the color immediately
-      });
-    });
-
-  checkSrcChange();
-
-  logFOV("FOV injector applied");
-  return src;
-}
-
-// Add all injectors
-window.sbCodeInjectors = window.sbCodeInjectors || [];
-
-// Modified version of the injectors
-window.sbCodeInjectors.push((sbCode) => {
-    try {
-        lowercaseInjector(sbCode);
-        return window.modifiedSrc; // Need to return the modified source
-    } catch (error) {
-        console.error(`${modName} failed to load; error:`, error);
-        throw error;
-    }
-});
-
-window.sbCodeInjectors.push((sbCode) => {
-    try {
-        const modified = emoteInjector(sbCode);
-        window.modifiedSrc = modified;
-        return modified; // Need to return the modified source
-    } catch (error) {
-        console.error(`${emoteModName} failed to load; error:`, error);
-        throw error;
-    }
-});
-
-window.sbCodeInjectors.push((sbCode) => {
-    try {
-        let modified = sbCode;
-        lowercaseInjector(modified);
-        emoteInjector(modified);
-        fovInjector(modified);
-        return window.modifiedSrc; // Need to return the final modified source
-    } catch (error) {
-        console.error(`Mod failed to load; error:`, error);
-        throw error;
-    }
-});
-// Main code injection logic
-const log = (msg) => console.log(`%c[Mod injector] ${msg}`, "color: #06c26d");
-
-// Function to inject the loader
-function injectLoader() {
-    if (window.location.pathname !== "/") {
-        return;
-    }
-
-    const url = `https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html?_=${Date.now()}`;
-
-    fetch(url)
-        .then(response => response.text())
-        .then(starSRC => {
-            if (!starSRC || starSRC.includes('<!DOCTYPE html>')) {
-                throw new Error('Invalid JavaScript content received');
-            }
-            
-            window.modifiedSrc = starSRC;
-            
-            // Apply injectors synchronously
-            if (window.sbCodeInjectors) {
-                for (const injector of window.sbCodeInjectors) {
-                    if (typeof injector === "function") {
-                        window.modifiedSrc = injector(window.modifiedSrc) || window.modifiedSrc;
-                    }
-                }
-            }
-
-            // Execute the modified source directly
-            const scriptContent = window.modifiedSrc;
-            try {
-                (new Function(scriptContent))();
-            } catch (e) {
-                console.error('Error executing modified source:', e);
-            }
-        })
-        .catch(error => {
-            console.error("Load failed:", error);
+    function setupEventListeners() {
+        const panel = document.getElementById('sb-panel');
+        const toggle = document.getElementById('sb-toggle');
+        const close = document.getElementById('sb-close');
+        
+        // Toggle panel
+        toggle.addEventListener('click', () => {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
         });
-}
-
-// Run the injectLoader function immediately
-injectLoader();
-
+        
+        close.addEventListener('click', () => {
+            panel.style.display = 'none';
+        });
+        
+        // FOV controls
+        const fovSlider = document.getElementById('sb-fov-slider');
+        const fovValue = document.getElementById('sb-fov-value');
+        const fovWheel = document.getElementById('sb-fov-wheel');
+        
+        fovSlider.addEventListener('input', (e) => {
+            config.fov = parseInt(e.target.value);
+            fovValue.textContent = config.fov + '°';
+            updateFOV();
+            saveSettings();
+        });
+        
+        fovWheel.addEventListener('change', (e) => {
+            config.fovWheelEnabled = e.target.checked;
+            saveSettings();
+        });
+        
+        // Crystal color
+        const crystalColor = document.getElementById('sb-crystal-color');
+        const crystalReset = document.getElementById('sb-crystal-reset');
+        
+        crystalColor.addEventListener('change', (e) => {
+            config.crystalColor = e.target.value;
+            saveSettings();
+        });
+        
+        crystalReset.addEventListener('click', () => {
+            config.crystalColor = '';
+            crystalColor.value = '#ffffff';
+            saveSettings();
+        });
+        
+        // Background controls
+        const bgUrl = document.getElementById('sb-background-url');
+        const bgApply = document.getElementById('sb-bg-apply');
+        const bgRemove = document.getElementById('sb-bg-remove');
+        
+        bgApply.addEventListener('click', () => {
+            const url = bgUrl.value.trim();
+            if (url && (url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.gif'))) {
+                config.backgroundUrl = url;
+                applyBackground();
+                saveSettings();
+            }
+        });
+        
+        bgRemove.addEventListener('click', () => {
+            config.backgroundUrl = '';
+            bgUrl.value = '';
+            removeBackground();
+            saveSettings();
+        });
+        
+        // Options
+        const radarZoom = document.getElementById('sb-radar-zoom');
+        const lowercase = document.getElementById('sb-lowercase');
+        const timer = document.getElementById('sb-timer');
+        
+        radarZoom.addEventListener('change', (e) => {
+            config.radarZoom = e.target.checked ? 1 : 4;
+            saveSettings();
+            location.reload(); // Radar zoom requires reload
+        });
+        
+        lowercase.addEventListener('change', (e) => {
+            config.lowercaseEnabled = e.target.checked;
+            updateLowercase();
+            saveSettings();
+        });
+        
+        timer.addEventListener('change', (e) => {
+            config.timerEnabled = e.target.checked;
+            saveSettings();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'e') {
+                e.preventDefault();
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            if (e.key === 'F11' && config.fovWheelEnabled) {
+                e.preventDefault();
+                config.fov = 45;
+                fovSlider.value = 45;
+                fovValue.textContent = '45°';
+                updateFOV();
+                showFOVDisplay(45);
+                saveSettings();
+            }
+        });
+        
+        // Mouse wheel FOV control
+        document.addEventListener('wheel', (e) => {
+            if (!config.fovWheelEnabled) return;
+            
+            if (e.deltaY < 0) {
+                config.fov = Math.max(10, config.fov - 1);
+            } else {
+                config.fov = Math.min(190, config.fov + 1);
+            }
+            
+            fovSlider.value = config.fov;
+            fovValue.textContent = config.fov + '°';
+            updateFOV();
+            showFOVDisplay(config.fov);
+            saveSettings();
+        }, { passive: false });
+    }
+    
+    // FOV functions
+    function updateFOV() {
+        // Try multiple approaches to set FOV
+        
+        // Method 1: Try to find camera object
+        if (window.lOOI1) {
+            window.lOOI1.fov = config.fov;
+            if (window.lOOI1.updateProjectionMatrix) {
+                window.lOOI1.updateProjectionMatrix();
+            }
+        }
+        
+        // Method 2: Try to find Three.js camera
+        if (window.THREE) {
+            // Look for camera in common locations
+            const possibleCameras = [
+                window.camera,
+                window.scene?.camera,
+                window.game?.camera,
+                window.renderer?.camera
+            ];
+            
+            for (let cam of possibleCameras) {
+                if (cam && cam.fov !== undefined) {
+                    cam.fov = config.fov;
+                    if (cam.updateProjectionMatrix) {
+                        cam.updateProjectionMatrix();
+                    }
+                    break;
+                }
+            }
+        }
+        
+        // Method 3: Try to find camera through object traversal
+        for (let key in window) {
+            try {
+                let obj = window[key];
+                if (obj && typeof obj === 'object' && obj.fov !== undefined) {
+                    obj.fov = config.fov;
+                    if (obj.updateProjectionMatrix) {
+                        obj.updateProjectionMatrix();
+                    }
+                }
+            } catch (e) {
+                // Ignore errors from accessing restricted objects
+            }
+        }
+        
+        // Method 4: Set global FOV value that might be used by the game
+        window.currentFOV = config.fov;
+        window.customFOV = config.fov;
+        
+        // Method 5: Store in common game object patterns
+        if (window.I1000) {
+            window.I1000.currentFOV = config.fov;
+        }
+        if (window.modSettings) {
+            window.modSettings.currentFOV = config.fov;
+            window.modSettings.fovEnabled = true;
+        } else {
+            window.modSettings = {
+                currentFOV: config.fov,
+                fovEnabled: true
+            };
+        }
+    }
+    
+    function showFOVDisplay(value) {
+        const display = document.getElementById('sb-fov-display');
+        display.textContent = value + '°';
+        display.style.display = 'block';
+        setTimeout(() => {
+            display.style.display = 'none';
+        }, 2000);
+    }
+    
+    // Background functions
+    function applyBackground() {
+        const particlesElement = document.getElementById('particles-js');
+        if (particlesElement && config.backgroundUrl) {
+            particlesElement.style.backgroundImage = `url("${config.backgroundUrl}")`;
+            particlesElement.style.backgroundSize = 'cover';
+            particlesElement.style.backgroundPosition = 'center';
+        }
+    }
+    
+    function removeBackground() {
+        const particlesElement = document.getElementById('particles-js');
+        if (particlesElement) {
+            particlesElement.style.backgroundImage = '';
+        }
+    }
+    
+    // Lowercase function
+    function updateLowercase() {
+        const playerInput = document.querySelector('#player input');
+        if (playerInput) {
+            if (config.lowercaseEnabled) {
+                playerInput.style.textTransform = 'lowercase';
+            } else {
+                playerInput.style.textTransform = '';
+            }
+        }
+    }
+    
+    // Crystal color modification
+    function setupCrystalColorMod() {
+        let CrystalObject;
+        
+        // Find the Crystal object
+        for (let i in window) {
+            try {
+                let val = window[i];
+                if (typeof val.prototype?.createModel === 'function' && 
+                    val.prototype.createModel.toString().includes('Crystal')) {
+                    CrystalObject = val;
+                    break;
+                }
+            } catch (e) {}
+        }
+        
+        if (CrystalObject) {
+            const oldModel = CrystalObject.prototype.getModelInstance;
+            
+            CrystalObject.prototype.getModelInstance = function() {
+                let result = oldModel.apply(this, arguments);
+                
+                if (config.crystalColor && this.material) {
+                    this.material.color.set(config.crystalColor);
+                }
+                
+                return result;
+            };
+        }
+    }
+    
+    // Initialize everything
+    function init() {
+        loadSettings();
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                createUI();
+                applyBackground();
+                updateLowercase();
+                setupCrystalColorMod();
+                setupFOVHook();
+            });
+        } else {
+            createUI();
+            applyBackground();
+            updateLowercase();
+            setupCrystalColorMod();
+            setupFOVHook();
+        }
+        
+        console.log('Starblast Enhancer loaded! Press Alt+E to toggle panel.');
+    }
+    
+    // Start the script
+    init();
+})();
