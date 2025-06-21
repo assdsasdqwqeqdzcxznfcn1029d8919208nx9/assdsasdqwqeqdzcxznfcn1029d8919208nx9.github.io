@@ -6,7 +6,7 @@
     
     // Settings object to store user preferences
     const settings = {
-        crystalColor: localStorage.getItem('crystal-color') || '#ffffff',
+        crystalColor: /^#[0-9a-f]{6}$/i.test(localStorage.getItem('crystal-color')) ? localStorage.getItem('crystal-color') : '#ffffff',
         emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
         showBlankBadge: localStorage.getItem('show-blank-badge') === 'true',
         uiVisible: localStorage.getItem('ui-visible') !== 'false'
