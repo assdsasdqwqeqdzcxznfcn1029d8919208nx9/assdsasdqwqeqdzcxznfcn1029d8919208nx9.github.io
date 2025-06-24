@@ -265,28 +265,6 @@ const controlsHTML = `
 `;
 
 const gameModsScript = `
-// Wait for game to be fully loaded
-const waitForGame = () => new Promise(resolve => {
-  const check = () => {
-    // Look for game object with mode and display properties
-    if (window.game?.mode && window.game.display) {
-      return resolve(window.game);
-    }
-    // Alternative: look for global objects that might contain the game
-    for (const key in window) {
-      try {
-        const obj = window[key];
-        if (obj && typeof obj === 'object' && obj.mode && obj.display) {
-          window.game = obj; // Expose it globally
-          return resolve(obj);
-        }
-      } catch (e) {}
-    }
-    requestAnimationFrame(check);
-  };
-  check();
-});
-
 // Emote Capacity Mod
 let globalVal;
 try {
@@ -313,199 +291,132 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
   localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
 }
 
-// Radar Zoom Fix - Wait for game to load then patch
-waitForGame().then(game => {
-  console.log('[Radar Zoom] Game loaded, applying radar zoom patch...');
+// Crystal Color Handler (Your Working Version)
+setTimeout(() => {
+  console.log('[Crystal Color] Applying crystal color handler...');
   
-  // Method 1: Try to find radar zoom on mode object
-  if (game.mode && typeof game.mode.radar_zoom !== 'undefined') {
-    const mode = game.mode;
-    mode._originalRadarZoom = mode.radar_zoom;
+  let CrystalObject;
+  for (let i in window) {
+    try {
+      let val = window[i];
+      if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
+        CrystalObject = val;
+        break;
+      }
+    } catch (e) {}
+  }
+
+  if (CrystalObject) {
+    let oldModel = CrystalObject.prototype.getModelInstance;
+    let getCustomCrystalColor = function () {
+      return localStorage.getItem("crystal-color") || "";
+    };
+
+    CrystalObject.prototype.getModelInstance = function () {
+      let res = oldModel.apply(this, arguments);
+      let color = getCustomCrystalColor();
+      if (color) this.material.color.set(color);
+      return res;
+    };
+
+    // Global crystal color updater
+    window.updateCrystalColor = (color) => {
+      localStorage.setItem('crystal-color', color);
+      window.modSettings.crystalColor = color;
+      console.log('[Crystal Color] Updated to', color);
+    };
+
+    console.log('[Crystal Color] Successfully applied crystal color handler');
+  } else {
+    console.warn('[Crystal Color] Crystal object not found');
+    // Fallback updater
+    window.updateCrystalColor = (color) => {
+      localStorage.setItem('crystal-color', color);
+      window.modSettings.crystalColor = color;
+      console.log('[Crystal Color] Color saved (no crystal object found)');
+    };
+  }
+}, 3000);
+
+// Radar Zoom Handler (Clean Implementation)
+setTimeout(() => {
+  console.log('[Radar Zoom] Applying radar zoom handler...');
+  
+  let RadarObject;
+  // Search for radar-related objects
+  for (let i in window) {
+    try {
+      let val = window[i];
+      if (typeof val === 'function' && val.prototype) {
+        // Look for methods that might be radar-related
+        const proto = val.prototype;
+        if (proto.hasOwnProperty('radar_zoom') || 
+            (proto.constructor && proto.constructor.toString().includes('radar')) ||
+            (val.toString().includes('radar') && val.toString().includes('zoom'))) {
+          RadarObject = val;
+          console.log('[Radar Zoom] Found potential radar object:', i);
+          break;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Alternative approach: look for radar_zoom property directly
+  if (!RadarObject) {
+    const searchRadarZoom = (obj, depth = 0) => {
+      if (depth > 3 || !obj || typeof obj !== 'object') return null;
+      
+      try {
+        for (let key in obj) {
+          if (key === 'radar_zoom' && typeof obj[key] === 'number') {
+            return obj;
+          }
+          if (typeof obj[key] === 'object') {
+            const result = searchRadarZoom(obj[key], depth + 1);
+            if (result) return result;
+          }
+        }
+      } catch (e) {}
+      return null;
+    };
+
+    // Search in common game objects
+    const gameObjects = [window.game, window.mode, window.display];
+    for (let gameObj of gameObjects) {
+      if (gameObj) {
+        const radarObj = searchRadarZoom(gameObj);
+        if (radarObj) {
+          RadarObject = radarObj;
+          console.log('[Radar Zoom] Found radar_zoom property');
+          break;
+        }
+      }
+    }
+  }
+
+  if (RadarObject) {
+    // Store original radar_zoom value
+    const originalRadarZoom = RadarObject.radar_zoom || 1;
     
-    Object.defineProperty(mode, 'radar_zoom', {
+    // Create property override
+    Object.defineProperty(RadarObject, 'radar_zoom', {
       get() {
-        return window.modSettings.radarZoomEnabled ? 1 : this._originalRadarZoom;
+        return window.modSettings.radarZoomEnabled ? 1 : originalRadarZoom;
       },
-      set(v) {
-        this._originalRadarZoom = v;
-        // Force radar update if display system exists
-        if (game.display?.radar?.texture?.repeat) {
-          game.display.radar.texture.repeat.set(1/v, 1/v);
+      set(value) {
+        // Allow setting but don't actually change if override is enabled
+        if (!window.modSettings.radarZoomEnabled) {
+          originalRadarZoom = value;
         }
       },
       configurable: true
     });
-    
-    // Trigger initial update
-    mode.radar_zoom = mode._originalRadarZoom;
-    console.log('[Radar Zoom] Applied to game.mode');
-  } else {
-    // Method 2: Search for radar_zoom property in all objects
-    console.log('[Radar Zoom] Searching for radar_zoom property...');
-    
-    const searchForRadarZoom = (obj, path = 'window') => {
-      if (!obj || typeof obj !== 'object') return;
-      
-      try {
-        for (const key in obj) {
-          if (key === 'radar_zoom' && typeof obj[key] === 'number') {
-            console.log('[Radar Zoom] Found radar_zoom at', path + '.' + key);
-            
-            // Store original value
-            const originalValue = obj[key];
-            
-            Object.defineProperty(obj, key, {
-              get() {
-                return window.modSettings.radarZoomEnabled ? 1 : originalValue;
-              },
-              set(v) {
-                // Allow setting but don't actually change if override is enabled
-                if (!window.modSettings.radarZoomEnabled) {
-                  originalValue = v;
-                }
-              },
-              configurable: true
-            });
-            
-            return true;
-          }
-          
-          // Recursively search (limited depth)
-          if (typeof obj[key] === 'object' && path.split('.').length < 4) {
-            if (searchForRadarZoom(obj[key], path + '.' + key)) {
-              return true;
-            }
-          }
-        }
-      } catch (e) {
-        // Ignore errors during property access
-      }
-      
-      return false;
-    };
-    
-    // Search in game object and window
-    if (!searchForRadarZoom(game, 'game')) {
-      searchForRadarZoom(window, 'window');
-    }
-  }
-}).catch(err => {
-  console.warn('[Radar Zoom] Failed to apply radar zoom patch:', err);
-});
 
-// Crystal Color Fix - Wait for game to load then patch
-waitForGame().then(game => {
-  console.log('[Crystal Color] Game loaded, applying crystal color patch...');
-  
-  // Method 1: Find crystal system in display
-  let crystalSystem = null;
-  if (game.display?.screenObjects) {
-    crystalSystem = game.display.screenObjects.find(sys => 
-      sys.constructor.name.toLowerCase().includes('crystal')
-    );
-  }
-  
-  if (!crystalSystem) {
-    // Method 2: Search for Crystal class in window
-    for (const key in window) {
-      try {
-        const obj = window[key];
-        if (typeof obj === 'function' &&
-            obj.prototype?.createModel &&
-            obj.prototype.createModel.toString().includes('Crystal')) {
-          crystalSystem = obj;
-          console.log('[Crystal Color] Found Crystal class:', key);
-          break;
-        }
-      } catch (e) {}
-    }
-  }
-  
-  if (crystalSystem) {
-    const materials = new Set();
-    
-    // Try to patch createModel or similar methods
-    const methodNames = ['createModel', 'createCrystalModel', 'getModelInstance'];
-    let patched = false;
-    
-    for (const methodName of methodNames) {
-      if (crystalSystem[methodName] || crystalSystem.prototype?.[methodName]) {
-        const target = crystalSystem.prototype || crystalSystem;
-        const original = target[methodName];
-        
-        if (typeof original === 'function') {
-          target[methodName] = function(...args) {
-            const result = original.apply(this, args);
-            
-            // Try to find and color the material
-            const materialSources = [result, this, result?.material, this?.material];
-            
-            for (const source of materialSources) {
-              if (source?.material?.color?.set) {
-                materials.add(source.material);
-                source.material.color.set(window.modSettings.crystalColor);
-                if (source.material.uniforms?.color) {
-                  source.material.uniforms.color.value.set(source.material.color);
-                }
-                source.material.needsUpdate = true;
-                break;
-              } else if (source?.color?.set) {
-                materials.add(source);
-                source.color.set(window.modSettings.crystalColor);
-                if (source.uniforms?.color) {
-                  source.uniforms.color.value.set(source.color);
-                }
-                source.needsUpdate = true;
-                break;
-              }
-            }
-            
-            return result;
-          };
-          
-          patched = true;
-          console.log('[Crystal Color] Patched', methodName);
-          break;
-        }
-      }
-    }
-    
-    // Global crystal color updater
-    window.updateCrystalColor = (color) => {
-      window.modSettings.crystalColor = color;
-      localStorage.setItem('crystal-color', color);
-      
-      materials.forEach(material => {
-        if (material.color?.set) {
-          material.color.set(color);
-          if (material.uniforms?.color) {
-            material.uniforms.color.value.set(material.color);
-          }
-          material.needsUpdate = true;
-        }
-      });
-      
-      console.log('[Crystal Color] Updated to', color, '(' + materials.size + ' materials)');
-    };
-    
-    if (patched) {
-      console.log('[Crystal Color] Successfully patched crystal system');
-    } else {
-      console.warn('[Crystal Color] Could not find suitable method to patch');
-    }
+    console.log('[Radar Zoom] Successfully applied radar zoom handler');
   } else {
-    console.warn('[Crystal Color] Crystal system not found');
-    
-    // Fallback: create a dummy updater
-    window.updateCrystalColor = (color) => {
-      window.modSettings.crystalColor = color;
-      localStorage.setItem('crystal-color', color);
-      console.log('[Crystal Color] Color saved (no system to update)');
-    };
+    console.warn('[Radar Zoom] Radar object not found');
   }
-}).catch(err => {
-  console.warn('[Crystal Color] Failed to apply crystal color patch:', err);
-});
+}, 3000);
 
 // ECP Badge Fix
 setTimeout(() => {
@@ -522,7 +433,7 @@ setTimeout(() => {
   } else {
     console.warn('[ECP Fix] Scoreboard.addBadge not found; skipping ECP fix.');
   }
-}, 2000);
+}, 4000);
 `;
 
 src = src.replace('</body>', `
@@ -671,7 +582,7 @@ function injectLoader() {
   document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
   document.close();
 
-  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sösm2k1sımn1sösm2k1.html';
   url += '?_=' + new Date().getTime();
 
   var xhr = new XMLHttpRequest();
