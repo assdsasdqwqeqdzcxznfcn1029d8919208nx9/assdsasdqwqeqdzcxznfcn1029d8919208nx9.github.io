@@ -9,7 +9,7 @@ window.modSettings = {
   crystalColor: localStorage.getItem('crystal-color') || '#ffffff'
 };
 
-// Lowercase Name Mod
+// Lowercase Name Mod - FIXED
 const modName = "Lowercase Name";
 const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
 
@@ -22,16 +22,22 @@ function lowercaseInjector(sbCode) {
     prevSrc = src;
   }
 
-  src = src.replace(/\.toUpperCase\(\)/g, "");
+  // FIXED: More targeted regex - only remove .toUpperCase() on player input, not everywhere
+  const playerInputPattern = /document\.getElementById\(['"]player['"]\)\.value\s*=\s*[^;]+\.toUpperCase\(\)/g;
+  src = src.replace(playerInputPattern, match => match.replace(/\.toUpperCase\(\)/, ""));
+  
+  // Also target any other UI-specific .toUpperCase() calls but preserve engine code
+  const uiTextPattern = /(\w+\.value\s*=\s*[^;]+)\.toUpperCase\(\)/g;
+  src = src.replace(uiTextPattern, '$1');
+  
   const styleBlock = `
   <style>
   #player input { text-transform: none !important; }
   </style>
   `;
   src = src.replace('</head>', `${styleBlock}</head>`);
-  checkSrcChange();
-
-  logLowercase("Mod injected");
+  
+  logLowercase("Mod injected with targeted regex");
   return src;
 }
 
@@ -291,32 +297,37 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
   localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
 }
 
-// Crystal Color Handler (Your Working Version)
+// FIXED Crystal Color Handler
 setTimeout(() => {
   console.log('[Crystal Color] Applying crystal color handler...');
   
   let CrystalObject;
-  for (let i in window) {
+  // FIXED: Look for getModelInstance instead of createModel
+  for (let key in window) {
     try {
-      let val = window[i];
-      if ("function" == typeof val.prototype.createModel && val.prototype.createModel.toString().includes("Crystal")) {
-        CrystalObject = val;
-        break;
+      const val = window[key];
+      if (val && val.prototype && typeof val.prototype.getModelInstance === 'function') {
+        // Additional check to ensure it's crystal-related
+        const protoString = val.prototype.getModelInstance.toString();
+        if (protoString.includes('THREE.Mesh') || protoString.includes('material')) {
+          CrystalObject = val;
+          console.log('[Crystal Color] Found crystal object:', key);
+          break;
+        }
       }
     } catch (e) {}
   }
 
   if (CrystalObject) {
-    let oldModel = CrystalObject.prototype.getModelInstance;
-    let getCustomCrystalColor = function () {
-      return localStorage.getItem("crystal-color") || "";
-    };
-
-    CrystalObject.prototype.getModelInstance = function () {
-      let res = oldModel.apply(this, arguments);
-      let color = getCustomCrystalColor();
-      if (color) this.material.color.set(color);
-      return res;
+    const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
+    
+    CrystalObject.prototype.getModelInstance = function(id) {
+      const mesh = originalGetModelInstance.call(this, id);
+      const color = window.modSettings.crystalColor || localStorage.getItem('crystal-color');
+      if (color && mesh && mesh.material && mesh.material.color) {
+        mesh.material.color.set(color);
+      }
+      return mesh;
     };
 
     // Global crystal color updater
@@ -326,7 +337,7 @@ setTimeout(() => {
       console.log('[Crystal Color] Updated to', color);
     };
 
-    console.log('[Crystal Color] Successfully applied crystal color handler');
+    console.log('[Crystal Color] Successfully patched getModelInstance() on', CrystalObject.name || 'CrystalObject');
   } else {
     console.warn('[Crystal Color] Crystal object not found');
     // Fallback updater
@@ -338,73 +349,52 @@ setTimeout(() => {
   }
 }, 3000);
 
-// Radar Zoom Handler (Clean Implementation)
+// FIXED Radar Zoom Handler
 setTimeout(() => {
   console.log('[Radar Zoom] Applying radar zoom handler...');
   
-  let RadarObject;
-  // Search for radar-related objects
-  for (let i in window) {
-    try {
-      let val = window[i];
-      if (typeof val === 'function' && val.prototype) {
-        // Look for methods that might be radar-related
-        const proto = val.prototype;
-        if (proto.hasOwnProperty('radar_zoom') || 
-            (proto.constructor && proto.constructor.toString().includes('radar')) ||
-            (val.toString().includes('radar') && val.toString().includes('zoom'))) {
-          RadarObject = val;
-          console.log('[Radar Zoom] Found potential radar object:', i);
-          break;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // Alternative approach: look for radar_zoom property directly
-  if (!RadarObject) {
-    const searchRadarZoom = (obj, depth = 0) => {
-      if (depth > 3 || !obj || typeof obj !== 'object') return null;
-      
-      try {
-        for (let key in obj) {
-          if (key === 'radar_zoom' && typeof obj[key] === 'number') {
-            return obj;
-          }
-          if (typeof obj[key] === 'object') {
-            const result = searchRadarZoom(obj[key], depth + 1);
-            if (result) return result;
-          }
-        }
-      } catch (e) {}
-      return null;
-    };
-
-    // Search in common game objects
-    const gameObjects = [window.game, window.mode, window.display];
-    for (let gameObj of gameObjects) {
-      if (gameObj) {
-        const radarObj = searchRadarZoom(gameObj);
-        if (radarObj) {
-          RadarObject = radarObj;
-          console.log('[Radar Zoom] Found radar_zoom property');
-          break;
-        }
+  // FIXED: Look for mode object with radar_zoom property
+  const findModeWithRadarZoom = () => {
+    // Try common game object paths
+    const candidates = [
+      window.game?.mode,
+      window.mode,
+      window.display?.mode,
+      window.renderer?.mode
+    ];
+    
+    for (let candidate of candidates) {
+      if (candidate && typeof candidate.radar_zoom === 'number') {
+        return candidate;
       }
     }
-  }
-
-  if (RadarObject) {
-    // Store original radar_zoom value
-    const originalRadarZoom = RadarObject.radar_zoom || 1;
     
-    // Create property override
-    Object.defineProperty(RadarObject, 'radar_zoom', {
+    // Search through window properties
+    for (let key in window) {
+      try {
+        const obj = window[key];
+        if (obj && typeof obj === 'object' && typeof obj.radar_zoom === 'number') {
+          return obj;
+        }
+      } catch (e) {}
+    }
+    
+    return null;
+  };
+
+  const modeObject = findModeWithRadarZoom();
+  
+  if (modeObject) {
+    // Store original radar_zoom value
+    const originalRadarZoom = modeObject.radar_zoom;
+    
+    // FIXED: Create property override using defineProperty
+    Object.defineProperty(modeObject, 'radar_zoom', {
       get() {
         return window.modSettings.radarZoomEnabled ? 1 : originalRadarZoom;
       },
       set(value) {
-        // Allow setting but don't actually change if override is enabled
+        // Allow setting original value when not overridden
         if (!window.modSettings.radarZoomEnabled) {
           originalRadarZoom = value;
         }
@@ -412,9 +402,9 @@ setTimeout(() => {
       configurable: true
     });
 
-    console.log('[Radar Zoom] Successfully applied radar zoom handler');
+    console.log('[Radar Zoom] Successfully patched mode.radar_zoom');
   } else {
-    console.warn('[Radar Zoom] Radar object not found');
+    console.warn('[Radar Zoom] Could not find mode.radar_zoom property');
   }
 }, 3000);
 
