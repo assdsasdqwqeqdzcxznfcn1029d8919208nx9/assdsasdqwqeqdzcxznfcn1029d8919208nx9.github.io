@@ -1,5 +1,10 @@
 (function () {
-  // === 1. Inject CSS ===
+  // === 1. Initialize Global Variables ===
+  let fovdegeri = 45;
+  let radaryakinlastirmasi = localStorage.getItem('radar_yknlg') || 4;
+  let CrystalObject;
+
+  // === 2. Inject CSS ===
   const style = document.createElement('style');
   style.textContent = `
     #control-panel {
@@ -228,7 +233,7 @@
   `;
   document.head.appendChild(style);
 
-  // === 2. Inject HTML Panel ===
+  // === 3. Inject HTML Panel ===
   const panelHTML = `
     <div id="control-panel">
       <div id="panel-header">
@@ -277,32 +282,239 @@
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-  // === 3. Wait for original elements to be available ===
-  function waitForElements() {
-    const fovCheckbox = document.getElementById('fovCheckbox');
-    const timerCheckbox = document.getElementById('timerCheckbox');
-    const lowercaseCheckbox = document.getElementById('lowercaseCheckbox');
-    const radarSlider = document.querySelector('.s-slider');
-    const crystalColorOriginal = document.querySelector('#crystal-color');
-    
-    if (!fovCheckbox || !timerCheckbox || !lowercaseCheckbox || !radarSlider) {
-      setTimeout(waitForElements, 100);
-      return;
+  // === 4. Initialize Crystal Object Detection ===
+  function findCrystalObject() {
+    for (let i in window) {
+      try {
+        let val = window[i];
+        if (
+          'function' == typeof val.prototype.createModel &&
+          val.prototype.createModel.toString().includes('Crystal')
+        ) {
+          CrystalObject = val;
+          break;
+        }
+      } catch (e) {}
     }
     
-    initializePanel(fovCheckbox, timerCheckbox, lowercaseCheckbox, radarSlider, crystalColorOriginal);
+    if (CrystalObject) {
+      let oldModel = CrystalObject.prototype.getModelInstance;
+      let getCustomCrystalColor = function () {
+        return localStorage.getItem('crystal-color') || '';
+      };
+      
+      CrystalObject.prototype.getModelInstance = function () {
+        let result = oldModel.apply(this, arguments);
+        let customColor = getCustomCrystalColor();
+        if (customColor) {
+          this.material.color.set(customColor);
+        }
+        return result;
+      };
+    }
   }
 
-  // === 4. Initialize Panel ===
-  function initializePanel(fovCheckbox, timerCheckbox, lowercaseCheckbox, radarSlider, crystalColorOriginal) {
+  // === 5. FOV Functions ===
+  function showFov(value) {
+    const fovDisplay = document.getElementById('fovDisplay');
+    const panelFovDisplay = document.getElementById('fov-value');
+    
+    if (fovDisplay) {
+      fovDisplay.textContent = value;
+      fovDisplay.style.display = 'block';
+      setTimeout(function () {
+        fovDisplay.style.display = 'none';
+      }, 3000);
+    }
+    
+    if (panelFovDisplay) {
+      panelFovDisplay.textContent = value + '°';
+    }
+  }
+
+  // === 6. Timer Functions ===
+  function initializeTimer() {
+    const timeInfo = document.getElementById('timeInfo');
+    if (!timeInfo) return;
+
+    let timerInterval;
+    let fetchInterval;
+    let timeRemaining = 0;
+    let timerStarted = false;
+    let retryCount = 0;
+
+    function startTimer(systemId) {
+      if (!timerInterval) {
+        fetchSystemTime(systemId);
+        timerInterval = setInterval(() => fetchSystemTime(systemId), 10000);
+      }
+      if (!fetchInterval) {
+        fetchInterval = setInterval(updateTimer, 1000);
+      }
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      clearInterval(fetchInterval);
+      timerInterval = null;
+      fetchInterval = null;
+      timeInfo.textContent = '';
+    }
+
+    function fetchSystemTime(systemId) {
+      if (timerStarted) {
+        console.clear();
+        return;
+      }
+
+      if (!systemId) {
+        const url = window.location.href;
+        const match = url.match(/#(\d+)/);
+        systemId = match ? match[1] : null;
+      }
+
+      if (!systemId) {
+        setTimeout(() => fetchSystemTime(systemId), 5000);
+        return;
+      }
+
+      fetch('https://starblast.io/simstatus.json')
+        .then(response => response.json())
+        .then(data => {
+          for (let region of data) {
+            const systems = region.systems;
+            if (systems) {
+              for (let i = 0; i < systems.length; i++) {
+                if (systems[i].id === parseInt(systemId)) {
+                  const systemTime = systems[i].time;
+                  const timeDiff = systemTime / 60 - 30;
+                  timeRemaining = Math.abs(timeDiff) * 60;
+                  updateTimer();
+                  timerStarted = true;
+                  console.clear();
+                  break;
+                }
+              }
+            }
+            if (timerStarted) break;
+          }
+
+          if (!timerStarted) {
+            console.log('System ID not found in API data');
+            retryCount++;
+            if (retryCount < 7) {
+              setTimeout(() => fetchSystemTime(systemId), 5000);
+            } else {
+              console.error('Exceeded retry attempts, stopping further retries.');
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          setTimeout(() => fetchSystemTime(systemId), 5000);
+        });
+    }
+
+    function updateTimer() {
+      if (timeRemaining > 0) {
+        timeRemaining--;
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        const minutesDisplay = String(minutes).padStart(2, '0').slice(0, 2);
+        const secondsDisplay = String(seconds).padStart(2, '0').slice(0, 2);
+        timeInfo.textContent = 'Hkm: ' + minutesDisplay + ':' + secondsDisplay;
+      }
+    }
+
+    // Start timer automatically if needed
+    const timerCheckbox = document.getElementById('timerCheckbox');
+    if (timerCheckbox && timerCheckbox.checked) {
+      startTimer();
+    }
+
+    return { startTimer, stopTimer };
+  }
+
+  // === 7. Background Functions ===
+  function initializeBackground() {
+    const particlesJs = document.getElementById('particles-js');
+    const backgroundLinkInput = document.getElementById('backgroundLinkInput');
+    const applyBackground = document.getElementById('applyBackground');
+    const playButton = document.getElementById('play');
+    const customBackground = localStorage.getItem('customBackground');
+
+    if (customBackground && particlesJs) {
+      particlesJs.style.backgroundImage = 'url("' + customBackground + '")';
+    }
+
+    if (applyBackground && backgroundLinkInput && particlesJs) {
+      applyBackground.addEventListener('click', function () {
+        const backgroundUrl = backgroundLinkInput.value;
+        if (backgroundUrl && 
+            (backgroundUrl.endsWith('.png') || 
+             backgroundUrl.endsWith('.jpg') || 
+             backgroundUrl.endsWith('.gif'))) {
+          localStorage.setItem('customBackground', backgroundUrl);
+          particlesJs.style.backgroundImage = 'url("' + backgroundUrl + '")';
+        } else if (backgroundUrl.trim() === '') {
+          particlesJs.style.backgroundImage = '';
+          localStorage.removeItem('customBackground');
+        } else {
+          alert('Arkaplan kaldırıldı');
+        }
+      });
+    }
+
+    if (playButton && particlesJs) {
+      playButton.addEventListener('click', function () {
+        particlesJs.style.backgroundImage = '';
+      });
+    }
+
+    const moddingSpace = document.querySelector('#moddingspace');
+    if (moddingSpace && particlesJs) {
+      moddingSpace.addEventListener('click', function () {
+        particlesJs.style.backgroundImage = '';
+      });
+    }
+
+    document.addEventListener('restoreBackground', function () {
+      const savedBackground = localStorage.getItem('customBackground');
+      if (savedBackground && particlesJs) {
+        particlesJs.style.backgroundImage = 'url("' + savedBackground + '")';
+      } else if (particlesJs) {
+        particlesJs.style.backgroundImage = '';
+      }
+    });
+  }
+
+  // === 8. Initialize Panel After DOM Load ===
+  function initializePanel() {
+    // Wait for original elements to be available
+    const checkElements = setInterval(() => {
+      const fovCheckbox = document.getElementById('fovCheckbox');
+      const timerCheckbox = document.getElementById('timerCheckbox');
+      const lowercaseCheckbox = document.getElementById('lowercaseCheckbox');
+      
+      if (fovCheckbox && timerCheckbox && lowercaseCheckbox) {
+        clearInterval(checkElements);
+        setupPanel(fovCheckbox, timerCheckbox, lowercaseCheckbox);
+      }
+    }, 100);
+  }
+
+  function setupPanel(fovCheckbox, timerCheckbox, lowercaseCheckbox) {
     // Settings object
     const settings = {
-      fov: { enabled: fovCheckbox.checked, value: window.fovdegeri || 45 },
+      fov: { 
+        enabled: localStorage.getItem('fovCheckboxState') === 'true', 
+        value: fovdegeri 
+      },
       emotes: parseInt(localStorage.getItem('emoteCapacity')) || 3,
-      radar: radarSlider.checked,
+      radar: radaryakinlastirmasi == 1,
       crystal: localStorage.getItem('crystal-color') || '#ffffff',
-      lowercase: lowercaseCheckbox.checked,
-      timer: timerCheckbox.checked,
+      lowercase: localStorage.getItem('lowercaseEnabled') === 'true',
+      timer: localStorage.getItem('timerCheckboxChecked') === 'true',
       panelCollapsed: localStorage.getItem('panelCollapsed') === 'true'
     };
 
@@ -322,6 +534,11 @@
       fovDisplay: document.getElementById('fov-value')
     };
 
+    // Initialize original checkboxes
+    fovCheckbox.checked = settings.fov.enabled;
+    timerCheckbox.checked = settings.timer;
+    lowercaseCheckbox.checked = settings.lowercase;
+
     // Initialize UI state
     function initUI() {
       el.fovToggle.classList.toggle('active', settings.fov.enabled);
@@ -339,6 +556,16 @@
       }
       
       el.panel.classList.add('battle-mode');
+
+      // Apply lowercase setting
+      const playerInput = document.querySelector('#player input');
+      if (playerInput) {
+        if (settings.lowercase) {
+          playerInput.classList.add('lowercase');
+        } else {
+          playerInput.classList.remove('lowercase');
+        }
+      }
     }
 
     // Event handlers
@@ -352,9 +579,8 @@
     el.fovToggle.addEventListener('click', () => {
       settings.fov.enabled = !settings.fov.enabled;
       el.fovToggle.classList.toggle('active', settings.fov.enabled);
-      // Trigger original checkbox
       fovCheckbox.checked = settings.fov.enabled;
-      fovCheckbox.dispatchEvent(new Event('change'));
+      localStorage.setItem('fovCheckboxState', settings.fov.enabled);
     });
 
     el.emoteSlider.addEventListener('input', function () {
@@ -362,8 +588,6 @@
       el.emoteValue.textContent = this.value;
       localStorage.setItem('emoteCapacity', this.value);
       
-      // Try to find and update emote capacity in the game
-      // This might need adjustment based on how emotes are handled in your game
       if (window.game && window.game.emoteCapacity !== undefined) {
         window.game.emoteCapacity = settings.emotes;
       }
@@ -375,39 +599,91 @@
     el.radarToggle.addEventListener('click', () => {
       settings.radar = !settings.radar;
       el.radarToggle.classList.toggle('active', settings.radar);
-      // Trigger original slider
-      radarSlider.checked = settings.radar;
-      radarSlider.dispatchEvent(new Event('change'));
+      const radarValue = settings.radar ? 1 : 4;
+      localStorage.setItem('radar_yknlg', radarValue);
+      radaryakinlastirmasi = radarValue;
+      location.reload();
     });
 
     el.crystalColorUI.addEventListener('change', function () {
       settings.crystal = this.value;
-      // Update the original crystal color picker
-      if (crystalColorOriginal) {
-        crystalColorOriginal.value = this.value;
-        crystalColorOriginal.dispatchEvent(new Event('change'));
-      }
-      // Also set localStorage directly since that's what the original script uses
       localStorage.setItem('crystal-color', this.value);
     });
 
     el.lowercaseToggle.addEventListener('click', () => {
       settings.lowercase = !settings.lowercase;
       el.lowercaseToggle.classList.toggle('active', settings.lowercase);
-      // Trigger original checkbox
       lowercaseCheckbox.checked = settings.lowercase;
-      lowercaseCheckbox.dispatchEvent(new Event('change'));
+      localStorage.setItem('lowercaseEnabled', settings.lowercase);
+      
+      const playerInput = document.querySelector('#player input');
+      if (playerInput) {
+        if (settings.lowercase) {
+          playerInput.classList.add('lowercase');
+        } else {
+          playerInput.classList.remove('lowercase');
+        }
+      }
     });
 
     el.timerToggle.addEventListener('click', () => {
       settings.timer = !settings.timer;
       el.timerToggle.classList.toggle('active', settings.timer);
-      // Trigger original checkbox
       timerCheckbox.checked = settings.timer;
-      timerCheckbox.dispatchEvent(new Event('change'));
+      localStorage.setItem('timerCheckboxChecked', settings.timer);
+      
+      const herseyburada = document.getElementById('herseyburada');
+      if (herseyburada) {
+        if (settings.timer) {
+          herseyburada.style.display = 'inline-block';
+        } else {
+          herseyburada.style.display = 'none';
+        }
+      }
     });
 
-    // Monitor FOV changes from the original script
+    // FOV wheel event with proper passive handling
+    document.addEventListener('wheel', function (e) {
+      if (!settings.fov.enabled) return;
+      
+      // Prevent default only if we can
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      
+      if (e.deltaY < 0) {
+        fovdegeri -= 1;
+      } else {
+        fovdegeri += 1;
+      }
+      
+      fovdegeri = Math.max(10, Math.min(fovdegeri, 190));
+      
+      if (window.lOOI1) {
+        window.lOOI1.fov = fovdegeri;
+      }
+      
+      settings.fov.value = fovdegeri;
+      window.fovdegeri = fovdegeri;
+      showFov(fovdegeri);
+    }, { passive: false });
+
+    // FOV F11 key event
+    document.addEventListener('keydown', function (e) {
+      if (!settings.fov.enabled) return;
+      
+      if (e.key === 'F11') {
+        fovdegeri = 45;
+        if (window.lOOI1) {
+          window.lOOI1.fov = fovdegeri;
+        }
+        settings.fov.value = fovdegeri;
+        window.fovdegeri = fovdegeri;
+        showFov(fovdegeri);
+      }
+    });
+
+    // Monitor FOV changes
     function updateFOVDisplay() {
       if (window.fovdegeri !== undefined && window.fovdegeri !== settings.fov.value) {
         settings.fov.value = window.fovdegeri;
@@ -415,43 +691,110 @@
       }
     }
 
-    // Monitor changes from original checkboxes
-    function syncWithOriginal() {
-      if (fovCheckbox.checked !== settings.fov.enabled) {
-        settings.fov.enabled = fovCheckbox.checked;
-        el.fovToggle.classList.toggle('active', settings.fov.enabled);
-      }
-      
-      if (timerCheckbox.checked !== settings.timer) {
-        settings.timer = timerCheckbox.checked;
-        el.timerToggle.classList.toggle('active', settings.timer);
-      }
-      
-      if (lowercaseCheckbox.checked !== settings.lowercase) {
-        settings.lowercase = lowercaseCheckbox.checked;
-        el.lowercaseToggle.classList.toggle('active', settings.lowercase);
-      }
-      
-      if (radarSlider.checked !== settings.radar) {
-        settings.radar = radarSlider.checked;
-        el.radarToggle.classList.toggle('active', settings.radar);
-      }
-      
-      updateFOVDisplay();
-    }
-
     // Initialize and start monitoring
     initUI();
-    setInterval(syncWithOriginal, 500);
     setInterval(updateFOVDisplay, 100);
 
     // Make available globally
     window.modSettings = settings;
     window.controlPanelElements = el;
+    window.fovdegeri = fovdegeri;
     
     console.log('%c[s] Control Panel Loaded & Synced', 'color:#6366f1');
   }
 
-  // Start initialization
-  waitForElements();
+  // === 9. Menu Functions ===
+  function initializeMenus() {
+    // Alt+A menu toggle
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey && e.key === 'a') {
+        const gizliMenu = document.getElementById('gizlimenu');
+        if (gizliMenu) {
+          if (gizliMenu.style.display === 'none' || gizliMenu.style.display === '') {
+            gizliMenu.style.display = 'block';
+          } else {
+            gizliMenu.style.display = 'none';
+          }
+        }
+      }
+    });
+
+    // Mod edit link
+    const modEdtLink = document.getElementById('modEdtLink');
+    if (modEdtLink) {
+      modEdtLink.addEventListener('click', function () {
+        const gizliMenu = document.getElementById('gizlimenu');
+        if (gizliMenu) {
+          if (gizliMenu.style.display === 'none' || gizliMenu.style.display === '') {
+            gizliMenu.style.display = 'block';
+          } else {
+            gizliMenu.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Close menu
+    const closeMenu = document.getElementById('closeMenu');
+    if (closeMenu) {
+      closeMenu.addEventListener('click', function () {
+        const gizliMenu = document.getElementById('gizlimenu');
+        if (gizliMenu) {
+          gizliMenu.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  // === 10. Play Button Timer Handler ===
+  function initializePlayButton() {
+    const playButton = document.getElementById('play');
+    if (playButton) {
+      playButton.addEventListener('click', function () {
+        const timerCheckbox = document.getElementById('timerCheckbox');
+        if (timerCheckbox && timerCheckbox.checked) {
+          const herseyburada = document.getElementById('herseyburada');
+          if (herseyburada) {
+            if (herseyburada.style.display === 'none' || herseyburada.style.display === '') {
+              herseyburada.style.display = 'inline-block';
+            } else {
+              herseyburada.style.display = 'none';
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // === 11. Main Initialization ===
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        findCrystalObject();
+        initializeTimer();
+        initializeBackground();
+        initializeMenus();
+        initializePlayButton();
+        initializePanel();
+      }, 100);
+    });
+  } else {
+    setTimeout(() => {
+      findCrystalObject();
+      initializeTimer();
+      initializeBackground();
+      initializeMenus();
+      initializePlayButton();
+      initializePanel();
+    }, 100);
+  }
+
+  // === 12. Window Load Handler for Radar ===
+  window.addEventListener('load', function () {
+    const radarEnabled = radaryakinlastirmasi == 1;
+    const sSlider = document.querySelector('.s-slider');
+    if (sSlider) {
+      sSlider.checked = radarEnabled;
+    }
+  });
 })();
