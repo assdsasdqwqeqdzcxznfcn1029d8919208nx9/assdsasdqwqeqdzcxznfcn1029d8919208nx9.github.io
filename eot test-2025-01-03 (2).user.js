@@ -1,34 +1,33 @@
-  // === Clear the existing page and load custom content ===
-  const targetURL = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/2.html';
+(function () {
+  if (window.location.pathname !== "/") return;
 
-  fetch(targetURL)
-    .then(res => res.text())
-    .then(html => {
-      // Remove everything except the current script
-      [...document.body.children].forEach(el => {
-        if (!el.matches('script')) el.remove();
-      });
-      document.head.innerHTML = ''; // clear head content
+  const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/2.html?_=' + Date.now();
 
-      // Inject the fetched HTML
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
 
-      // Inject <head> content (like CSS or meta tags)
-      [...doc.head.children].forEach(child => {
-        document.head.appendChild(child.cloneNode(true));
-      });
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      const html = xhr.responseText;
 
-      // Inject <body> content
-      [...doc.body.children].forEach(child => {
-        document.body.appendChild(child.cloneNode(true));
-      });
+      // Overwrite the page with the custom HTML
+      document.open();
+      document.write(html);
+      document.close();
 
-      console.log('%c[+] Custom Starblast page loaded', 'color: #22c55e');
-    })
-    .catch(err => {
-      console.error('Failed to load custom Starblast page:', err);
-    });
+      // Dispatch DOMContentLoaded manually after a short delay
+      setTimeout(() => {
+        const event = new Event("DOMContentLoaded", {
+          bubbles: true,
+          cancelable: true
+        });
+        document.dispatchEvent(event);
+      }, 50); // Adjust delay if needed
+    }
+  };
+
+  xhr.send();
+})();
 
 
 
