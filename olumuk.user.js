@@ -220,6 +220,11 @@
       font-size: 11px;
       font-weight: 600;
     }
+
+    /* Lowercase CSS class */
+    .lowercase {
+      text-transform: lowercase !important;
+    }
   `;
   document.head.appendChild(style);
 
@@ -251,7 +256,11 @@
         </div>
         <div class="control-row">
           <span class="control-label">Crystal Color</span>
-          <input type="color" class="color-picker" id="crystal-color" value="#ffffff">
+          <input type="color" class="color-picker" id="crystal-color-ui" value="#ffffff">
+        </div>
+        <div class="control-row">
+          <span class="control-label">Lowercase Names</span>
+          <div class="toggle-switch" id="lowercase-toggle"></div>
         </div>
         <div class="control-row">
           <span class="control-label">Timer</span>
@@ -263,268 +272,186 @@
         </div>
       </div>
     </div>
-    <div id="fov-overlay" style="display:none;
-      position:fixed;
-      top:50%;
-      left:50%;
-      transform:translate(-50%, -50%);
-      background:rgba(0,0,0,0.9);
-      color:#fff;
-      padding:12px 20px;
-      border-radius:8px;
-      font-size:16px;
-      font-weight:600;
-      z-index:1001;
-      border: 1px solid rgba(255, 255, 255, 0.8);">FOV: 45°</div>
   `;
   const wrapper = document.createElement('div');
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-  // === 3. Get references to existing elements and variables ===
-  const originalFovCheckbox = document.getElementById('fovCheckbox');
-  const originalTimerCheckbox = document.getElementById('timerCheckbox');
-  const originalCrystalColor = document.querySelector('#crystal-color');
-  const originalRadarSlider = document.querySelector('.s-slider');
-
-  // === 4. Settings Object - sync with existing values ===
-  let fovdegeri = window.fovdegeri || 45; // Reference to existing fov variable
-  
-  const settings = {
-    fov: { 
-      enabled: localStorage.getItem('fovCheckboxState') === 'true', 
-      value: fovdegeri 
-    },
-    emotes: parseInt(localStorage.getItem('emoteCapacity')) || 3,
-    radar: localStorage.getItem('radar_yknlg') === '1',
-    crystal: localStorage.getItem('crystal-color') || '#ffffff',
-    timer: localStorage.getItem('timerCheckboxChecked') === 'true',
-    panelCollapsed: localStorage.getItem('panelCollapsed') === 'true'
-  };
-
-  // === 5. DOM References ===
-  const el = {
-    panel: document.getElementById('control-panel'),
-    header: document.getElementById('panel-header'),
-    content: document.getElementById('panel-content'),
-    collapseIcon: document.querySelector('.collapse-icon'),
-    fovToggle: document.getElementById('fov-toggle'),
-    emoteSlider: document.getElementById('emote-slider'),
-    emoteValue: document.getElementById('emote-value'),
-    radarToggle: document.getElementById('radar-toggle'),
-    crystalColor: document.getElementById('crystal-color'),
-    timerToggle: document.getElementById('timer-toggle'),
-    fovDisplay: document.getElementById('fov-value'),
-    fovOverlay: document.getElementById('fov-overlay')
-  };
-
-  // === 6. Init UI ===
-  function initPanel() {
-    el.fovToggle.classList.toggle('active', settings.fov.enabled);
-    el.emoteSlider.value = settings.emotes;
-    el.emoteValue.textContent = settings.emotes;
-    el.radarToggle.classList.toggle('active', settings.radar);
-    el.crystalColor.value = settings.crystal;
-    el.timerToggle.classList.toggle('active', settings.timer);
-    el.fovDisplay.textContent = settings.fov.value + '°';
+  // === 3. Wait for original elements to be available ===
+  function waitForElements() {
+    const fovCheckbox = document.getElementById('fovCheckbox');
+    const timerCheckbox = document.getElementById('timerCheckbox');
+    const lowercaseCheckbox = document.getElementById('lowercaseCheckbox');
+    const radarSlider = document.querySelector('.s-slider');
+    const crystalColorOriginal = document.querySelector('#crystal-color');
     
-    if (settings.panelCollapsed) {
-      el.content.classList.add('collapsed');
-      el.collapseIcon.classList.add('collapsed');
+    if (!fovCheckbox || !timerCheckbox || !lowercaseCheckbox || !radarSlider) {
+      setTimeout(waitForElements, 100);
+      return;
     }
     
-    el.panel.classList.add('battle-mode');
+    initializePanel(fovCheckbox, timerCheckbox, lowercaseCheckbox, radarSlider, crystalColorOriginal);
   }
 
-  // === 7. Event Bindings ===
-  el.header.addEventListener('click', () => {
-    const isCollapsed = el.content.classList.toggle('collapsed');
-    el.collapseIcon.classList.toggle('collapsed', isCollapsed);
-    settings.panelCollapsed = isCollapsed;
-    localStorage.setItem('panelCollapsed', isCollapsed);
-  });
+  // === 4. Initialize Panel ===
+  function initializePanel(fovCheckbox, timerCheckbox, lowercaseCheckbox, radarSlider, crystalColorOriginal) {
+    // Settings object
+    const settings = {
+      fov: { enabled: fovCheckbox.checked, value: window.fovdegeri || 45 },
+      emotes: parseInt(localStorage.getItem('emoteCapacity')) || 3,
+      radar: radarSlider.checked,
+      crystal: localStorage.getItem('crystal-color') || '#ffffff',
+      lowercase: lowercaseCheckbox.checked,
+      timer: timerCheckbox.checked,
+      panelCollapsed: localStorage.getItem('panelCollapsed') === 'true'
+    };
 
-  el.fovToggle.addEventListener('click', () => {
-    settings.fov.enabled = !settings.fov.enabled;
-    el.fovToggle.classList.toggle('active', settings.fov.enabled);
-    localStorage.setItem('fovCheckboxState', settings.fov.enabled);
-    
-    // Sync with original checkbox if it exists
-    if (originalFovCheckbox) {
-      originalFovCheckbox.checked = settings.fov.enabled;
-    }
-  });
+    // DOM References
+    const el = {
+      panel: document.getElementById('control-panel'),
+      header: document.getElementById('panel-header'),
+      content: document.getElementById('panel-content'),
+      collapseIcon: document.querySelector('.collapse-icon'),
+      fovToggle: document.getElementById('fov-toggle'),
+      emoteSlider: document.getElementById('emote-slider'),
+      emoteValue: document.getElementById('emote-value'),
+      radarToggle: document.getElementById('radar-toggle'),
+      crystalColorUI: document.getElementById('crystal-color-ui'),
+      lowercaseToggle: document.getElementById('lowercase-toggle'),
+      timerToggle: document.getElementById('timer-toggle'),
+      fovDisplay: document.getElementById('fov-value')
+    };
 
-  el.emoteSlider.addEventListener('input', function () {
-    settings.emotes = parseInt(this.value);
-    el.emoteValue.textContent = this.value;
-    localStorage.setItem('emoteCapacity', this.value);
-    
-    // Apply emote capacity change immediately
-    if (window.emoteCapacity !== undefined) {
-      window.emoteCapacity = settings.emotes;
-    }
-    
-    // Trigger any existing emote capacity handlers
-    const event = new CustomEvent('emoteCapacityChanged', { detail: settings.emotes });
-    document.dispatchEvent(event);
-  });
-
-  el.radarToggle.addEventListener('click', () => {
-    settings.radar = !settings.radar;
-    el.radarToggle.classList.toggle('active', settings.radar);
-    localStorage.setItem('radar_yknlg', settings.radar ? '1' : '4');
-    window.radaryakinlastirmasi = settings.radar ? 1 : 4;
-    
-    // Sync with original slider if it exists
-    if (originalRadarSlider) {
-      originalRadarSlider.checked = settings.radar;
-    }
-  });
-
-  el.crystalColor.addEventListener('change', function () {
-    settings.crystal = this.value;
-    localStorage.setItem('crystal-color', this.value);
-    
-    // Sync with original color picker if it exists
-    if (originalCrystalColor) {
-      originalCrystalColor.value = this.value;
-    }
-    
-    // Trigger crystal color change event
-    const event = new CustomEvent('crystalColorChanged', { detail: this.value });
-    document.dispatchEvent(event);
-  });
-
-  el.timerToggle.addEventListener('click', () => {
-    settings.timer = !settings.timer;
-    el.timerToggle.classList.toggle('active', settings.timer);
-    localStorage.setItem('timerCheckboxChecked', settings.timer);
-    
-    // Sync with original checkbox if it exists
-    if (originalTimerCheckbox) {
-      originalTimerCheckbox.checked = settings.timer;
-    }
-  });
-
-  // === 8. Enhanced FOV handling ===
-  let fovTimeout;
-  
-  // Override the existing wheel event for FOV
-  document.addEventListener('wheel', function (e) {
-    if (!settings.fov.enabled) return;
-    
-    // Prevent default behavior
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Update FOV value
-    if (e.deltaY < 0) {
-      fovdegeri = Math.max(10, fovdegeri - 1);
-    } else {
-      fovdegeri = Math.min(190, fovdegeri + 1);
-    }
-    
-    // Update global variable
-    window.fovdegeri = fovdegeri;
-    settings.fov.value = fovdegeri;
-
-    // Update camera if lOOI1 exists
-    if (window.lOOI1 && window.lOOI1.fov !== undefined) {
-      window.lOOI1.fov = fovdegeri;
-    }
-
-    // Update UI
-    el.fovDisplay.textContent = fovdegeri + '°';
-    el.fovOverlay.textContent = `FOV: ${fovdegeri}°`;
-    el.fovOverlay.style.display = 'block';
-
-    // Call original showFov function if it exists
-    if (typeof window.showFov === 'function') {
-      window.showFov(fovdegeri);
-    }
-
-    clearTimeout(fovTimeout);
-    fovTimeout = setTimeout(() => {
-      el.fovOverlay.style.display = 'none';
-    }, 2000);
-  }, { capture: true });
-
-  // Enhanced F11 key handling for FOV reset
-  document.addEventListener('keydown', function (e) {
-    if (!settings.fov.enabled || e.key !== 'F11') return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    fovdegeri = 45;
-    window.fovdegeri = fovdegeri;
-    settings.fov.value = fovdegeri;
-    
-    // Update camera if lOOI1 exists
-    if (window.lOOI1 && window.lOOI1.fov !== undefined) {
-      window.lOOI1.fov = fovdegeri;
-    }
-    
-    el.fovDisplay.textContent = '45°';
-    el.fovOverlay.textContent = 'FOV: 45°';
-    el.fovOverlay.style.display = 'block';
-
-    // Call original showFov function if it exists
-    if (typeof window.showFov === 'function') {
-      window.showFov(fovdegeri);
-    }
-
-    clearTimeout(fovTimeout);
-    fovTimeout = setTimeout(() => {
-      el.fovOverlay.style.display = 'none';
-    }, 2000);
-  }, { capture: true });
-
-  // === 9. Sync with existing crystal color system ===
-  // Wait for CrystalObject to be available and enhance it
-  function initCrystalColorSystem() {
-    if (window.CrystalObject) {
-      // The crystal color system should already be working from the base script
-      // Just make sure our color picker syncs properly
-      const currentColor = localStorage.getItem('crystal-color');
-      if (currentColor) {
-        el.crystalColor.value = currentColor;
+    // Initialize UI state
+    function initUI() {
+      el.fovToggle.classList.toggle('active', settings.fov.enabled);
+      el.emoteSlider.value = settings.emotes;
+      el.emoteValue.textContent = settings.emotes;
+      el.radarToggle.classList.toggle('active', settings.radar);
+      el.crystalColorUI.value = settings.crystal;
+      el.lowercaseToggle.classList.toggle('active', settings.lowercase);
+      el.timerToggle.classList.toggle('active', settings.timer);
+      el.fovDisplay.textContent = settings.fov.value + '°';
+      
+      if (settings.panelCollapsed) {
+        el.content.classList.add('collapsed');
+        el.collapseIcon.classList.add('collapsed');
       }
-    } else {
-      // Retry if CrystalObject isn't available yet
-      setTimeout(initCrystalColorSystem, 100);
+      
+      el.panel.classList.add('battle-mode');
     }
-  }
 
-  // === 10. Monitor for changes in global variables ===
-  function syncWithGlobals() {
-    // Sync FOV value
-    if (window.fovdegeri !== undefined && window.fovdegeri !== settings.fov.value) {
-      settings.fov.value = window.fovdegeri;
-      el.fovDisplay.textContent = window.fovdegeri + '°';
-    }
-    
-    // Sync radar setting
-    if (window.radaryakinlastirmasi !== undefined) {
-      const radarEnabled = window.radaryakinlastirmasi === 1;
-      if (radarEnabled !== settings.radar) {
-        settings.radar = radarEnabled;
-        el.radarToggle.classList.toggle('active', radarEnabled);
+    // Event handlers
+    el.header.addEventListener('click', () => {
+      const isCollapsed = el.content.classList.toggle('collapsed');
+      el.collapseIcon.classList.toggle('collapsed', isCollapsed);
+      settings.panelCollapsed = isCollapsed;
+      localStorage.setItem('panelCollapsed', isCollapsed);
+    });
+
+    el.fovToggle.addEventListener('click', () => {
+      settings.fov.enabled = !settings.fov.enabled;
+      el.fovToggle.classList.toggle('active', settings.fov.enabled);
+      // Trigger original checkbox
+      fovCheckbox.checked = settings.fov.enabled;
+      fovCheckbox.dispatchEvent(new Event('change'));
+    });
+
+    el.emoteSlider.addEventListener('input', function () {
+      settings.emotes = parseInt(this.value);
+      el.emoteValue.textContent = this.value;
+      localStorage.setItem('emoteCapacity', this.value);
+      
+      // Try to find and update emote capacity in the game
+      // This might need adjustment based on how emotes are handled in your game
+      if (window.game && window.game.emoteCapacity !== undefined) {
+        window.game.emoteCapacity = settings.emotes;
+      }
+      if (window.emoteCapacity !== undefined) {
+        window.emoteCapacity = settings.emotes;
+      }
+    });
+
+    el.radarToggle.addEventListener('click', () => {
+      settings.radar = !settings.radar;
+      el.radarToggle.classList.toggle('active', settings.radar);
+      // Trigger original slider
+      radarSlider.checked = settings.radar;
+      radarSlider.dispatchEvent(new Event('change'));
+    });
+
+    el.crystalColorUI.addEventListener('change', function () {
+      settings.crystal = this.value;
+      // Update the original crystal color picker
+      if (crystalColorOriginal) {
+        crystalColorOriginal.value = this.value;
+        crystalColorOriginal.dispatchEvent(new Event('change'));
+      }
+      // Also set localStorage directly since that's what the original script uses
+      localStorage.setItem('crystal-color', this.value);
+    });
+
+    el.lowercaseToggle.addEventListener('click', () => {
+      settings.lowercase = !settings.lowercase;
+      el.lowercaseToggle.classList.toggle('active', settings.lowercase);
+      // Trigger original checkbox
+      lowercaseCheckbox.checked = settings.lowercase;
+      lowercaseCheckbox.dispatchEvent(new Event('change'));
+    });
+
+    el.timerToggle.addEventListener('click', () => {
+      settings.timer = !settings.timer;
+      el.timerToggle.classList.toggle('active', settings.timer);
+      // Trigger original checkbox
+      timerCheckbox.checked = settings.timer;
+      timerCheckbox.dispatchEvent(new Event('change'));
+    });
+
+    // Monitor FOV changes from the original script
+    function updateFOVDisplay() {
+      if (window.fovdegeri !== undefined && window.fovdegeri !== settings.fov.value) {
+        settings.fov.value = window.fovdegeri;
+        el.fovDisplay.textContent = window.fovdegeri + '°';
       }
     }
+
+    // Monitor changes from original checkboxes
+    function syncWithOriginal() {
+      if (fovCheckbox.checked !== settings.fov.enabled) {
+        settings.fov.enabled = fovCheckbox.checked;
+        el.fovToggle.classList.toggle('active', settings.fov.enabled);
+      }
+      
+      if (timerCheckbox.checked !== settings.timer) {
+        settings.timer = timerCheckbox.checked;
+        el.timerToggle.classList.toggle('active', settings.timer);
+      }
+      
+      if (lowercaseCheckbox.checked !== settings.lowercase) {
+        settings.lowercase = lowercaseCheckbox.checked;
+        el.lowercaseToggle.classList.toggle('active', settings.lowercase);
+      }
+      
+      if (radarSlider.checked !== settings.radar) {
+        settings.radar = radarSlider.checked;
+        el.radarToggle.classList.toggle('active', settings.radar);
+      }
+      
+      updateFOVDisplay();
+    }
+
+    // Initialize and start monitoring
+    initUI();
+    setInterval(syncWithOriginal, 500);
+    setInterval(updateFOVDisplay, 100);
+
+    // Make available globally
+    window.modSettings = settings;
+    window.controlPanelElements = el;
+    
+    console.log('%c[s] Control Panel Loaded & Synced', 'color:#6366f1');
   }
 
-  // === 11. Initialize everything ===
-  initPanel();
-  initCrystalColorSystem();
-  
-  // Sync with globals periodically
-  setInterval(syncWithGlobals, 1000);
-  
-  // Make settings available globally for debugging
-  window.modSettings = settings;
-  window.controlPanelElements = el;
-  
-  console.log('%c[s] Enhanced Control Panel Loaded', 'color:#6366f1');
+  // Start initialization
+  waitForElements();
 })();
