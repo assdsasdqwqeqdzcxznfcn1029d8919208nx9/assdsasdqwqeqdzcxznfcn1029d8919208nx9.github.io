@@ -36,19 +36,44 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+
     .header-title {
       opacity: 0.9;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 1);
+      margin-left: 8px;
+      box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
     }
 
     .collapse-icon {
       font-size: 10px;
       color: rgba(255, 255, 255, 0.6);
+      transition: transform 0.2s ease;
+    }
+
+    .collapse-icon.collapsed {
+      transform: rotate(-90deg);
     }
 
     #panel-content {
+      max-height: 300px;
       padding: 12px 14px;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       overflow: hidden;
+    }
+
+    #panel-content.collapsed {
+      max-height: 0;
+      padding: 0 14px;
     }
 
     .control-row {
@@ -113,8 +138,8 @@
     .slider-value {
       font-weight: 500;
       color: rgba(99, 102, 241, 1);
-      font-size: 11px;
-      min-width: 20px;
+      font-size: 10px;
+      min-width: 15px;
       text-align: right;
     }
 
@@ -174,13 +199,20 @@
       font-weight: 500;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(34, 197, 94, 1);
-      margin-left: 6px;
-      box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+    /* Battle-ready optimizations */
+    .battle-mode .control-label {
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .battle-mode .slider-value {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .battle-mode .fov-value {
+      font-size: 11px;
+      font-weight: 600;
     }
   `;
   document.head.appendChild(style);
@@ -189,36 +221,38 @@
   const panelHTML = `
     <div id="control-panel">
       <div id="panel-header">
-        <span class="header-title">MODS</span>
+        <div class="header-left">
+          <span class="header-title">xd</span>
+          <div class="status-dot"></div>
+        </div>
         <span class="collapse-icon">▼</span>
-        <div class="status-dot"></div>
       </div>
       <div id="panel-content">
         <div class="control-row">
-          <span class="control-label">FOV</span>
+          <span class="control-label">Field of View</span>
           <div class="toggle-switch" id="fov-toggle"></div>
         </div>
         <div class="slider-container">
           <div class="slider-row">
-            <span class="control-label">Emotes</span>
+            <span class="control-label">Emote Slots</span>
             <span class="slider-value" id="emote-value">3</span>
           </div>
           <input type="range" min="1" max="5" value="3" class="control-slider" id="emote-slider">
         </div>
         <div class="control-row">
-          <span class="control-label">Radar+</span>
+          <span class="control-label">Enhanced Radar</span>
           <div class="toggle-switch" id="radar-toggle"></div>
         </div>
         <div class="control-row">
-          <span class="control-label">Crystal</span>
+          <span class="control-label">Crystal Color</span>
           <input type="color" class="color-picker" id="crystal-color" value="#ffffff">
         </div>
         <div class="control-row">
-          <span class="control-label">Timer</span>
+          <span class="control-label">Battle Timer</span>
           <div class="toggle-switch" id="timer-toggle"></div>
         </div>
         <div id="fov-display">
-          <span>FOV</span>
+          <span>Current FOV</span>
           <span class="fov-value" id="fov-value">45°</span>
         </div>
       </div>
@@ -228,13 +262,14 @@
       top:50%;
       left:50%;
       transform:translate(-50%, -50%);
-      background:rgba(0,0,0,0.8);
+      background:rgba(0,0,0,0.9);
       color:#fff;
       padding:12px 20px;
-      border-radius:6px;
-      font-size:14px;
-      font-weight:500;
-      z-index:1001;">FOV: 45°</div>
+      border-radius:8px;
+      font-size:16px;
+      font-weight:600;
+      z-index:1001;
+      border: 1px solid rgba(99, 102, 241, 0.3);">FOV: 45°</div>
   `;
   const wrapper = document.createElement('div');
   wrapper.innerHTML = panelHTML;
@@ -252,8 +287,10 @@
 
   // === 4. DOM References ===
   const el = {
+    panel: document.getElementById('control-panel'),
     header: document.getElementById('panel-header'),
     content: document.getElementById('panel-content'),
+    collapseIcon: document.querySelector('.collapse-icon'),
     fovToggle: document.getElementById('fov-toggle'),
     emoteSlider: document.getElementById('emote-slider'),
     emoteValue: document.getElementById('emote-value'),
@@ -272,13 +309,24 @@
     el.radarToggle.classList.toggle('active', settings.radar);
     el.crystalColor.value = settings.crystal;
     el.timerToggle.classList.toggle('active', settings.timer);
-    if (settings.panelCollapsed) el.content.classList.add('collapsed');
+    el.fovDisplay.textContent = settings.fov.value + '°';
+    
+    // Set initial collapsed state
+    if (settings.panelCollapsed) {
+      el.content.classList.add('collapsed');
+      el.collapseIcon.classList.add('collapsed');
+    }
+    
+    // Add battle mode class for better readability
+    el.panel.classList.add('battle-mode');
   }
 
   // === 6. Event Bindings ===
   el.header.addEventListener('click', () => {
-    const collapsed = el.content.classList.toggle('collapsed');
-    localStorage.setItem('panelCollapsed', collapsed);
+    const isCollapsed = el.content.classList.toggle('collapsed');
+    el.collapseIcon.classList.toggle('collapsed', isCollapsed);
+    settings.panelCollapsed = isCollapsed;
+    localStorage.setItem('panelCollapsed', isCollapsed);
   });
 
   el.fovToggle.addEventListener('click', () => {
@@ -346,5 +394,5 @@
   // === 8. Initialize ===
   initPanel();
   window.modSettings = settings; // for game integration
-  console.log('%c[MODS] Control Panel Loaded', 'color:#6366f1');
+  console.log('%c[BATTLE MODS] Control Panel Loaded', 'color:#6366f1');
 })();
