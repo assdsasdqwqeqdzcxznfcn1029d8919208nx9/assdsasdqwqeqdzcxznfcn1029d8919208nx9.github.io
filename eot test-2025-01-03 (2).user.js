@@ -102,7 +102,7 @@
     }
 
     .toggle-switch.active {
-      background: rgba(99, 102, 241, 0.8);
+      background: rgba(255, 255, 255, 0.8);
       border-color: rgba(99, 102, 241, 0.3);
     }
 
@@ -137,7 +137,7 @@
 
     .slider-value {
       font-weight: 500;
-      color: rgba(99, 102, 241, 1);
+      color: rgba(255, 255, 255, 0.8);
       font-size: 10px;
       min-width: 15px;
       text-align: right;
@@ -163,16 +163,16 @@
       appearance: none;
       width: 14px;
       height: 14px;
-      background: rgba(99, 102, 241, 1);
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 1px 4px rgba(255, 255, 255, 0.8);
       transition: all 0.1s ease;
     }
 
     .control-slider::-webkit-slider-thumb:hover {
       transform: scale(1.1);
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 2px 8px rrgba(255, 255, 255, 0.8);
     }
 
     .color-picker {
@@ -201,7 +201,7 @@
     }
 
     .fov-value {
-      color: rgba(99, 102, 241, 1);
+      color: rgba(255, 255, 255, 0.8);
       font-weight: 500;
     }
 
