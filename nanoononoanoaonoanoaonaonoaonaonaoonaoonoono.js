@@ -297,54 +297,112 @@ if (window.modSettings && window.modSettings.emoteCapacity) {
   localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
 }
 
-// FIXED Crystal Color Handler
+// FIXED Crystal Color Handler - Replace the existing crystal color section with this
 setTimeout(() => {
   console.log('[Crystal Color] Applying crystal color handler...');
   
   let CrystalObject;
-  // FIXED: Look for getModelInstance instead of createModel
+  
+  // Use the more reliable detection method from the first script
   for (let key in window) {
     try {
       const val = window[key];
-      if (val && val.prototype && typeof val.prototype.getModelInstance === 'function') {
-        // Additional check to ensure it's crystal-related
-        const protoString = val.prototype.getModelInstance.toString();
-        if (protoString.includes('THREE.Mesh') || protoString.includes('material')) {
-          CrystalObject = val;
-          console.log('[Crystal Color] Found crystal object:', key);
-          break;
-        }
+      if (typeof val?.prototype?.createModel === 'function' &&
+          val.prototype.createModel.toString().includes('Crystal')) {
+        CrystalObject = val;
+        console.log('[Crystal Color] Found crystal object via createModel:', key);
+        break;
       }
     } catch (e) {}
   }
+  
+  // Fallback: try the getModelInstance method
+  if (!CrystalObject) {
+    for (let key in window) {
+      try {
+        const val = window[key];
+        if (val && val.prototype && typeof val.prototype.getModelInstance === 'function') {
+          const protoString = val.prototype.getModelInstance.toString();
+          if (protoString.includes('THREE.Mesh') || protoString.includes('material') || protoString.includes('Crystal')) {
+            CrystalObject = val;
+            console.log('[Crystal Color] Found crystal object via getModelInstance:', key);
+            break;
+          }
+        }
+      } catch (e) {}
+    }
+  }
 
   if (CrystalObject) {
-    const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
-    
-    CrystalObject.prototype.getModelInstance = function(id) {
-      const mesh = originalGetModelInstance.call(this, id);
-      const color = window.modSettings.crystalColor || localStorage.getItem('crystal-color');
-      if (color && mesh && mesh.material && mesh.material.color) {
-        mesh.material.color.set(color);
-      }
-      return mesh;
-    };
+    // Use the more reliable patching method from the first script
+    if (CrystalObject.prototype.getModelInstance) {
+      const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
+      
+      CrystalObject.prototype.getModelInstance = function() {
+        const model = originalGetModelInstance.apply(this, arguments);
+        const color = window.modSettings.crystalColor || localStorage.getItem('crystal-color');
+        
+        // Apply color to the material
+        if (color && color !== '#ffffff' && this.material && this.material.color) {
+          this.material.color.set(color);
+        }
+        
+        return model;
+      };
+      
+      console.log('[Crystal Color] Successfully patched getModelInstance()');
+    } else if (CrystalObject.prototype.createModel) {
+      // Alternative patching if getModelInstance doesn't exist
+      const originalCreateModel = CrystalObject.prototype.createModel;
+      
+      CrystalObject.prototype.createModel = function() {
+        const result = originalCreateModel.apply(this, arguments);
+        const color = window.modSettings.crystalColor || localStorage.getItem('crystal-color');
+        
+        if (color && color !== '#ffffff' && this.material && this.material.color) {
+          this.material.color.set(color);
+        }
+        
+        return result;
+      };
+      
+      console.log('[Crystal Color] Successfully patched createModel()');
+    }
 
-    // Global crystal color updater
+    // Enhanced global crystal color updater
     window.updateCrystalColor = (color) => {
       localStorage.setItem('crystal-color', color);
       window.modSettings.crystalColor = color;
+      
+      // Try to update existing crystals immediately
+      try {
+        // Look for existing crystal instances and update them
+        for (let key in window) {
+          try {
+            const obj = window[key];
+            if (obj && obj.material && obj.material.color && 
+                (key.toLowerCase().includes('crystal') || 
+                 (obj.constructor && obj.constructor.name && obj.constructor.name.toLowerCase().includes('crystal')))) {
+              obj.material.color.set(color);
+            }
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('[Crystal Color] Could not update existing crystals:', e);
+      }
+      
       console.log('[Crystal Color] Updated to', color);
     };
 
-    console.log('[Crystal Color] Successfully patched getModelInstance() on', CrystalObject.name || 'CrystalObject');
+    console.log('[Crystal Color] Successfully set up crystal color system');
   } else {
-    console.warn('[Crystal Color] Crystal object not found');
-    // Fallback updater
+    console.warn('[Crystal Color] Crystal object not found, setting up fallback');
+    
+    // Fallback updater that still saves the setting
     window.updateCrystalColor = (color) => {
       localStorage.setItem('crystal-color', color);
       window.modSettings.crystalColor = color;
-      console.log('[Crystal Color] Color saved (no crystal object found)');
+      console.log('[Crystal Color] Color saved (crystal object not found, will apply when available)');
     };
   }
 }, 3000);
