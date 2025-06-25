@@ -1,39 +1,10 @@
-function () {
+(function () {
   // === 1. Initialize Global Variables ===
   let fovdegeri = 45;
   let radaryakinlastirmasi = localStorage.getItem('radar_yknlg') || 4;
   let CrystalObject;
 
-  // === 2. Emote Capacity Hook ===
-  function initializeEmoteCapacityHook() {
-    try {
-      // Find the global variable pattern from ChatPanel
-      let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-      
-      // Override the getEmotesCapacity method
-      ChatPanel.prototype.getEmotesCapacity = function () {
-        // First check localStorage for our custom setting
-        let customCapacity = localStorage.getItem('emoteCapacity');
-        if (customCapacity) {
-          let num = parseInt(customCapacity);
-          return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
-        }
-        
-        // Fallback to original behavior
-        let num = this[globalVal].settings.get("chat_emotes_capacity");
-        return (num == null || isNaN(num)) ? 4 : (Math.trunc(Math.min(Math.max(1, num), 5)) || 4);
-      };
-      
-      // Override the typed method to use our custom capacity
-      ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\s*4/, " >= this.getEmotesCapacity()"))();
-      
-      console.log('%c[s] Emote Capacity Hook Initialized', 'color:#10b981');
-    } catch (error) {
-      console.warn('[s] Emote Capacity Hook failed:', error);
-    }
-  }
-
-  // === 3. Inject CSS ===
+  // === 2. Inject CSS ===
   const style = document.createElement('style');
   style.textContent = `
     #control-panel {
@@ -262,7 +233,7 @@ function () {
   `;
   document.head.appendChild(style);
 
-  // === 4. Inject HTML Panel ===
+  // === 3. Inject HTML Panel ===
   const panelHTML = `
     <div id="control-panel">
       <div id="panel-header">
@@ -311,7 +282,7 @@ function () {
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-  // === 5. Initialize Crystal Object Detection ===
+  // === 4. Initialize Crystal Object Detection ===
   function findCrystalObject() {
     for (let i in window) {
       try {
@@ -343,7 +314,7 @@ function () {
     }
   }
 
-  // === 6. FOV Functions ===
+  // === 5. FOV Functions ===
   function showFov(value) {
     const fovDisplay = document.getElementById('fovDisplay');
     const panelFovDisplay = document.getElementById('fov-value');
@@ -361,7 +332,7 @@ function () {
     }
   }
 
-  // === 7. Timer Functions ===
+  // === 6. Timer Functions ===
   function initializeTimer() {
     const timeInfo = document.getElementById('timeInfo');
     if (!timeInfo) return;
@@ -464,7 +435,7 @@ function () {
     return { startTimer, stopTimer };
   }
 
-  // === 8. Background Functions ===
+  // === 7. Background Functions ===
   function initializeBackground() {
     const particlesJs = document.getElementById('particles-js');
     const backgroundLinkInput = document.getElementById('backgroundLinkInput');
@@ -517,33 +488,7 @@ function () {
     });
   }
 
-  // === 9. Emote Capacity Updater ===
-  function updateEmoteCapacity(newCapacity) {
-    // Store in localStorage
-    localStorage.setItem('emoteCapacity', newCapacity);
-    
-    // Try to update the ChatPanel if available
-    try {
-      if (window.game && window.game.chatPanel) {
-        // Trigger a refresh of the chat panel's emote capacity
-        if (typeof window.game.chatPanel.getEmotesCapacity === 'function') {
-          console.log(`%c[s] Emote capacity updated to: ${newCapacity}`, 'color:#10b981');
-        }
-      }
-    } catch (error) {
-      console.warn('[s] Could not update ChatPanel directly:', error);
-    }
-    
-    // Update other references
-    if (window.game && window.game.emoteCapacity !== undefined) {
-      window.game.emoteCapacity = newCapacity;
-    }
-    if (window.emoteCapacity !== undefined) {
-      window.emoteCapacity = newCapacity;
-    }
-  }
-
-  // === 10. Initialize Panel After DOM Load ===
+  // === 8. Initialize Panel After DOM Load ===
   function initializePanel() {
     // Wait for original elements to be available
     const checkElements = setInterval(() => {
@@ -641,9 +586,14 @@ function () {
     el.emoteSlider.addEventListener('input', function () {
       settings.emotes = parseInt(this.value);
       el.emoteValue.textContent = this.value;
+      localStorage.setItem('emoteCapacity', this.value);
       
-      // Use our new emote capacity updater
-      updateEmoteCapacity(settings.emotes);
+      if (window.game && window.game.emoteCapacity !== undefined) {
+        window.game.emoteCapacity = settings.emotes;
+      }
+      if (window.emoteCapacity !== undefined) {
+        window.emoteCapacity = settings.emotes;
+      }
     });
 
     el.radarToggle.addEventListener('click', () => {
@@ -753,7 +703,7 @@ function () {
     console.log('%c[s] Control Panel Loaded & Synced', 'color:#6366f1');
   }
 
-  // === 11. Menu Functions ===
+  // === 9. Menu Functions ===
   function initializeMenus() {
     // Alt+A menu toggle
     document.addEventListener('keydown', function (e) {
@@ -796,7 +746,7 @@ function () {
     }
   }
 
-  // === 12. Play Button Timer Handler ===
+  // === 10. Play Button Timer Handler ===
   function initializePlayButton() {
     const playButton = document.getElementById('play');
     if (playButton) {
@@ -816,11 +766,10 @@ function () {
     }
   }
 
-  // === 13. Main Initialization ===
+  // === 11. Main Initialization ===
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
-        initializeEmoteCapacityHook(); // Initialize emote hook early
         findCrystalObject();
         initializeTimer();
         initializeBackground();
