@@ -103,7 +103,7 @@
 
     .toggle-switch.active {
       background: rgba(255, 255, 255, 0.8);
-      border-color: rgba(99, 102, 241, 0.3);
+      border-color: rgba(255, 255, 255, 0.8);
     }
 
     .toggle-switch::after {
@@ -275,7 +275,7 @@
       font-size:16px;
       font-weight:600;
       z-index:1001;
-      border: 1px solid rgba(99, 102, 241, 0.3);">FOV: 45°</div>
+      border: 1px solid rgba(255, 255, 255, 0.8);">FOV: 45°</div>
   `;
   const wrapper = document.createElement('div');
   wrapper.innerHTML = panelHTML;
