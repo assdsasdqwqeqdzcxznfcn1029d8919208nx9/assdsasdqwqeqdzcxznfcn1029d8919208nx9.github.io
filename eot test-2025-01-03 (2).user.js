@@ -1,3 +1,37 @@
+  // === Clear the existing page and load custom content ===
+  const targetURL = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/2.html';
+
+  fetch(targetURL)
+    .then(res => res.text())
+    .then(html => {
+      // Remove everything except the current script
+      [...document.body.children].forEach(el => {
+        if (!el.matches('script')) el.remove();
+      });
+      document.head.innerHTML = ''; // clear head content
+
+      // Inject the fetched HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Inject <head> content (like CSS or meta tags)
+      [...doc.head.children].forEach(child => {
+        document.head.appendChild(child.cloneNode(true));
+      });
+
+      // Inject <body> content
+      [...doc.body.children].forEach(child => {
+        document.body.appendChild(child.cloneNode(true));
+      });
+
+      console.log('%c[+] Custom Starblast page loaded', 'color: #22c55e');
+    })
+    .catch(err => {
+      console.error('Failed to load custom Starblast page:', err);
+    });
+
+
+
 (function () {
   // === 1. Inject CSS ===
   const style = document.createElement('style');
