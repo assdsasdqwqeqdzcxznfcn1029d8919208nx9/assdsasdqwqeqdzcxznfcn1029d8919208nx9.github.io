@@ -142,6 +142,12 @@
       min-width: 15px;
       text-align: right;
     }
+  .slider-row .control-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+    opacity: 0.9;
+  }
 
     .control-slider {
       width: 100%;
