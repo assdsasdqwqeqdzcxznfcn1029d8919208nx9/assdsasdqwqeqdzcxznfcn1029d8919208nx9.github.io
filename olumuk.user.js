@@ -1,4 +1,4 @@
-(function () {
+function () {
   // === 1. Initialize Global Variables ===
   let fovdegeri = 45;
   let radaryakinlastirmasi = localStorage.getItem('radar_yknlg') || 4;
