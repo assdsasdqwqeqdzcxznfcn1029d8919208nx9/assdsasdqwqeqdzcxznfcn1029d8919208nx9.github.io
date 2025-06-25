@@ -312,7 +312,6 @@ window.sbCodeInjectors.push(lowercaseInjector);
 window.sbCodeInjectors.push(emoteInjector);
 window.sbCodeInjectors.push(aliasFunctionInjector); // Fixes the TypeError
 window.sbCodeInjectors.push(uiPanelInjector);       // Handles all UI elements
-window.sbCodeInjectors.push(textShadowInjector);     // Handles text shadow color
 
 // Add event listener for F9 to toggle UI
 document.addEventListener('keydown', (e) => {
