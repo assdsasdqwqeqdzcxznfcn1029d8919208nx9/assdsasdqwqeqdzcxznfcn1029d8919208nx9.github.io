@@ -3,7 +3,6 @@
   let fovdegeri = 45;
   let radaryakinlastirmasi = localStorage.getItem('radar_yknlg') || 4;
   let CrystalObject;
-  let globalVal;
 
   // === 2. Inject CSS ===
   const style = document.createElement('style');
@@ -252,9 +251,9 @@
         <div class="slider-container">
           <div class="slider-row">
             <span class="control-label">Emote Slots</span>
-            <span class="slider-value" id="emote-value">4</span>
+            <span class="slider-value" id="emote-value">3</span>
           </div>
-          <input type="range" min="1" max="5" value="4" class="control-slider" id="emote-slider">
+          <input type="range" min="1" max="5" value="3" class="control-slider" id="emote-slider">
         </div>
         <div class="control-row">
           <span class="control-label">Radar+</span>
@@ -283,9 +282,8 @@
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-  // === 4. Initialize Crystal Object Detection & Color System ===
-  function findAndSetupCrystalSystem() {
-    // Find Crystal Object (from original script)
+  // === 4. Initialize Crystal Object Detection ===
+  function findCrystalObject() {
     for (let i in window) {
       try {
         let val = window[i];
@@ -316,117 +314,7 @@
     }
   }
 
-  // === 5. Initialize Emote Capacity System ===
-  function setupEmoteCapacitySystem() {
-    // Wait for ChatPanel to be available
-    const checkChatPanel = setInterval(() => {
-      if (typeof ChatPanel !== 'undefined') {
-        clearInterval(checkChatPanel);
-        
-        try {
-          // Find globalVal (from original script)
-          globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
-          
-          // Override getEmotesCapacity method
-          ChatPanel.prototype.getEmotesCapacity = function () {
-            let capacity = localStorage.getItem('chat_emotes_capacity');
-            try {
-              let parsedCapacity = capacity ? JSON.parse(capacity) : 4;
-              return parsedCapacity == null || isNaN(parsedCapacity)
-                ? 4
-                : Math.trunc(Math.min(Math.max(1, parsedCapacity), 5)) || 4;
-            } catch (e) {
-              return 4;
-            }
-          };
-
-          // Override typed method to use new capacity
-          ChatPanel.prototype.typed = Function(
-            'return ' +
-              ChatPanel.prototype.typed
-                .toString()
-                .replace(/>=\s*4/, ' >= this.getEmotesCapacity()')
-          )();
-          
-          console.log('%c[s] Emote capacity system initialized', 'color:#10b981');
-        } catch (error) {
-          console.warn('[s] Could not fully initialize emote system:', error);
-        }
-      }
-    }, 100);
-  }
-
-  // === 6. Extended Settings Integration ===
-  function integrateExtendedSettings() {
-    // Wait for module.exports to be available
-    const checkModuleExports = setInterval(() => {
-      if (typeof module !== 'undefined' && module.exports && module.exports.settings) {
-        clearInterval(checkModuleExports);
-        
-        try {
-          let settings = module.exports.settings.parameters;
-          
-          // Add extended options if not already present
-          let extendedOptions = {
-            explosions: {
-              name: 'Explosions',
-              value: true,
-              default: true,
-              filter: 'mobile',
-            },
-            self_ship_tag: {
-              name: 'Self-ship Tag',
-              value: false,
-              default: false,
-              filter: 'mobile',
-            },
-            show_blank_badge: {
-              name: 'Show Blank Badges',
-              value: false,
-              default: false,
-              filter: 'mobile',
-            },
-            show_chat: {
-              name: 'Chat Bubbles',
-              value: true,
-              default: true,
-              filter: 'mobile',
-            },
-            chat_emotes_capacity: {
-              name: 'Chat Emotes Capacity',
-              value: 4,
-              default: 4,
-              skipauto: true,
-              type: 'range',
-              min: 1,
-              max: 5,
-              filter: 'mobile',
-            },
-          };
-
-          Object.assign(settings, extendedOptions);
-
-          // Load saved settings
-          for (let key of Object.keys(extendedOptions)) {
-            let data;
-            let localData = localStorage.getItem(key);
-            try {
-              data = localData == null ? extendedOptions[key].default : JSON.parse(localData);
-            } catch (e) {
-              continue;
-            }
-            module.exports.settings.set(key, data);
-          }
-          
-          console.log('%c[s] Extended settings integrated', 'color:#10b981');
-        } catch (error) {
-          console.warn('[s] Could not integrate extended settings:', error);
-        }
-      }
-    }, 100);
-  }
-
-  // === 7. FOV Functions ===
+  // === 5. FOV Functions ===
   function showFov(value) {
     const fovDisplay = document.getElementById('fovDisplay');
     const panelFovDisplay = document.getElementById('fov-value');
@@ -444,7 +332,7 @@
     }
   }
 
-  // === 8. Timer Functions ===
+  // === 6. Timer Functions ===
   function initializeTimer() {
     const timeInfo = document.getElementById('timeInfo');
     if (!timeInfo) return;
@@ -538,10 +426,16 @@
       }
     }
 
+    // Start timer automatically if needed
+    const timerCheckbox = document.getElementById('timerCheckbox');
+    if (timerCheckbox && timerCheckbox.checked) {
+      startTimer();
+    }
+
     return { startTimer, stopTimer };
   }
 
-  // === 9. Background Functions ===
+  // === 7. Background Functions ===
   function initializeBackground() {
     const particlesJs = document.getElementById('particles-js');
     const backgroundLinkInput = document.getElementById('backgroundLinkInput');
@@ -594,7 +488,7 @@
     });
   }
 
-  // === 10. Initialize Panel After DOM Load ===
+  // === 8. Initialize Panel After DOM Load ===
   function initializePanel() {
     // Wait for original elements to be available
     const checkElements = setInterval(() => {
@@ -610,22 +504,13 @@
   }
 
   function setupPanel(fovCheckbox, timerCheckbox, lowercaseCheckbox) {
-    // Settings object - get current emote capacity from localStorage
-    const currentEmoteCapacity = (() => {
-      try {
-        const stored = localStorage.getItem('chat_emotes_capacity');
-        return stored ? JSON.parse(stored) : 4;
-      } catch (e) {
-        return 4;
-      }
-    })();
-
+    // Settings object
     const settings = {
       fov: { 
         enabled: localStorage.getItem('fovCheckboxState') === 'true', 
         value: fovdegeri 
       },
-      emotes: currentEmoteCapacity,
+      emotes: parseInt(localStorage.getItem('emoteCapacity')) || 3,
       radar: radaryakinlastirmasi == 1,
       crystal: localStorage.getItem('crystal-color') || '#ffffff',
       lowercase: localStorage.getItem('lowercaseEnabled') === 'true',
@@ -701,26 +586,14 @@
     el.emoteSlider.addEventListener('input', function () {
       settings.emotes = parseInt(this.value);
       el.emoteValue.textContent = this.value;
+      localStorage.setItem('emoteCapacity', this.value);
       
-      // Save to localStorage in the format expected by the original script
-      localStorage.setItem('chat_emotes_capacity', JSON.stringify(settings.emotes));
-      
-      // Update module.exports.settings if available
-      if (typeof module !== 'undefined' && module.exports && module.exports.settings) {
-        try {
-          module.exports.settings.set('chat_emotes_capacity', settings.emotes);
-        } catch (e) {
-          console.warn('[s] Could not update module settings:', e);
-        }
+      if (window.game && window.game.emoteCapacity !== undefined) {
+        window.game.emoteCapacity = settings.emotes;
       }
-      
-      // Update any existing UI elements from the original script
-      const originalEmoteValue = document.querySelector('#chat_emotes_capacity-value');
-      if (originalEmoteValue) {
-        originalEmoteValue.textContent = settings.emotes;
+      if (window.emoteCapacity !== undefined) {
+        window.emoteCapacity = settings.emotes;
       }
-      
-      console.log('[s] Emote capacity updated to:', settings.emotes);
     });
 
     el.radarToggle.addEventListener('click', () => {
@@ -735,14 +608,6 @@
     el.crystalColorUI.addEventListener('change', function () {
       settings.crystal = this.value;
       localStorage.setItem('crystal-color', this.value);
-      
-      // Update any existing crystal color inputs from the original script
-      const originalCrystalColor = document.querySelector('#crystal-color');
-      if (originalCrystalColor) {
-        originalCrystalColor.value = this.value;
-      }
-      
-      console.log('[s] Crystal color updated to:', this.value);
     });
 
     el.lowercaseToggle.addEventListener('click', () => {
@@ -838,7 +703,7 @@
     console.log('%c[s] Control Panel Loaded & Synced', 'color:#6366f1');
   }
 
-  // === 11. Menu Functions ===
+  // === 9. Menu Functions ===
   function initializeMenus() {
     // Alt+A menu toggle
     document.addEventListener('keydown', function (e) {
@@ -853,6 +718,7 @@
         }
       }
     });
+
     // Mod edit link
     const modEdtLink = document.getElementById('modEdtLink');
     if (modEdtLink) {
