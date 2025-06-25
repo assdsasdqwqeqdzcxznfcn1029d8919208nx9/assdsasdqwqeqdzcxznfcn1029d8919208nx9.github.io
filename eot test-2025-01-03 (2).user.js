@@ -205,7 +205,7 @@
       font-weight: 500;
     }
 
-    /* Battle-ready optimizations */
+    /* optimizaionoitnooa */
     .battle-mode .control-label {
       font-weight: 500;
       color: rgba(255, 255, 255, 0.95);
@@ -246,7 +246,7 @@
           <input type="range" min="1" max="5" value="3" class="control-slider" id="emote-slider">
         </div>
         <div class="control-row">
-          <span class="control-label">Enhanced Radar</span>
+          <span class="control-label">Radar+</span>
           <div class="toggle-switch" id="radar-toggle"></div>
         </div>
         <div class="control-row">
@@ -254,7 +254,7 @@
           <input type="color" class="color-picker" id="crystal-color" value="#ffffff">
         </div>
         <div class="control-row">
-          <span class="control-label">Battle Timer</span>
+          <span class="control-label">Timer</span>
           <div class="toggle-switch" id="timer-toggle"></div>
         </div>
         <div id="fov-display">
@@ -400,5 +400,5 @@
   // === 8. Initialize ===
   initPanel();
   window.modSettings = settings; // for game integration
-  console.log('%c[BATTLE MODS] Control Panel Loaded', 'color:#6366f1');
+  console.log('%c[s] Control Panel Loaded', 'color:#6366f1');
 })();
