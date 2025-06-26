@@ -584,17 +584,29 @@
     });
 
 el.emoteSlider.addEventListener('input', function () {
-  settings.emotes = parseInt(this.value);
-  el.emoteValue.textContent = this.value;
+  const newVal = Math.min(5, Math.max(1, parseInt(this.value, 10) || 4));
+  settings.emotes = newVal;
+  el.emoteValue.textContent = newVal;
 
-  // Store to localStorage (for redundancy)
-  localStorage.setItem('chat_emotes_capacity', JSON.stringify(settings.emotes));
+  // Update module settings directly
+  try {
+    if (module?.exports?.settings?.set) {
+      module.exports.settings.set('chat_emotes_capacity', newVal);
+    }
 
-  // Hook into actual game setting
-  if (module?.exports?.settings?.set) {
-    module.exports.settings.set('chat_emotes_capacity', settings.emotes);
+    // Trigger propertyChanged hook if it's patched
+    const settingHost = Object.values(window).find(v =>
+      typeof v?.prototype?.propertyChanged === 'function'
+    );
+
+    if (settingHost) {
+      settingHost.prototype.propertyChanged('chat_emotes_capacity', newVal);
+    }
+  } catch (e) {
+    console.warn('Failed to set chat_emotes_capacity:', e);
   }
 });
+
 
     el.radarToggle.addEventListener('click', () => {
       settings.radar = !settings.radar;
