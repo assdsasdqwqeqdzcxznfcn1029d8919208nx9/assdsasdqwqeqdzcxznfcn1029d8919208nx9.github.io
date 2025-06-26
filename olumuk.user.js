@@ -282,66 +282,52 @@
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-function overrideCrystalColorSystem() {
+function setupCrystalColorOverride() {
+  if (window.__crystalOverrideInstalled) return; // prevent double-patching
+  window.__crystalOverrideInstalled = true;
+
+  let CrystalObject;
+
+  // Locate the Crystal constructor
   for (let key in window) {
     try {
-      const candidate = window[key];
+      const val = window[key];
       if (
-        typeof candidate === 'function' &&
-        typeof candidate.prototype.createModel === 'function' &&
-        candidate.prototype.createModel.toString().includes('Crystal')
+        typeof val === 'function' &&
+        typeof val.prototype.createModel === 'function' &&
+        val.prototype.createModel.toString().includes('Crystal')
       ) {
-        CrystalObject = candidate;
+        CrystalObject = val;
         break;
       }
-    } catch (_) {}
+    } catch (e) {}
   }
 
   if (!CrystalObject) {
-    console.warn('[✖] CrystalObject not found.');
+    console.warn('[✖] CrystalObject not found for override.');
     return;
   }
 
-  // Avoid double patching
-  if (!CrystalObject.__originalModelInstance) {
-    CrystalObject.__originalModelInstance = CrystalObject.prototype.getModelInstance;
-  }
-
-  const oldModel = CrystalObject.__originalModelInstance;
+  const oldModel = CrystalObject.prototype.getModelInstance;
+  const getCustomCrystalColor = () => localStorage.getItem('crystal-color') || '#ffffff';
 
   CrystalObject.prototype.getModelInstance = function () {
-    let model;
-    try {
-      model = oldModel.apply(this, arguments);
-    } catch (e) {
-      console.error('[✖] Error calling original getModelInstance:', e);
-      return new THREE.Object3D(); // fallback safe return
-    }
-
-    if (!(model instanceof THREE.Object3D)) {
-      console.error('[✖] getModelInstance returned invalid object:', model);
-      return new THREE.Object3D(); // fallback
-    }
+    const res = oldModel.apply(this, arguments);
+    const color = getCustomCrystalColor();
 
     try {
-      const color = localStorage.getItem('crystal-color') || '#ffffff';
-
-      // Set color on this or the returned model
       if (this.material?.color?.set) {
         this.material.color.set(color);
-      } else if (model.material?.color?.set) {
-        model.material.color.set(color);
       }
     } catch (e) {
-      console.warn('Crystal color apply failed:', e);
+      console.warn('[✖] Failed to apply crystal color:', e);
     }
 
-    return model;
+    return res;
   };
 
-  console.log('[✔] CrystalObject patched successfully');
+  console.log('[✔] Crystal color override installed.');
 }
-
 
   // === 5. FOV Functions ===
   function showFov(value) {
@@ -858,7 +844,7 @@ setTimeout(() => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
-        overrideCrystalColorSystem();
+        setupCrystalColorOverride();
         initializeTimer();
         initializeBackground();
         initializeMenus();
@@ -868,7 +854,7 @@ setTimeout(() => {
     });
   } else {
     setTimeout(() => {
-      overrideCrystalColorSystem();
+      setupCrystalColorOverride();
       initializeTimer();
       initializeBackground();
       initializeMenus();
