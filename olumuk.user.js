@@ -583,37 +583,42 @@
       localStorage.setItem('fovCheckboxState', settings.fov.enabled);
     });
 
+// === Custom Emote Capacity Handling ===
 el.emoteSlider.addEventListener('input', function () {
-  const newVal = Math.min(5, Math.max(1, parseInt(this.value, 10) || 4));
-  settings.emotes = newVal;
-  el.emoteValue.textContent = newVal;
+  const newCapacity = Math.max(1, Math.min(5, parseInt(this.value, 10) || 4));
+  settings.emotes = newCapacity;
+  el.emoteValue.textContent = newCapacity;
+  localStorage.setItem('chat_emotes_capacity', JSON.stringify(newCapacity));
 
-  // Wait for module.exports.settings to be available
-  const interval = setInterval(() => {
-    try {
-      if (
-        typeof module !== 'undefined' &&
-        module?.exports?.settings?.set &&
-        typeof module.exports.settings.set === 'function'
-      ) {
-        module.exports.settings.set('chat_emotes_capacity', newVal);
+  // Custom override of emote capacity logic
+  const patchInterval = setInterval(() => {
+    if (typeof ChatPanel === 'function') {
+      // Identify the hidden settings accessor key (e.g., "lOOI1" etc.)
+      const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)?.[0];
 
-        // Optional: trigger propertyChanged for live updates
-        const settingHost = Object.values(window).find(v =>
-          typeof v?.prototype?.propertyChanged === 'function'
-        );
-        if (settingHost) {
-          settingHost.prototype.propertyChanged('chat_emotes_capacity', newVal);
-        }
+      if (!globalVal) return;
 
-        clearInterval(interval); // success
-        console.log('[✔] chat_emotes_capacity set to', newVal);
+      // Patch ChatPanel.prototype.getEmotesCapacity
+      ChatPanel.prototype.getEmotesCapacity = function () {
+        return settings.emotes;
+      };
+
+      // Patch .typed function to respect new capacity
+      if (typeof ChatPanel.prototype.typed === 'function') {
+        ChatPanel.prototype.typed = Function(
+          'return ' +
+            ChatPanel.prototype.typed
+              .toString()
+              .replace(/>=\s*4/, '>= this.getEmotesCapacity()')
+        )();
       }
-    } catch (e) {
-      // Wait and retry until it's ready
+
+      console.log('[✔] Emote capacity patched to', newCapacity);
+      clearInterval(patchInterval);
     }
-  }, 200);
+  }, 300);
 });
+
 
 
 
