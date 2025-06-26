@@ -282,45 +282,53 @@
   wrapper.innerHTML = panelHTML;
   document.body.appendChild(wrapper);
 
-  // === 4. Initialize Crystal Object Detection ===
-  function findCrystalObject() {
-    for (let i in window) {
-      try {
-        let val = window[i];
-        if (
-          'function' == typeof val.prototype.createModel &&
-          val.prototype.createModel.toString().includes('Crystal')
-        ) {
-          CrystalObject = val;
-          break;
-        }
-      } catch (e) {}
-    }
-    
-    if (CrystalObject) {
-      let oldModel = CrystalObject.prototype.getModelInstance;
-      let getCustomCrystalColor = function () {
-        return localStorage.getItem('crystal-color') || '';
-      };
-      
-CrystalObject.prototype.getModelInstance = function () {
-  let result = oldModel.apply(this, arguments);
-  let customColor = getCustomCrystalColor();
-
-  try {
-    // Safely set color if material exists
-    if (this.material && this.material.color && typeof this.material.color.set === 'function') {
-      this.material.color.set(customColor);
-    } else if (result && result.material && result.material.color && typeof result.material.color.set === 'function') {
-      result.material.color.set(customColor);
-    }
-  } catch (e) {
-    console.warn('Failed to apply crystal color:', e);
+// === 4. Initialize Crystal Object Override ===
+function overrideCrystalColorSystem() {
+  for (let key in window) {
+    try {
+      const candidate = window[key];
+      if (
+        typeof candidate === 'function' &&
+        typeof candidate.prototype.createModel === 'function' &&
+        candidate.prototype.createModel.toString().includes('Crystal')
+      ) {
+        CrystalObject = candidate;
+        break;
+      }
+    } catch (e) {}
   }
 
-  // Make sure you return the correct Object3D model
-  return result;
-};
+  if (!CrystalObject) {
+    console.warn('[✖] CrystalObject not found.');
+    return;
+  }
+
+  console.log('[✔] CrystalObject found and patching applied');
+
+  // Only override once
+  if (!CrystalObject.__originalModelInstance) {
+    CrystalObject.__originalModelInstance = CrystalObject.prototype.getModelInstance;
+  }
+
+  const oldModel = CrystalObject.__originalModelInstance;
+
+  CrystalObject.prototype.getModelInstance = function () {
+    const model = oldModel.apply(this, arguments);
+    const color = localStorage.getItem('crystal-color') || '#ffffff';
+
+    try {
+      if (this.material?.color?.set) {
+        this.material.color.set(color);
+      } else if (model?.material?.color?.set) {
+        model.material.color.set(color);
+      }
+    } catch (e) {
+      console.warn('Failed to apply crystal color:', e);
+    }
+
+    return model;
+  };
+}
 
 
   // === 5. FOV Functions ===
@@ -838,7 +846,7 @@ setTimeout(() => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
-        findCrystalObject();
+        overrideCrystalColorSystem();
         initializeTimer();
         initializeBackground();
         initializeMenus();
@@ -848,7 +856,7 @@ setTimeout(() => {
     });
   } else {
     setTimeout(() => {
-      findCrystalObject();
+      overrideCrystalColorSystem();
       initializeTimer();
       initializeBackground();
       initializeMenus();
