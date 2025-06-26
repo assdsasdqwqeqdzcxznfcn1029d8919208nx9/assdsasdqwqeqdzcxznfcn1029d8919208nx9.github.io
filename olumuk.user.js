@@ -588,24 +588,33 @@ el.emoteSlider.addEventListener('input', function () {
   settings.emotes = newVal;
   el.emoteValue.textContent = newVal;
 
-  // Update module settings directly
-  try {
-    if (module?.exports?.settings?.set) {
-      module.exports.settings.set('chat_emotes_capacity', newVal);
-    }
+  // Wait for module.exports.settings to be available
+  const interval = setInterval(() => {
+    try {
+      if (
+        typeof module !== 'undefined' &&
+        module?.exports?.settings?.set &&
+        typeof module.exports.settings.set === 'function'
+      ) {
+        module.exports.settings.set('chat_emotes_capacity', newVal);
 
-    // Trigger propertyChanged hook if it's patched
-    const settingHost = Object.values(window).find(v =>
-      typeof v?.prototype?.propertyChanged === 'function'
-    );
+        // Optional: trigger propertyChanged for live updates
+        const settingHost = Object.values(window).find(v =>
+          typeof v?.prototype?.propertyChanged === 'function'
+        );
+        if (settingHost) {
+          settingHost.prototype.propertyChanged('chat_emotes_capacity', newVal);
+        }
 
-    if (settingHost) {
-      settingHost.prototype.propertyChanged('chat_emotes_capacity', newVal);
+        clearInterval(interval); // success
+        console.log('[✔] chat_emotes_capacity set to', newVal);
+      }
+    } catch (e) {
+      // Wait and retry until it's ready
     }
-  } catch (e) {
-    console.warn('Failed to set chat_emotes_capacity:', e);
-  }
+  }, 200);
 });
+
 
 
     el.radarToggle.addEventListener('click', () => {
