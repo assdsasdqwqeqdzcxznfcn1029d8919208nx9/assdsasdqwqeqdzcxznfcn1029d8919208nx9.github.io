@@ -303,16 +303,25 @@
         return localStorage.getItem('crystal-color') || '';
       };
       
-      CrystalObject.prototype.getModelInstance = function () {
-        let result = oldModel.apply(this, arguments);
-        let customColor = getCustomCrystalColor();
-        if (customColor) {
-          this.material.color.set(customColor);
-        }
-        return result;
-      };
+CrystalObject.prototype.getModelInstance = function () {
+  let result = oldModel.apply(this, arguments);
+  let customColor = getCustomCrystalColor();
+
+  try {
+    // Safely set color if material exists
+    if (this.material && this.material.color && typeof this.material.color.set === 'function') {
+      this.material.color.set(customColor);
+    } else if (result && result.material && result.material.color && typeof result.material.color.set === 'function') {
+      result.material.color.set(customColor);
     }
+  } catch (e) {
+    console.warn('Failed to apply crystal color:', e);
   }
+
+  // Make sure you return the correct Object3D model
+  return result;
+};
+
 
   // === 5. FOV Functions ===
   function showFov(value) {
