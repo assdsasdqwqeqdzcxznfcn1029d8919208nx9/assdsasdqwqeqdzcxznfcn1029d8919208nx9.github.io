@@ -721,6 +721,39 @@ el.emoteSlider.addEventListener('input', function () {
     initUI();
     setInterval(updateFOVDisplay, 100);
 
+// Ensure emote patch is applied on load too
+setTimeout(() => {
+  const newCapacity = settings.emotes;
+
+  const patchInterval = setInterval(() => {
+    if (typeof ChatPanel === 'function') {
+      const globalVal = ChatPanel.toString().match(/[0OlI1]{5}/)?.[0];
+      if (!globalVal) return;
+
+      ChatPanel.prototype.getEmotesCapacity = function () {
+        return newCapacity;
+      };
+
+      if (typeof ChatPanel.prototype.typed === 'function') {
+        ChatPanel.prototype.typed = Function(
+          'return ' +
+            ChatPanel.prototype.typed
+              .toString()
+              .replace(/>=\s*4/, '>= this.getEmotesCapacity()')
+        )();
+      }
+
+      console.log('[✔] Emote capacity loaded and patched to', newCapacity);
+      clearInterval(patchInterval);
+    }
+  }, 300);
+}, 1000);
+
+
+
+
+
+    
     // Make available globally
     window.modSettings = settings;
     window.controlPanelElements = el;
