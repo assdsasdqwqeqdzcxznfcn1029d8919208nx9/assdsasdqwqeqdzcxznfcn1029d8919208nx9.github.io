@@ -583,18 +583,18 @@
       localStorage.setItem('fovCheckboxState', settings.fov.enabled);
     });
 
-    el.emoteSlider.addEventListener('input', function () {
-      settings.emotes = parseInt(this.value);
-      el.emoteValue.textContent = this.value;
-      localStorage.setItem('emoteCapacity', this.value);
-      
-      if (window.game && window.game.emoteCapacity !== undefined) {
-        window.game.emoteCapacity = settings.emotes;
-      }
-      if (window.emoteCapacity !== undefined) {
-        window.emoteCapacity = settings.emotes;
-      }
-    });
+el.emoteSlider.addEventListener('input', function () {
+  settings.emotes = parseInt(this.value);
+  el.emoteValue.textContent = this.value;
+
+  // Store to localStorage (for redundancy)
+  localStorage.setItem('chat_emotes_capacity', JSON.stringify(settings.emotes));
+
+  // Hook into actual game setting
+  if (module?.exports?.settings?.set) {
+    module.exports.settings.set('chat_emotes_capacity', settings.emotes);
+  }
+});
 
     el.radarToggle.addEventListener('click', () => {
       settings.radar = !settings.radar;
